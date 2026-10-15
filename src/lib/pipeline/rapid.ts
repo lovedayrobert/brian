@@ -90,6 +90,10 @@ export async function buildRapidAssets(rapidId: string, takeIndex: number): Prom
   if (!rr) throw new Error("Rapid response not found");
   const m = db.moments.find((x) => x.id === rr.momentId);
   const take = rr.takes[takeIndex];
+  if (!take) throw new Error("That take doesn't exist.");
+  // Enforced here, not just hidden in the UI.
+  if (!take.redLine.pass) throw new Error(`This take failed its red-line check and can't be built: ${take.redLine.note}`);
+  if (m?.sensitivity === "blocked") throw new Error("This moment is blocked by the red-line filter.");
   const assets = await callStructured({
     agent: "rapidResponse",
     subject: take.take,

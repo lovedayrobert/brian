@@ -2,7 +2,8 @@ import clsx from "clsx";
 import Link from "next/link";
 import { CostPlanner } from "@/components/cost-planner";
 import { Card, PageHeader, Pill, SectionTitle, SourceLink } from "@/components/ui";
-import { AGENTS, modelReady } from "@/lib/adapters/model";
+import { AGENTS, modelReady, spendStatus } from "@/lib/adapters/model";
+import { authMode } from "@/lib/auth";
 import { imageReady } from "@/lib/adapters/image";
 import { sourceState } from "@/lib/adapters/sources/registry";
 import { linearReady } from "@/lib/adapters/tasks/linear";
@@ -73,6 +74,8 @@ function SourcesTab({ db }: { db: Awaited<ReturnType<typeof load>> }) {
     { name: "Image model", ok: imageReady(), env: "OPENAI_API_KEY", note: "Key visuals. Without it, mockups use code-built brand visuals" },
     { name: "Linear", ok: linearReady(), env: "LINEAR_API_KEY, LINEAR_TEAM_ID", note: "Pushes the briefed project" },
     { name: "Slack", ok: !!process.env.SLACK_WEBHOOK_URL, env: "SLACK_WEBHOOK_URL", note: "Breaking alerts and the morning summary" },
+    { name: "Login", ok: authMode() === "on", env: "BRIAN_USERS, BRIAN_SESSION_SECRET", note: authMode() === "on" ? "Every page and action needs a sign-in" : "Off for local development; required in production" },
+    { name: "Partner feed import", ok: (process.env.BRIAN_INGEST_TOKEN?.length ?? 0) >= 32, env: "BRIAN_INGEST_TOKEN", note: `POST /api/ingest in Brian Signal Format v1 (docs/07). ${db.imported.length} records held` },
   ];
   return (
     <div className="space-y-10">
@@ -198,10 +201,45 @@ function BrandTab() {
   );
 }
 
+async function SpendCap() {
+  const st = await spendStatus();
+  const bar = (spent: number, cap: number) => (cap > 0 ? Math.min(100, (spent / cap) * 100) : 100);
+  return (
+    <Card className="p-5">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="text-[15px] font-semibold">Hard spend cap</div>
+        <span className="text-[12px] text-ink-3">BRIAN_DAILY_CAP_USD · BRIAN_MONTHLY_CAP_USD</span>
+      </div>
+      {(
+        [
+          ["Today", st.spentToday, st.caps.dailyUsd],
+          ["This month", st.spentThisMonth, st.caps.monthlyUsd],
+        ] as const
+      ).map(([l, spent, cap]) => (
+        <div key={l} className="mb-3">
+          <div className="flex justify-between text-[13px]">
+            <span className="text-ink-2">{l}</span>
+            <span className="tabular font-medium">
+              ${spent.toFixed(2)} of ${cap}
+            </span>
+          </div>
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-3">
+            <div className={`h-full rounded-full ${bar(spent, cap) > 85 ? "bg-bad" : "bg-accent"}`} style={{ width: `${bar(spent, cap)}%` }} />
+          </div>
+        </div>
+      ))}
+      <p className="text-[12px] leading-relaxed text-ink-3">
+        Every AI call reserves its worst-case cost before it runs and is refused if it could take spend past either cap. Set a spend limit in the Anthropic Console as well, as a second backstop.
+      </p>
+    </Card>
+  );
+}
+
 function ModelsTab({ db }: { db: Awaited<ReturnType<typeof load>> }) {
   const s = spend(db);
   return (
     <div className="space-y-6">
+      <SpendCap />
       <div className="grid gap-3 sm:grid-cols-3">
         <Card className="p-5">
           <div className="text-[12.5px] text-ink-2">Spend, last 30 days</div>

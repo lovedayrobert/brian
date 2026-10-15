@@ -4,6 +4,7 @@ import type { AgentRun, Idea, Moment, Package, Signal, SweepRun, Trend } from "@
 import type { RapidResponse } from "@/lib/pipeline/rapid";
 import type { BacktestResult } from "@/lib/engine/backtest";
 import type { Feedback, Memory, MemoryEvent } from "@/lib/memory";
+import type { ReviewSet } from "@/lib/review";
 
 /**
  * Repository interface. The prototype uses a local JSON file so it runs with
@@ -28,9 +29,14 @@ export interface DB {
   memories: Memory[];
   memoryEvents: MemoryEvent[];
   feedback: Feedback[];
+  /** USD spent per UTC day. Never trimmed; drives the hard spend cap. */
+  spendLedger: Record<string, number>;
+  /** Records from external feeds (Brian Signal Format v1), kept for 14 days */
+  imported: Signal[];
+  reviews: ReviewSet[];
 }
 
-const EMPTY: DB = { signals: [], trends: [], moments: [], ideas: [], packages: [], agentRuns: [], sweeps: [], rapid: [], memories: [], memoryEvents: [], feedback: [] };
+const EMPTY: DB = { signals: [], trends: [], moments: [], ideas: [], packages: [], agentRuns: [], sweeps: [], rapid: [], memories: [], memoryEvents: [], feedback: [], spendLedger: {}, imported: [], reviews: [] };
 
 class FileRepository implements Repository {
   private queue: Promise<unknown> = Promise.resolve();

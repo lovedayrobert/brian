@@ -11,7 +11,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "backtest": "tsx --tsconfig tsconfig.json scripts/backtest.mts",
-    "demo": "tsx --tsconfig tsconfig.json scripts/demo.mts"
+    "demo": "tsx --tsconfig tsconfig.json scripts/demo.mts",
+    "eval": "tsx --tsconfig tsconfig.json scripts/eval.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.134.0",

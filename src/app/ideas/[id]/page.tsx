@@ -36,7 +36,9 @@ export default async function IdeaDetail({ params }: { params: Promise<{ id: str
         title={idea.name}
         subtitle={idea.oneLiner}
         actions={
-          pkg ? (
+          idea.screening.redLines && !idea.screening.redLines.pass ? (
+            <span className="inline-flex h-9 items-center rounded-full bg-bad-soft px-4 text-[13px] font-medium text-bad">Blocked by Red Lines</span>
+          ) : pkg ? (
             <Link href={`/develop/${pkg.id}`} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-ink px-4 text-[13.5px] font-medium text-bg hover:opacity-90">
               <Layers className="h-3.5 w-3.5" /> Open package
             </Link>

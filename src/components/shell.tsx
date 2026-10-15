@@ -20,7 +20,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { relativeTime } from "@/lib/format";
 
@@ -54,6 +54,7 @@ const NAV = [
 ];
 
 export interface ShellStatus {
+  auth: boolean;
   ai: boolean;
   images: boolean;
   lastSweep: string | null;
@@ -62,10 +63,13 @@ export interface ShellStatus {
 
 export function Shell({ children, status }: { children: React.ReactNode; status: ShellStatus }) {
   const pathname = usePathname();
+  const router = useRouter();
   // The menu closes itself on navigation: it is only open for the path it was opened on.
   const [openOn, setOpenOn] = useState<string | null>(null);
   const open = openOn === pathname;
   const setOpen = (v: boolean) => setOpenOn(v ? pathname : null);
+
+  if (pathname === "/login") return <main className="px-4">{children}</main>;
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
@@ -123,6 +127,18 @@ export function Shell({ children, status }: { children: React.ReactNode; status:
           Settings
         </Link>
         <SystemStatus status={status} />
+        {status.auth && (
+          <button
+            onClick={async () => {
+              await fetch("/api/auth/logout", { method: "POST" });
+              router.push("/login");
+              router.refresh();
+            }}
+            className="ml-3 text-[11.5px] text-ink-3 hover:text-ink"
+          >
+            Sign out
+          </button>
+        )}
       </div>
     </nav>
   );

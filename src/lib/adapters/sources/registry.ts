@@ -1,5 +1,6 @@
 import { SOURCES, isConfigured } from "@/lib/config/sources";
 import { gdelt } from "./gdelt";
+import { imported } from "./imported";
 import { googleTrends } from "./googletrends";
 import { polymarket } from "./polymarket";
 import { press } from "./press";
@@ -13,10 +14,11 @@ import { youtube } from "./youtube";
  * a slot: once budget is approved and keys are in .env, its adapter is added
  * here and the sweep picks it up. Nothing else changes.
  */
-const IMPLEMENTED: SourceAdapter[] = [googleTrends, press, trenches, youtube, gdelt, wikipedia, polymarket];
+const IMPLEMENTED: SourceAdapter[] = [imported, googleTrends, press, trenches, youtube, gdelt, wikipedia, polymarket];
 
 export function adapters(): SourceAdapter[] {
-  return IMPLEMENTED;
+  // The blind test runs on free sources only, so partner imports can be switched off.
+  return process.env.BRIAN_FREE_SOURCES_ONLY ? IMPLEMENTED.filter((a) => a.id !== "imported") : IMPLEMENTED;
 }
 
 export type SourceState = "live" | "needs-key" | "not-connected";

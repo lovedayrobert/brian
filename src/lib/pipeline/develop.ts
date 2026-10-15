@@ -6,6 +6,7 @@ import type { Citation, Idea, Input, Package, SectionKey, Signal, Trend } from "
 import { computeAllScenarios, compareToBaseline, type FunnelKey } from "@/lib/engine/funnel";
 import { newId, repo } from "@/lib/store";
 import { learnFromBehaviour, memoryForRun } from "@/lib/memory";
+import { checkSteeringRedLines, ensureRedLinesPass } from "./ideas";
 import { ACCURACY_RULES, brandContext, qualityBarContext, trendEvidence } from "./context";
 import * as S from "./package-schemas";
 
@@ -59,6 +60,8 @@ export async function startPackage(ideaId: string): Promise<Package> {
   if (!idea) throw new Error("Idea not found");
   const existing = db.packages.find((p) => p.ideaId === ideaId);
   if (existing) return existing;
+  // Hard gate: the Critic can be overruled, Red Lines can't.
+  await ensureRedLinesPass(ideaId);
   if (idea.status === "killed") {
     await learnFromBehaviour({ type: "overrule", ideaId, label: idea.name, criticReason: idea.screening.critic.reasons[0] });
   }
@@ -103,6 +106,9 @@ export async function runPackage(packageId: string, only?: SectionKey[]): Promis
 
 /** Steering: apply an instruction to one section and regenerate it and everything downstream. */
 export async function steerPackage(packageId: string, instruction: string, from: SectionKey): Promise<SectionKey[]> {
+  const pre = (await repo.read()).packages.find((p) => p.id === packageId);
+  if (!pre) throw new Error("Package not found");
+  await checkSteeringRedLines(pre.ideaId, instruction);
   const affected = downstream(from);
   await repo.update((d) => {
     const p = d.packages.find((x) => x.id === packageId);

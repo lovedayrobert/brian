@@ -47,6 +47,19 @@ Built in `src/lib/pipeline/context.ts` and `src/lib/memory.ts`:
 
 Blocked trends and moments (tragedy filter) are refused before any model call.
 
+### Red lines are a hard stop (`ensureRedLinesPass`, `checkSteeringRedLines`)
+
+| Situation | What happens |
+|---|---|
+| Idea passed Red Lines | Can be developed |
+| Idea failed Red Lines | Can't be developed, steered or handed over; the UI shows *Blocked by Red Lines* |
+| Idea killed by the Critic before reaching Red Lines, then overruled | Red Lines runs first; development proceeds only on a pass |
+| Steering instruction | Checked by Red Lines before anything regenerates |
+| Rapid Response take that failed its check, or a blocked moment | Assets refused by the server |
+| Linear push | Refused unless the idea passed Red Lines |
+
+The Critic is taste and can be overruled; Red Lines is legal and safety and can't. All checks run on the server, so they can't be bypassed from the browser or by calling the API directly.
+
 ### Develop (`src/lib/pipeline/develop.ts`)
 
 Eleven sections, each with its own Zod schema (`package-schemas.ts`) and declared dependencies:

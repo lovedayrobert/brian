@@ -73,6 +73,18 @@ export const SOURCES: SourceDef[] = [
     phase: 1,
   },
   {
+    id: "imported",
+    name: "Partner feeds (import)",
+    category: "social",
+    access: "free",
+    liveAdapter: true,
+    envKeys: [],
+    monthlyCost: { low: 0, high: 0 },
+    costNote: "Free: existing feeds pushed in Brian Signal Format v1",
+    unlocks: "Any feed already running elsewhere (X data, Exa, Google Trends history, Telegram) plugs in through one format: push to /api/ingest or drop JSON Lines files in data/inbox.",
+    phase: 1,
+  },
+  {
     id: "trenches",
     name: "The trenches (pump.fun)",
     category: "onchain",

@@ -47,3 +47,6 @@ public/generated/
 # local tooling
 .claude/
 .DS_Store
+
+# imported feed files
+data/inbox/

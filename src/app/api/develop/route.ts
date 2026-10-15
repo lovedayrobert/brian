@@ -1,8 +1,10 @@
 import { modelReady, ModelUnavailableError } from "@/lib/adapters/model";
 import { runPackage, startPackage } from "@/lib/pipeline/develop";
-import { fail } from "../_util";
+import { fail, requireUser } from "../_util";
 
 export async function POST(req: Request) {
+  const denied = await requireUser(req);
+  if (denied) return denied;
   try {
     if (!modelReady()) throw new ModelUnavailableError();
     const { ideaId } = (await req.json()) as { ideaId: string };

@@ -9,7 +9,8 @@ Brian is Cashy's AI marketing engine (Next.js 16, TypeScript, Anthropic SDK). If
 3. `docs/03-agents-and-pipelines.md`: every agent and pipeline
 4. `docs/04-sources-and-accuracy.md`: sources, ranking, accuracy enforcement, lifecycle model and backtest
 5. `docs/05-memory.md`: learning from feedback
-6. `docs/06-operations.md`: setup, costs, known limits, roadmap
+6. `docs/06-operations.md`: setup, login, spend cap, costs, known limits, roadmap
+7. `docs/07-data-import.md`: format for partner data feeds
 
 ## Where the important code is
 
@@ -29,7 +30,7 @@ Brian is Cashy's AI marketing engine (Next.js 16, TypeScript, Anthropic SDK). If
 
 ```bash
 npm install
-npm test            # 41 unit tests
+npm test            # 69 unit tests
 npm run typecheck
 npm run lint
 npm run build

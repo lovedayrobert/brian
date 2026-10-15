@@ -3,6 +3,7 @@ import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import type * as z from "zod/v4";
 import type { AgentRun, Citation } from "@/lib/domain/types";
 import { newId, repo } from "@/lib/store";
+import { capsFromEnv, checkBudget, FALLBACK_WORST, PRICES, spendFromRuns, WEB_SEARCH_USD, worstCaseCost } from "@/lib/engine/spend";
 
 /**
  * Model adapter. Every agent call goes through here, so models are assigned
@@ -38,13 +39,30 @@ export const AGENTS: Record<AgentName, { model: string; effort: Effort; label: s
   rapidResponse: { model: "claude-opus-5-5", effort: "medium", label: "Rapid Response", job: "Three reactive takes within minutes" },
 };
 
-/** USD per million tokens (input, output). Update when pricing changes. */
-const PRICING: Record<string, [number, number]> = {
-  "claude-opus-5-5": [4, 20],
-  "claude-sonnet-5-5": [2, 10],
-  "claude-haiku-5-5": [0.1, 0.5],
-};
-const WEB_SEARCH_USD = 10 / 1000;
+export class SpendCapError extends Error {}
+
+/**
+ * Hard spend cap. Every call reserves its worst-case cost first and is refused
+ * if spent + in-flight + this call would pass the daily or monthly cap
+ * (BRIAN_DAILY_CAP_USD, BRIAN_MONTHLY_CAP_USD). See src/lib/engine/spend.ts.
+ */
+const reservations = new Map<string, number>();
+
+async function reserve(id: string, estimate: number): Promise<void> {
+  const db = await repo.read();
+  const spent = spendFromRuns(Object.entries(db.spendLedger ?? {}).map(([day, costUsd]) => ({ startedAt: day, costUsd })));
+  const reserved = [...reservations.values()].reduce((a, b) => a + b, 0);
+  // No await between the check and the reservation, so concurrent calls can't both slip under the cap.
+  const decision = checkBudget({ ...spent, reserved }, estimate, capsFromEnv());
+  if (!decision.ok) throw new SpendCapError(decision.reason);
+  reservations.set(id, estimate);
+}
+
+export async function spendStatus() {
+  const db = await repo.read();
+  const spent = spendFromRuns(Object.entries(db.spendLedger ?? {}).map(([day, costUsd]) => ({ startedAt: day, costUsd })));
+  return { ...spent, caps: capsFromEnv() };
+}
 
 export class ModelUnavailableError extends Error {
   constructor() {
@@ -88,10 +106,13 @@ export async function callStructured<S extends z.ZodType>(opts: {
     ok: false,
     subject: opts.subject,
   };
+  const maxTokens = opts.maxTokens ?? 16000;
   try {
+    getClient();
+    await reserve(run.id, worstCaseCost({ model: cfg.model, inputChars: opts.system.length + opts.prompt.length + 4000, maxOutputTokens: maxTokens, fallback: supportsFallback(cfg.model) }));
     const res = await getClient().beta.messages.parse({
       model: cfg.model,
-      max_tokens: opts.maxTokens ?? 16000,
+      max_tokens: maxTokens,
       system: opts.system,
       messages: [{ role: "user", content: opts.prompt }],
       output_config: { effort: cfg.effort, format: betaZodOutputFormat(opts.schema) },
@@ -105,12 +126,16 @@ export async function callStructured<S extends z.ZodType>(opts: {
     return res.parsed_output as z.infer<S>;
   } catch (e) {
     run.error = errorMessage(e);
-    throw e instanceof ModelUnavailableError ? e : new Error(`${cfg.label}: ${run.error}`);
+    throw e instanceof ModelUnavailableError || e instanceof SpendCapError ? e : new Error(`${cfg.label}: ${run.error}`);
   } finally {
     run.durationMs = Date.now() - started;
     await repo.update((db) => {
       db.agentRuns = [run, ...db.agentRuns].slice(0, 2000);
+      // The ledger is never trimmed, so caps stay accurate however many calls run.
+      const day = run.startedAt.slice(0, 10);
+      db.spendLedger = { ...(db.spendLedger ?? {}), [day]: Math.round(((db.spendLedger?.[day] ?? 0) + run.costUsd) * 10000) / 10000 };
     });
+    reservations.delete(run.id);
   }
 }
 
@@ -132,13 +157,16 @@ export async function research(opts: {
     id: newId("run"), agent: opts.agent, model: cfg.model, startedAt: new Date(started).toISOString(),
     durationMs: 0, inputTokens: 0, outputTokens: 0, costUsd: 0, ok: false, subject: opts.subject,
   };
+  const maxSearches = opts.maxSearches ?? 5;
   try {
+    getClient();
+    await reserve(run.id, worstCaseCost({ model: cfg.model, inputChars: opts.system.length + opts.prompt.length + 4000, maxOutputTokens: 16000, searches: maxSearches }));
     const res = await getClient().messages.create({
       model: cfg.model,
       max_tokens: 16000,
       system: opts.system,
       messages: [{ role: "user", content: opts.prompt }],
-      tools: [{ type: "web_search_20260209", name: "web_search", max_uses: opts.maxSearches ?? 5 }],
+      tools: [{ type: "web_search_20260209", name: "web_search", max_uses: maxSearches }],
       output_config: { effort: cfg.effort },
     });
     const searches = res.usage.server_tool_use?.web_search_requests ?? 0;
@@ -156,12 +184,16 @@ export async function research(opts: {
     return { notes: notes.trim(), sources: [...sources.values()] };
   } catch (e) {
     run.error = errorMessage(e);
-    throw e instanceof ModelUnavailableError ? e : new Error(`${cfg.label}: ${run.error}`);
+    throw e instanceof ModelUnavailableError || e instanceof SpendCapError ? e : new Error(`${cfg.label}: ${run.error}`);
   } finally {
     run.durationMs = Date.now() - started;
     await repo.update((db) => {
       db.agentRuns = [run, ...db.agentRuns].slice(0, 2000);
+      // The ledger is never trimmed, so caps stay accurate however many calls run.
+      const day = run.startedAt.slice(0, 10);
+      db.spendLedger = { ...(db.spendLedger ?? {}), [day]: Math.round(((db.spendLedger?.[day] ?? 0) + run.costUsd) * 10000) / 10000 };
     });
+    reservations.delete(run.id);
   }
 }
 
@@ -171,12 +203,13 @@ function record(
   model: string,
   searches = 0,
 ) {
-  const [inP, outP] = PRICING[model] ?? PRICING["claude-opus-5-5"];
+  // A refusal fallback can be served by another model; unknown models are priced at the worst case.
+  const price = PRICES[model] ?? FALLBACK_WORST;
   run.model = model;
   run.inputTokens = usage.input_tokens + (usage.cache_read_input_tokens ?? 0);
   run.outputTokens = usage.output_tokens;
-  run.costUsd =
-    Math.round(((usage.input_tokens * inP + usage.output_tokens * outP) / 1e6 + searches * WEB_SEARCH_USD) * 10000) / 10000;
+  // Cache reads are billed cheaper than input; counting them at input price keeps the cap conservative.
+  run.costUsd = Math.round(((run.inputTokens * price.input + usage.output_tokens * price.output) / 1e6 + searches * WEB_SEARCH_USD) * 10000) / 10000;
 }
 
 function errorMessage(e: unknown): string {

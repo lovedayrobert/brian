@@ -1,9 +1,11 @@
 import type { SectionKey } from "@/lib/domain/types";
 import { modelReady, ModelUnavailableError } from "@/lib/adapters/model";
 import { steerPackage } from "@/lib/pipeline/develop";
-import { fail } from "../../../_util";
+import { fail, requireUser } from "../../../_util";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireUser(req);
+  if (denied) return denied;
   try {
     if (!modelReady()) throw new ModelUnavailableError();
     const { id } = await params;

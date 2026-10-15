@@ -1,9 +1,11 @@
 import { buildRapidAssets } from "@/lib/pipeline/rapid";
-import { fail } from "../../../_util";
+import { fail, requireUser } from "../../../_util";
 
 export const maxDuration = 120;
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireUser(req);
+  if (denied) return denied;
   try {
     const { id } = await params;
     const { take } = (await req.json()) as { take: number };

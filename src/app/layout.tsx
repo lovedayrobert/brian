@@ -4,6 +4,7 @@ import { Shell } from "@/components/shell";
 import { modelReady } from "@/lib/adapters/model";
 import { imageReady } from "@/lib/adapters/image";
 import { repo } from "@/lib/store";
+import { authMode } from "@/lib/auth";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
@@ -30,6 +31,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="min-h-full">
         <Shell
           status={{
+            auth: authMode() === "on",
             ai: modelReady(),
             images: imageReady(),
             lastSweep: lastSweep?.finishedAt ?? null,

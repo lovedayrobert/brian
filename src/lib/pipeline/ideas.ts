@@ -295,3 +295,49 @@ ${evidence.length ? `Evidence (cite these URLs only):\n${evidence.map((s) => `- 
 </context>`;
   return { text, allowed, subject: `Lab: ${lens.name}`, trend: undefined, moment: undefined };
 }
+
+export class RedLineError extends Error {}
+
+/**
+ * The gate every idea passes before it can be developed. The Critic can be
+ * overruled (taste); Red Lines cannot (legal and safety). An idea that never
+ * reached Red Lines, because the Critic killed it first, is checked now.
+ */
+export async function ensureRedLinesPass(ideaId: string): Promise<void> {
+  const db = await repo.read();
+  const idea = db.ideas.find((i) => i.id === ideaId);
+  if (!idea) throw new Error("Idea not found");
+  let red = idea.screening.redLines;
+  if (!red) {
+    const trend = db.trends.find((t) => t.id === idea.trendId);
+    const source = trend ? trendEvidence(trend, db.signals).text : `<idea_context>${idea.borrowedAttention}</idea_context>`;
+    red = await checkRedLines(idea, idea.brandId, source);
+    await repo.update((d) => {
+      const i = d.ideas.find((x) => x.id === ideaId);
+      if (i) i.screening.redLines = red;
+    });
+  }
+  if (!red.pass) {
+    throw new RedLineError(`Red lines can't be overruled. ${red.issues.join(" ") || "This idea breaches a legal or safety line."}`);
+  }
+}
+
+const SteerCheck = z.object({ pass: z.boolean(), issue: z.string().nullable() });
+
+/** Steering can't be used to walk a package over a red line. */
+export async function checkSteeringRedLines(ideaId: string, instruction: string): Promise<void> {
+  const db = await repo.read();
+  const idea = db.ideas.find((i) => i.id === ideaId);
+  if (!idea) throw new Error("Idea not found");
+  const r = await callStructured({
+    agent: "redLines",
+    subject: `steer: ${instruction.slice(0, 60)}`,
+    schema: SteerCheck,
+    system: [
+      "You are Red Lines at Brian. Decide whether applying a steering instruction to a campaign would breach a red line. Only legal and safety lines count: making an idea bolder, ruder or more rival-baiting is allowed.",
+      qualityBarContext(),
+    ].join("\n\n"),
+    prompt: `<idea>\n${idea.name}: ${idea.oneLiner}\n</idea>\n<instruction>\n${instruction}\n</instruction>`,
+  });
+  if (!r.pass) throw new RedLineError(`That change would cross a red line: ${r.issue ?? "legal or safety"}`);
+}

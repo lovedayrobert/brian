@@ -16,7 +16,8 @@ This folder is the full documentation. Start here, then read in order:
 3. [Agents and pipelines](03-agents-and-pipelines.md): every agent, what it receives, what it returns, how the pipelines chain them
 4. [Sources, accuracy and forecasting](04-sources-and-accuracy.md): data sources, how claims and numbers are kept honest, the lifecycle model and its backtest
 5. [Memory](05-memory.md): how Brian learns from feedback
-6. [Operations](06-operations.md): setup, configuration, scripts, tests, costs, known limits, roadmap
+6. [Operations](06-operations.md): setup, configuration, login, spend caps, scripts, tests, costs, known limits, roadmap
+7. [Importing data](07-data-import.md): Brian Signal Format v1 for partner feeds (X, Exa, Google Trends history, Telegram)
 
 ## What it does
 
@@ -35,7 +36,9 @@ This folder is the full documentation. Start here, then read in order:
 - **Every number has provenance.** Inputs are labelled measured, benchmark or assumption. A "benchmark" without a real citation is relabelled "assumption"; "measured" is impossible until Cashy's own data is connected.
 - **Models never do arithmetic.** Funnels, budgets, lifecycle stages and backtests are pure, tested TypeScript.
 - **Humans ship.** Nothing posts, publishes or deploys automatically.
-- **Edgy is allowed; red lines are not.** Rival-baiting and controversy are flagged with consequences, never removed. Illegal content, minors, real-person impersonation, tragedies and harm to vulnerable players are hard stops.
+- **Edgy is allowed; red lines are not.** Rival-baiting and controversy are flagged with consequences, never removed. Illegal content, minors, real-person impersonation, tragedies and harm to vulnerable players are hard stops, enforced on the server: the Critic can be overruled, Red Lines can't.
+- **Spend is capped.** Every AI call reserves its worst-case cost first and is refused if it could pass the daily or monthly cap.
+- **Nothing is open.** Every page and API action requires a sign-in; production refuses to run without login configured.
 
 ## Current state (October 2026)
 
@@ -48,6 +51,9 @@ This folder is the full documentation. Start here, then read in order:
 | Mockups | Working (code-built visuals; generated key visuals with `OPENAI_API_KEY`) |
 | Linear push | Built; needs `LINEAR_API_KEY` and `LINEAR_TEAM_ID` |
 | Paid sources (X, Reddit, TikTok, Kick, on-chain analytics) | Slots and catalogue ready; adapters added once budget is approved |
+| Login, hard spend cap, red-line hard stop | Working and tested |
+| Partner feed import (`/api/ingest`, `data/inbox`) | Working and tested |
+| Blind review (`npm run eval`, `/review/:id`) | Built; runs when the AI key is set |
 | Hosting | Runs locally; production plan in doc 6 |
 
 A clearly labelled sample package (*The Win Cap Bounty*) can be loaded with `npm run demo` to show the output format before the AI key is connected.
@@ -226,6 +232,19 @@ Built in `src/lib/pipeline/context.ts` and `src/lib/memory.ts`:
 5. Everything is saved, killed ideas included, so the owner can overrule the Critic.
 
 Blocked trends and moments (tragedy filter) are refused before any model call.
+
+### Red lines are a hard stop (`ensureRedLinesPass`, `checkSteeringRedLines`)
+
+| Situation | What happens |
+|---|---|
+| Idea passed Red Lines | Can be developed |
+| Idea failed Red Lines | Can't be developed, steered or handed over; the UI shows *Blocked by Red Lines* |
+| Idea killed by the Critic before reaching Red Lines, then overruled | Red Lines runs first; development proceeds only on a pass |
+| Steering instruction | Checked by Red Lines before anything regenerates |
+| Rapid Response take that failed its check, or a blocked moment | Assets refused by the server |
+| Linear push | Refused unless the idea passed Red Lines |
+
+The Critic is taste and can be overruled; Red Lines is legal and safety and can't. All checks run on the server, so they can't be bypassed from the browser or by calling the API directly.
 
 ### Develop (`src/lib/pipeline/develop.ts`)
 
@@ -461,6 +480,9 @@ npm run dev          # http://localhost:3000
 
 | Variable | Turns on |
 |---|---|
+| `BRIAN_USERS`, `BRIAN_SESSION_SECRET` | Login (required in production) |
+| `BRIAN_DAILY_CAP_USD`, `BRIAN_MONTHLY_CAP_USD` | Hard AI spend caps (defaults 50 and 300) |
+| `BRIAN_INGEST_TOKEN` | Partner feed import endpoint |
 | `ANTHROPIC_API_KEY` | All agents: ideas, Lab, Critic, Red Lines, Prior Art, packages, Rapid Response, Cartographer, memory consolidation |
 | `OPENAI_API_KEY`, `IMAGE_MODEL` | Generated key visuals (default model `gpt-image-1`) |
 | `YOUTUBE_API_KEY` | YouTube trending |
@@ -470,6 +492,31 @@ npm run dev          # http://localhost:3000
 
 Secrets live only in `.env.local`, which is git-ignored. `.data/` (local database) and `public/generated/` (images) are also ignored.
 
+## Login
+
+- Set `BRIAN_USERS` (`name:password,name2:password2`) and `BRIAN_SESSION_SECRET` (32+ random characters).
+- Every page and API action then requires a sign-in. Sessions are HMAC-signed, HttpOnly, SameSite=Lax cookies lasting 7 days (Secure in production).
+- Checked twice: in `src/proxy.ts` for every request, and again inside every API route (`requireUser`).
+- Cross-site POSTs are refused; login attempts are limited to 5 a minute per address.
+- In production, if login isn't configured, Brian refuses every request rather than running open. Locally it runs without login and Settings says so.
+- The partner import endpoint uses its own bearer token (`BRIAN_INGEST_TOKEN`), not a user login.
+
+## Hard spend cap
+
+- `BRIAN_DAILY_CAP_USD` (default 50) and `BRIAN_MONTHLY_CAP_USD` (default 300), UTC days and months.
+- Before every model call Brian reserves its worst-case cost: the full output budget, a conservative input estimate, the pricier of the model and its refusal fallback, and every allowed web search with a token allowance. The call is refused if spend + in-flight reservations + this call could pass either cap. Actual cost replaces the reservation afterwards.
+- Spend is kept in a ledger that is never trimmed, so caps stay accurate however many calls run.
+- The one thing that can't be bounded exactly is how many tokens web search results add; research calls reserve 25,000 tokens per allowed search. Set a spend limit in the Anthropic Console as a second backstop.
+- Settings → Models shows today's and this month's spend against the caps.
+
+## Using a Claude plan's credits
+
+Since 7 October 2026, Max and Team plans include monthly API credits that cover the Claude API. Link a Claude Console organisation in the plan's billing settings, create an API key in that organisation and use it as `ANTHROPIC_API_KEY`. No code changes are needed.
+
+## Blind review
+
+`npm run eval` produces the agreed blind test: a fresh sweep on free sources only, every card Brian produces in order until 20 (nothing removed), packages for Brian's own top 2 cards, then a frozen review shuffled once. The reviewer rates at `/review/:id`; scores, labels and packages stay hidden until every card is rated; the pass mark (3 of 20) is fixed in advance. Every verdict also feeds Memory.
+
 ## Scripts
 
 | Command | What it does |
@@ -478,7 +525,8 @@ Secrets live only in `.env.local`, which is git-ignored. `.data/` (local databas
 | `npm run sweep` | Full discovery sweep |
 | `npm run backtest` | Lifecycle backtest; caches series in `.data/backtest-series.json` |
 | `npm run demo` / `npm run demo -- --remove` | Load or remove the sample package |
-| `npm test` | Unit tests (41) |
+| `npm run eval` | Generate the blind review set (needs the AI key) |
+| `npm test` | Unit tests (69) |
 | `npm run typecheck` / `npm run lint` | Types and lint |
 | `scripts/rebuild.mts` | Rebuild trends and moments from stored signals without refetching (ranking tuning) |
 | `scripts/seed-memory.mts` | Seed memory with the owner's feedback |
@@ -508,7 +556,7 @@ Claude pricing used: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 p
 - Without the AI key, relevance and coin classification are keyword heuristics and are labelled as such; coin links to moments are switched off until the model has read the coins.
 - The lifecycle model does not yet beat naive momentum (doc 4).
 - Brand visual identity is a placeholder until Cashy's logo, fonts and colours are supplied.
-- No authentication: run locally or behind access control.
+- Login is shared-password per user from environment variables; move to Supabase Auth for the hosted build.
 
 ## Roadmap
 
@@ -518,3 +566,70 @@ Claude pricing used: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 p
 | Next | X adapter; real brand assets; Postgres and job queue; hosted deployment with auth; scheduled sweeps and Slack summary |
 | Then | Reddit, Kick, TikTok via vendor; competitor tracking; creator shortlists from live data; video storyboards; Figma export; comments and versions UI; BitStarz |
 | Later | Analytics integration, live campaign dashboards, forecast versus actual, recalibration of the forecaster |
+
+
+---
+
+# 7. Importing data (Brian Signal Format v1)
+
+Any feed that already runs elsewhere (X, Exa, Google Trends history, Telegram, anything else) gets into Brian through one format. Brian doesn't need to know how the data was collected.
+
+## Format
+
+JSON Lines: one JSON object per line, UTF-8. A JSON array of the same objects also works.
+
+| Field | Required | Type | Notes |
+|---|---|---|---|
+| `source` | yes | string | Lowercase letters, numbers, dashes. e.g. `x`, `exa`, `google-trends`, `telegram` |
+| `id` | yes | string | Unique within the source. Re-sending the same `source` + `id` updates the record |
+| `url` | yes | URL | Link to the original (post, message, article, explore page). Agents may only cite URLs Brian holds, so this matters |
+| `title` | yes | string ≤ 500 | Headline, or the post or message text |
+| `text` | no | string ≤ 5,000 | Full text or description |
+| `author` | no | string | Handle, channel or outlet |
+| `published_at` | no | ISO 8601 with offset | e.g. `2026-10-15T10:00:00Z`. Records older than 14 days drop out |
+| `metrics` | no | object of numbers | Any counts: `views`, `likes`, `reposts`, `replies`, `members`, `volume`, … |
+| `primary_metric` | no | string | Which metric Brian should show and rank by |
+| `series` | no | array of `{date, value}` | Daily history, oldest or newest first (`date` as `YYYY-MM-DD`). A record with a series becomes a **trend** with a lifecycle stage; without one it is treated like an **article** and clustered into Live moments |
+| `topics` | no | array of strings | Hashtags, channel tags, categories |
+| `image_url` | no | URL | Thumbnail |
+| `related` | no | array of `{title, url, outlet}` | Supporting links, e.g. the news behind a search spike |
+
+### Examples, one per line
+
+```json
+{"source":"x","id":"1846000000000000001","url":"https://x.com/someone/status/1846000000000000001","title":"Kick streamer gets max-win capped live and loses it on stream","author":"@clipaccount","published_at":"2026-10-15T09:12:00Z","metrics":{"views":412000,"reposts":3100,"replies":880},"primary_metric":"views","topics":["kick","casino"]}
+{"source":"exa","id":"https://example.com/story","url":"https://example.com/story","title":"Crypto casino streamers face new sponsorship rules","text":"First paragraph of the article…","author":"Example News","published_at":"2026-10-15T07:00:00Z"}
+{"source":"google-trends","id":"gta-6-us","url":"https://trends.google.com/trends/explore?geo=US&q=gta%206","title":"gta 6","metrics":{"interest":100},"series":[{"date":"2026-10-13","value":61},{"date":"2026-10-14","value":78},{"date":"2026-10-15","value":100}],"topics":["US"]}
+{"source":"telegram","id":"cryptocasinochat:55123","url":"https://t.me/cryptocasinochat/55123","title":"Anyone else get their withdrawal frozen this week?","author":"Crypto Casino Chat","published_at":"2026-10-15T11:40:00Z","metrics":{"views":5400,"replies":212},"primary_metric":"views"}
+```
+
+## Two ways to send it
+
+**1. Push (recommended for live feeds)**
+
+```bash
+curl -X POST https://<brian-host>/api/ingest \
+  -H "Authorization: Bearer $BRIAN_INGEST_TOKEN" \
+  --data-binary @batch.jsonl
+```
+
+- Up to 5,000 records and 20 MB per request; send as often as you like
+- The response says how many were accepted and lists bad lines with line numbers; good lines are kept even if others fail
+- `BRIAN_INGEST_TOKEN` is set on the Brian server (32+ characters) and shared with the feed owner. It is separate from user logins
+
+**2. Drop files (simplest for batches)**
+
+Put `.jsonl` files in `data/inbox/` on the Brian server. The next sweep imports them and moves them to `data/inbox/processed/`.
+
+## What Brian does with it
+
+- Records appear as sources named `ext:<source>` (e.g. `ext:x`) in Live, Trends and evidence lists
+- Records with a `series` are staged by the lifecycle model like any other trend
+- Records without a series are clustered with news into Live moments and ranked by talkability; more independent sources on one story ranks it higher
+- Every agent can cite the record's `url`; nothing else from the record is treated as fact unless it's in the text
+
+## Notes for feed owners
+
+- Send what you're permitted to share under each platform's terms
+- Don't include personal data Brian doesn't need (private messages, phone numbers, emails). Public posts, public channels and aggregate counts are what it uses
+- Prefer one record per post or message; Brian does the clustering
