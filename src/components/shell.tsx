@@ -216,8 +216,12 @@ function SystemStatus({ status }: { status: ShellStatus }) {
     <div className="mt-2 space-y-1.5 rounded-[10px] px-3 py-2.5 text-[11.5px] text-ink-2">
       <Row ok={status.liveSources > 0} label={status.liveSources ? `${status.liveSources} live sources` : "No sweep yet"} />
       <Row ok={status.ai} label={status.ai ? "AI connected" : "AI not connected"} />
-      <Row ok={status.images} label={status.images ? "Image model connected" : "Code-built visuals"} neutral />
-      {status.lastSweep && <div className="pl-[14px] text-ink-3">Swept {relativeTime(status.lastSweep)}</div>}
+      <Row ok={status.images} label={status.images ? "Image model connected" : "Images not connected"} neutral />
+      {status.lastSweep && (
+        <div className="pl-[14px] text-ink-3" suppressHydrationWarning>
+          Swept {relativeTime(status.lastSweep)}
+        </div>
+      )}
     </div>
   );
 }

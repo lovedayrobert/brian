@@ -42,7 +42,7 @@ This folder is the full documentation. Start here, then read in order:
 | Coverage and cost planner | Working |
 | Ideas, Lab, Develop | Run end to end against the API: idea batches about $1 and 4–5 minutes each, a full package about $2.40 and 10 minutes |
 | Rapid Response, Memory consolidation | Built; not yet exercised against the API |
-| Visuals | Code-built placeholder key visual on every asset; image and video generation not connected yet |
+| Visuals | Art Director gives every asset its own format; code formats render now, image formats and storyboard frames need `FAL_KEY` |
 | Mockups | Working (code-built visuals; generated key visuals with `OPENAI_API_KEY`) |
 | Linear push | Built; needs `LINEAR_API_KEY` and `LINEAR_TEAM_ID` |
 | Paid sources (X, Reddit, TikTok, Kick, on-chain analytics) | Slots and catalogue ready; adapters added once budget is approved |

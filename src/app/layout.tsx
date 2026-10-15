@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Shell } from "@/components/shell";
 import { modelReady } from "@/lib/adapters/model";
 import { imageReady } from "@/lib/adapters/image";
+import { falReady } from "@/lib/adapters/image/fal";
 import { repo } from "@/lib/store";
 import { authMode } from "@/lib/auth";
 import "./globals.css";
@@ -33,7 +34,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           status={{
             auth: authMode() === "on",
             ai: modelReady(),
-            images: imageReady(),
+            images: imageReady() || falReady(),
             lastSweep: lastSweep?.finishedAt ?? null,
             liveSources: lastSweep?.sources.filter((s) => s.ok && s.signals > 0).length ?? 0,
           }}

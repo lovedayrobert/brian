@@ -21,7 +21,8 @@ export type AgentName =
   | "strategist"
   | "creativeDirector"
   | "producer"
-  | "rapidResponse";
+  | "rapidResponse"
+  | "artDirector";
 
 type Effort = "low" | "medium" | "high" | "xhigh" | "max";
 
@@ -37,6 +38,7 @@ export const AGENTS: Record<AgentName, { model: string; effort: Effort; label: s
   creativeDirector: { model: "claude-opus-5-5", effort: "high", label: "Creative Director", job: "Concept, copy, key visual system" },
   producer: { model: "claude-sonnet-5-5", effort: "medium", label: "Producer", job: "Production plan, runbook, Linear project" },
   rapidResponse: { model: "claude-opus-5-5", effort: "medium", label: "Rapid Response", job: "Three reactive takes within minutes" },
+  artDirector: { model: "claude-opus-5-5", effort: "medium", label: "Art Director", job: "Picks a native format for every asset; commissions images and video" },
 };
 
 export class SpendCapError extends Error {}
@@ -239,4 +241,39 @@ function errorMessage(e: unknown): string {
   if (e instanceof Anthropic.AuthenticationError) return "The Anthropic API key was rejected.";
   if (e instanceof Anthropic.APIError) return `API error ${e.status}: ${e.message}`;
   return (e as Error).message;
+}
+
+/**
+ * Paid calls to other providers (image and video generation) go through the
+ * same hard cap: reserve the price up front, log the run, charge the ledger.
+ */
+export async function chargeExternal<T>(
+  opts: { agent: AgentName; model: string; subject?: string; costUsd: number },
+  fn: () => Promise<T>,
+): Promise<T> {
+  const started = Date.now();
+  const run: AgentRun = {
+    id: newId("run"), agent: opts.agent, model: opts.model, startedAt: new Date(started).toISOString(),
+    durationMs: 0, inputTokens: 0, outputTokens: 0, costUsd: 0, ok: false, subject: opts.subject,
+  };
+  try {
+    await reserve(run.id, opts.costUsd);
+    const out = await fn();
+    run.ok = true;
+    run.costUsd = opts.costUsd;
+    return out;
+  } catch (e) {
+    run.error = (e as Error).message;
+    // A failed generation may still have been billed; charge it to stay under the cap.
+    run.costUsd = e instanceof SpendCapError ? 0 : opts.costUsd;
+    throw e;
+  } finally {
+    run.durationMs = Date.now() - started;
+    await repo.update((db) => {
+      db.agentRuns = [run, ...db.agentRuns].slice(0, 2000);
+      const day = run.startedAt.slice(0, 10);
+      db.spendLedger = { ...(db.spendLedger ?? {}), [day]: Math.round(((db.spendLedger?.[day] ?? 0) + run.costUsd) * 10000) / 10000 };
+    });
+    reservations.delete(run.id);
+  }
 }

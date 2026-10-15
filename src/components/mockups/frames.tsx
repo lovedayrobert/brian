@@ -5,7 +5,18 @@
 import clsx from "clsx";
 import { BadgeCheck, Bookmark, Heart, MessageCircle, Music2, Repeat2, Send, Share, BarChart2, MoreHorizontal, Plus } from "lucide-react";
 import { BRANDS } from "@/lib/brand/brands";
+import type { VisualSpec } from "@/lib/brand/formats";
+import { AssetVisual } from "./asset-visual";
 import { KeyVisual } from "./key-visual";
+
+/** The asset's own visual when the Art Director planned one; the shared key visual otherwise. */
+function Art(props: { spec?: VisualSpec; line: string; imageUrl: string | null; className: string; aspect?: "square" | "portrait" | "landscape"; compact?: boolean; safeArea?: boolean }) {
+  return props.spec ? (
+    <AssetVisual spec={props.spec} className={props.className} safeArea={props.safeArea} />
+  ) : (
+    <KeyVisual line={props.line} imageUrl={props.imageUrl} className={props.className} aspect={props.aspect} compact={props.compact} safeArea={props.safeArea} />
+  );
+}
 
 const B = BRANDS.cashy;
 
@@ -44,7 +55,7 @@ function StatusBar({ dark }: { dark?: boolean }) {
 
 /* ---------- X ---------- */
 
-function Tweet({ body, media, line, keyVisualUrl }: { body: string; media?: boolean; line: string; keyVisualUrl: string | null }) {
+function Tweet({ body, media, line, keyVisualUrl, spec }: { body: string; media?: boolean; line: string; keyVisualUrl: string | null; spec?: VisualSpec }) {
   return (
     <div className="flex gap-3 px-4 py-3">
       <Avatar />
@@ -58,7 +69,7 @@ function Tweet({ body, media, line, keyVisualUrl }: { body: string; media?: bool
         <p className="mt-0.5 whitespace-pre-line text-[15px] leading-[1.35]">{body}</p>
         {media && (
           <div className="mt-3 overflow-hidden rounded-[16px] border border-[#cfd9de]">
-            <KeyVisual line={line} imageUrl={keyVisualUrl} className="aspect-[16/9] w-full" compact />
+            <Art spec={spec} line={line} imageUrl={keyVisualUrl} className="aspect-[16/9] w-full" compact />
           </div>
         )}
         <div className="mt-3 flex max-w-[400px] justify-between text-[#536471]">
@@ -73,10 +84,10 @@ function Tweet({ body, media, line, keyVisualUrl }: { body: string; media?: bool
   );
 }
 
-export function XPost({ text, keyVisualUrl, line, thread }: { text: string; keyVisualUrl: string | null; line: string; thread?: string[] }) {
+export function XPost({ text, keyVisualUrl, line, thread, spec }: { text: string; keyVisualUrl: string | null; line: string; thread?: string[]; spec?: VisualSpec }) {
   return (
     <div className="mx-auto w-full max-w-[560px] overflow-hidden rounded-[16px] border border-[#eff3f4] bg-white text-[#0f1419] shadow-raised [font-family:-apple-system,'Segoe_UI',Roboto,sans-serif]">
-      <Tweet body={text} media line={line} keyVisualUrl={keyVisualUrl} />
+      <Tweet body={text} media line={line} keyVisualUrl={keyVisualUrl} spec={spec} />
       {thread?.slice(0, 3).map((t, i) => (
         <div key={i} className="border-t border-[#eff3f4]">
           <Tweet body={t} line={line} keyVisualUrl={keyVisualUrl} />
@@ -93,11 +104,13 @@ export function InstagramPost({
   keyVisualUrl,
   line,
   slides,
+  spec,
 }: {
   caption: string;
   keyVisualUrl: string | null;
   line: string;
   slides?: { headline: string; body: string }[];
+  spec?: VisualSpec;
 }) {
   return (
     <PhoneFrame>
@@ -115,7 +128,7 @@ export function InstagramPost({
         <MoreHorizontal className="ml-auto h-4 w-4" />
       </div>
       <div className="relative">
-        <KeyVisual line={line} imageUrl={keyVisualUrl} className="aspect-square w-full" aspect="square" />
+        <Art spec={spec} line={line} imageUrl={keyVisualUrl} className="aspect-square w-full" aspect="square" />
         {slides && slides.length > 1 && (
           <span className="absolute right-2.5 top-2.5 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-medium text-white">1/{slides.length}</span>
         )}
@@ -141,7 +154,7 @@ export function InstagramPost({
   );
 }
 
-export function CarouselStrip({ slides, line }: { slides: { headline: string; body: string }[]; line: string }) {
+export function CarouselStrip({ slides, line, spec }: { slides: { headline: string; body: string }[]; line: string; spec?: VisualSpec }) {
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
       {slides.map((s, i) => (
@@ -151,7 +164,7 @@ export function CarouselStrip({ slides, line }: { slides: { headline: string; bo
           style={{ background: i === 0 ? B.visual.primary : B.visual.surface, color: B.visual.ink }}
         >
           {i === 0 ? (
-            <KeyVisual line={line} className="absolute inset-0" compact />
+            <Art spec={spec} line={line} imageUrl={null} className="absolute inset-0" compact />
           ) : (
             <div className="flex h-full flex-col">
               <span className="text-[11px] font-semibold tabular opacity-50">
@@ -170,11 +183,11 @@ export function CarouselStrip({ slides, line }: { slides: { headline: string; bo
 
 /* ---------- Instagram story ---------- */
 
-export function InstagramStory({ frames, keyVisualUrl, line }: { frames: { text: string; sticker: string | null }[]; keyVisualUrl: string | null; line: string }) {
+export function InstagramStory({ frames, keyVisualUrl, line, spec }: { frames: { text: string; sticker: string | null }[]; keyVisualUrl: string | null; line: string; spec?: VisualSpec }) {
   const f = frames[0];
   return (
     <PhoneFrame dark>
-      <KeyVisual line={line} imageUrl={keyVisualUrl} className="absolute inset-0" aspect="portrait" safeArea />
+      <Art spec={spec} line={line} imageUrl={keyVisualUrl} className="absolute inset-0" aspect="portrait" safeArea />
       <div className="absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-black/50 to-transparent px-3 pb-6 pt-[46px]">
         <div className="flex gap-1">
           {frames.map((_, i) => (
@@ -206,10 +219,10 @@ export function InstagramStory({ frames, keyVisualUrl, line }: { frames: { text:
 
 /* ---------- TikTok ---------- */
 
-export function TikTokFrame({ hook, caption, keyVisualUrl, line }: { hook: string; caption: string; keyVisualUrl: string | null; line: string }) {
+export function TikTokFrame({ hook, caption, keyVisualUrl, line, spec }: { hook: string; caption: string; keyVisualUrl: string | null; line: string; spec?: VisualSpec }) {
   return (
     <PhoneFrame dark>
-      <KeyVisual line={line} imageUrl={keyVisualUrl} className="absolute inset-0" aspect="portrait" safeArea />
+      <Art spec={spec} line={line} imageUrl={keyVisualUrl} className="absolute inset-0" aspect="portrait" safeArea />
       <div className="absolute inset-x-0 top-[46px] z-10 flex justify-center gap-5 text-[14px] font-semibold text-white/70">
         <span>Following</span>
         <span className="text-white underline decoration-2 underline-offset-[6px]">For You</span>
@@ -252,7 +265,7 @@ export interface LandingCopy {
   faq: { q: string; a: string }[];
 }
 
-export function LandingPage({ copy, keyVisualUrl, mobile, line }: { copy: LandingCopy; keyVisualUrl: string | null; mobile?: boolean; line?: string }) {
+export function LandingPage({ copy, keyVisualUrl, mobile, line, spec }: { copy: LandingCopy; keyVisualUrl: string | null; mobile?: boolean; line?: string; spec?: VisualSpec }) {
   const v = B.visual;
   return (
     <div style={{ background: v.primary, color: v.ink }} className="[container-type:inline-size]">
@@ -278,7 +291,7 @@ export function LandingPage({ copy, keyVisualUrl, mobile, line }: { copy: Landin
             <span className="text-[11px] opacity-60">18+ · T&Cs apply</span>
           </div>
         </div>
-        {!mobile && <KeyVisual line={line ?? copy.headline} imageUrl={keyVisualUrl} className="aspect-[4/5] rounded-[2cqw]" aspect="portrait" />}
+        {!mobile && <Art spec={spec} line={line ?? copy.headline} imageUrl={keyVisualUrl} className="aspect-[4/5] rounded-[2cqw]" aspect="portrait" />}
       </header>
       <section className={clsx("grid gap-px", mobile ? "grid-cols-1" : "grid-cols-3")} style={{ background: "rgba(255,255,255,0.08)" }}>
         {copy.sections.slice(0, 3).map((s, i) => (
@@ -325,11 +338,11 @@ export function BrowserFrame({ children, url }: { children: React.ReactNode; url
 
 /* ---------- Telegram & Discord ---------- */
 
-export function TelegramPost({ text, keyVisualUrl, line }: { text: string; keyVisualUrl: string | null; line: string }) {
+export function TelegramPost({ text, keyVisualUrl, line, spec }: { text: string; keyVisualUrl: string | null; line: string; spec?: VisualSpec }) {
   return (
     <div className="mx-auto w-full max-w-[420px] rounded-[18px] bg-[#8fb1cc] p-4" style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #a8c6dc 0, transparent 40%), radial-gradient(circle at 80% 70%, #7ea2c0 0, transparent 40%)" }}>
       <div className="max-w-[92%] overflow-hidden rounded-[14px] rounded-bl-[4px] bg-white text-black shadow-sm">
-        <KeyVisual line={line} imageUrl={keyVisualUrl} className="aspect-[16/10] w-full" compact />
+        <Art spec={spec} line={line} imageUrl={keyVisualUrl} className="aspect-[16/10] w-full" compact />
         <div className="px-3 py-2">
           <div className="text-[13px] font-semibold text-[#3a8ed0]">Cashy</div>
           <p className="mt-0.5 whitespace-pre-line text-[13.5px] leading-snug">{text}</p>
@@ -340,7 +353,7 @@ export function TelegramPost({ text, keyVisualUrl, line }: { text: string; keyVi
   );
 }
 
-export function DiscordMessage({ text }: { text: string }) {
+export function DiscordMessage({ text, spec }: { text: string; spec?: VisualSpec }) {
   return (
     <div className="mx-auto w-full max-w-[560px] rounded-[12px] bg-[#313338] p-4 text-[#dbdee1] [font-family:'gg_sans',-apple-system,sans-serif]">
       <div className="mb-3 border-b border-white/5 pb-2 text-[13px] font-semibold text-[#949ba4]"># announcements</div>
@@ -353,6 +366,11 @@ export function DiscordMessage({ text }: { text: string }) {
             <span className="text-[11px] text-[#949ba4]">Today at 9:41</span>
           </div>
           <p className="mt-0.5 whitespace-pre-line text-[14px] leading-[1.4]">{text}</p>
+          {spec && (
+            <div className="mt-2 max-w-[400px] overflow-hidden rounded-[8px]">
+              <AssetVisual spec={spec} className="aspect-[16/9] w-full" />
+            </div>
+          )}
         </div>
       </div>
     </div>

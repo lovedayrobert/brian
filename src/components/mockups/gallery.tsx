@@ -4,6 +4,8 @@ import clsx from "clsx";
 import { Monitor, Smartphone } from "lucide-react";
 import { useState } from "react";
 import type { Creative } from "@/lib/pipeline/package-schemas";
+import { formatById, type VisualSpec } from "@/lib/brand/formats";
+import { AssetVisual } from "./asset-visual";
 import {
   BrowserFrame,
   CarouselStrip,
@@ -17,7 +19,7 @@ import {
   XPost,
 } from "./frames";
 
-type AssetKey = "x" | "ig" | "carousel" | "story" | "tiktok" | "landing" | "telegram" | "discord";
+type AssetKey = "x" | "ig" | "carousel" | "story" | "tiktok" | "landing" | "telegram" | "discord" | "storyboard";
 
 const ASSETS: { key: AssetKey; label: string; spec: string }[] = [
   { key: "x", label: "X post and thread", spec: "1600×900 image · 280 chars" },
@@ -28,23 +30,39 @@ const ASSETS: { key: AssetKey; label: string; spec: string }[] = [
   { key: "landing", label: "Landing page", spec: "Responsive · desktop and mobile" },
   { key: "telegram", label: "Telegram", spec: "1280×800 image + post" },
   { key: "discord", label: "Discord", spec: "Announcement message" },
+  { key: "storyboard", label: "Video storyboard", spec: "6 frames · teaser on demand" },
 ];
+
+export interface StoryboardFrame {
+  frame: number;
+  prompt: string;
+  imageUrl: string | null;
+}
 
 export function MockupGallery({
   creative,
   keyVisualUrl,
   ideaName,
   compact,
+  visuals,
+  storyboardFrames,
+  teaserUrl,
 }: {
   creative: Creative;
   keyVisualUrl: string | null;
   ideaName: string;
   compact?: boolean;
+  visuals?: VisualSpec[];
+  storyboardFrames?: StoryboardFrame[];
+  teaserUrl?: string | null;
 }) {
   const [active, setActive] = useState<AssetKey>("x");
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const line = creative.keyVisual.heroLine || ideaName;
   const c = creative.copy;
+  const v = (k: string) => visuals?.find((x) => x.asset === k);
+  const current = v(active);
+  const fmt = current ? formatById(current.format) : null;
 
   return (
     <div>
@@ -64,13 +82,13 @@ export function MockupGallery({
       </div>
 
       <div className={clsx("rounded-[20px] bg-surface-3/60 p-4 sm:p-8", compact ? "min-h-[420px]" : "min-h-[640px]")}>
-        {active === "x" && <XPost text={c.x.post} thread={c.x.thread} keyVisualUrl={keyVisualUrl} line={line} />}
-        {active === "ig" && <InstagramPost caption={c.instagram.caption} keyVisualUrl={keyVisualUrl} line={line} slides={c.instagram.carousel} />}
-        {active === "carousel" && <CarouselStrip slides={c.instagram.carousel} line={line} />}
-        {active === "story" && <InstagramStory frames={c.instagram.story} keyVisualUrl={keyVisualUrl} line={line} />}
+        {active === "x" && <XPost text={c.x.post} thread={c.x.thread} keyVisualUrl={keyVisualUrl} line={line} spec={v("x")} />}
+        {active === "ig" && <InstagramPost caption={c.instagram.caption} keyVisualUrl={keyVisualUrl} line={line} slides={c.instagram.carousel} spec={v("ig")} />}
+        {active === "carousel" && <CarouselStrip slides={c.instagram.carousel} line={line} spec={v("carousel")} />}
+        {active === "story" && <InstagramStory frames={c.instagram.story} keyVisualUrl={keyVisualUrl} line={line} spec={v("story")} />}
         {active === "tiktok" && (
           <div className="grid items-start gap-6 md:grid-cols-[300px_1fr]">
-            <TikTokFrame hook={c.tiktok.hook} caption={c.tiktok.caption} keyVisualUrl={keyVisualUrl} line={line} />
+            <TikTokFrame hook={c.tiktok.hook} caption={c.tiktok.caption} keyVisualUrl={keyVisualUrl} line={line} spec={v("tiktok")} />
             <div className="rounded-[14px] bg-surface p-4 shadow-card">
               <div className="mb-2 text-[11.5px] font-medium uppercase tracking-[0.06em] text-ink-3">Script</div>
               <div className="divide-y divide-line text-[13px]">
@@ -104,7 +122,7 @@ export function MockupGallery({
             </div>
             {device === "desktop" ? (
               <BrowserFrame url="cashy.com/campaign">
-                <LandingPage copy={c.landing} keyVisualUrl={keyVisualUrl} line={line} />
+                <LandingPage copy={c.landing} keyVisualUrl={keyVisualUrl} line={line} spec={v("landing")} />
               </BrowserFrame>
             ) : (
               <PhoneFrame dark>
@@ -115,12 +133,46 @@ export function MockupGallery({
             )}
           </div>
         )}
-        {active === "telegram" && <TelegramPost text={c.telegram} keyVisualUrl={keyVisualUrl} line={line} />}
-        {active === "discord" && <DiscordMessage text={c.discord} />}
+        {active === "telegram" && <TelegramPost text={c.telegram} keyVisualUrl={keyVisualUrl} line={line} spec={v("telegram")} />}
+        {active === "storyboard" && (
+          <div className="space-y-5">
+            {teaserUrl && (
+              <video src={teaserUrl} controls playsInline className="mx-auto w-full max-w-[640px] rounded-[14px] bg-black shadow-float" />
+            )}
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {creative.video.storyboard.map((f) => {
+                const frame = storyboardFrames?.find((x) => x.frame === f.frame);
+                return (
+                  <div key={f.frame} className="overflow-hidden rounded-[14px] bg-surface shadow-card">
+                    <AssetVisual
+                      className="aspect-video w-full"
+                      spec={{ asset: "x", format: "photo", headline: f.shot, lines: [], caption: null, artDirection: frame?.prompt ?? f.visual, imagePrompt: frame?.prompt ?? null, palette: "night", imageUrl: frame?.imageUrl ?? null }}
+                    />
+                    <div className="p-3 text-[12.5px]">
+                      <div className="font-medium">
+                        {f.frame}. {f.shot}
+                      </div>
+                      <div className="mt-1 text-ink-2">{f.audio}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        {active === "discord" && <DiscordMessage text={c.discord} spec={v("discord")} />}
       </div>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[12px] text-ink-3">
         <span>{ASSETS.find((a) => a.key === active)?.spec}</span>
-        <span>{keyVisualUrl ? "Key visual: generated image" : "Key visual: code-built from brand tokens (image model not connected)"}</span>
+        <span>
+          {current && fmt
+            ? `Format: ${fmt.name} · ${fmt.kind === "code" ? "exact layout" : current.imageUrl ? `generated (${current.imageModel ?? "image model"})` : "image generates when fal.ai is connected"}`
+            : visuals?.length
+              ? ""
+              : keyVisualUrl
+                ? "Key visual: generated image"
+                : "Shared placeholder visual (package made before the Art Director)"}
+        </span>
       </div>
     </div>
   );

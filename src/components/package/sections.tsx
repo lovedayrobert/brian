@@ -6,7 +6,8 @@ import { useMemo, useState } from "react";
 import type { Input } from "@/lib/domain/types";
 import { computeAllScenarios, type FunnelKey, type FunnelResult } from "@/lib/engine/funnel";
 import type * as S from "@/lib/pipeline/package-schemas";
-import { MockupGallery } from "../mockups/gallery";
+import { MockupGallery, type StoryboardFrame } from "../mockups/gallery";
+import type { VisualSpec } from "@/lib/brand/formats";
 
 /* ---------- shared bits ---------- */
 
@@ -422,9 +423,26 @@ function CopyBlock({ title, children }: { title: string; children: React.ReactNo
 
 /* ---------- mockups (inline preview) ---------- */
 
-export function MockupsView({ creative, keyVisualUrl, ideaName }: { creative?: S.Creative; keyVisualUrl: string | null; ideaName: string }) {
+export interface MockupsContent {
+  keyVisualUrl: string | null;
+  visuals?: VisualSpec[];
+  storyboardFrames?: StoryboardFrame[];
+  teaser?: { url: string } | null;
+}
+
+export function MockupsView({ creative, mockups, ideaName }: { creative?: S.Creative; mockups?: MockupsContent; ideaName: string }) {
   if (!creative) return <p className="text-[13.5px] text-ink-3">Mockups render once the creative section is ready.</p>;
-  return <MockupGallery creative={creative} keyVisualUrl={keyVisualUrl} ideaName={ideaName} compact />;
+  return (
+    <MockupGallery
+      creative={creative}
+      keyVisualUrl={mockups?.keyVisualUrl ?? null}
+      visuals={mockups?.visuals}
+      storyboardFrames={mockups?.storyboardFrames}
+      teaserUrl={mockups?.teaser?.url ?? null}
+      ideaName={ideaName}
+      compact
+    />
+  );
 }
 
 /* ---------- channels ---------- */

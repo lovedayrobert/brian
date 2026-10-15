@@ -1,6 +1,8 @@
 import type * as z from "zod/v4";
 import { callStructured, research, type AgentName } from "@/lib/adapters/model";
-import { generateKeyVisual } from "@/lib/adapters/image";
+import { falImage, falReady } from "@/lib/adapters/image/fal";
+import { ASSET_ASPECT, FORMATS, formatById, type VisualSpec } from "@/lib/brand/formats";
+import { mapLimit } from "@/lib/adapters/sources/wikipedia";
 import { BRANDS } from "@/lib/brand/brands";
 import type { Citation, Idea, Input, Package, SectionKey, Signal, Trend } from "@/lib/domain/types";
 import { computeAllScenarios, compareToBaseline, type FunnelKey } from "@/lib/engine/funnel";
@@ -34,7 +36,7 @@ export const SECTION_META: Record<SectionKey, { title: string; agent: AgentName 
   insight: { title: "Insight and opportunity", agent: "strategist", deps: [] },
   strategy: { title: "Strategy", agent: "strategist", deps: ["insight"] },
   creative: { title: "Creative", agent: "creativeDirector", deps: ["strategy"] },
-  mockups: { title: "Mockups", agent: null, deps: ["creative"] },
+  mockups: { title: "Mockups", agent: "artDirector", deps: ["creative"] },
   channels: { title: "Channel and media plan", agent: "strategist", deps: ["strategy", "creative"] },
   business: { title: "Business case", agent: "strategist", deps: ["channels"] },
   production: { title: "Production plan", agent: "producer", deps: ["creative", "channels"] },
@@ -269,11 +271,44 @@ const GENERATORS: Record<SectionKey, (ctx: Ctx, pkg: Package) => Promise<unknown
       video: webVideo.video,
     } satisfies S.Creative;
   },
-  async mockups(ctx) {
-    // Code-built mockups render from the creative section. The image model only
-    // fills the key visual slot, and only when an image key is configured.
-    const image = await generateKeyVisual(ctx.idea.keyVisualPrompt, ctx.idea.id);
-    return { keyVisualUrl: image?.url ?? null, keyVisualModel: image?.model ?? null };
+  async mockups(ctx, pkg) {
+    // The Art Director gives every asset its own native format, then images are
+    // commissioned for the formats that need one (when an image model is connected).
+    const fresh = (await repo.read()).packages.find((p) => p.id === pkg.id) ?? pkg;
+    const creative = fresh.sections.creative.content as S.Creative;
+    const plan = await gen(ctx, "artDirector", "Art Director", S.VisualPlanSchema,
+      `Design the visual for every asset: ${["x", "ig", "carousel", "story", "tiktok", "landing", "telegram", "discord"].join(", ")}. One visual per asset, each in the format that is most native to that channel and funniest for this idea. Use at least 5 different formats across the 8 assets; never one look stamped everywhere. The visual has to be cool and shareable on its own; Cashy's presence is subtle (the templates add a small wordmark). Never put product claims on visuals.
+
+Formats available:
+${FORMATS.map((f) => `- ${f.id} (${f.kind === "image" ? "generated image" : "exact layout"}): ${f.use}`).join("\n")}
+
+For image formats, and for meme or headline (which carry an image), write a detailed imagePrompt describing a striking photo or artwork: subject, setting, lighting, lens or medium, mood. Also write one imagePrompt per storyboard frame (${creative.video.storyboard.length} frames).
+
+<creative>\n${JSON.stringify({ concept: creative.concept, keyVisual: creative.keyVisual, x: creative.copy.x.post, tiktokHook: creative.copy.tiktok.hook, landing: creative.copy.landing.headline, storyboard: creative.video.storyboard })}\n</creative>`,
+      []);
+    const visuals: VisualSpec[] = plan.visuals.map((v) => ({ ...v, imageUrl: null, imageModel: null }));
+    const needsImage = (v: VisualSpec) => !!v.imagePrompt && (formatById(v.format)?.kind === "image" || v.format === "meme" || v.format === "headline");
+    let storyboardFrames = plan.storyboard.map((f) => ({ frame: f.frame, prompt: f.imagePrompt, imageUrl: null as string | null }));
+    if (falReady()) {
+      await mapLimit(visuals.filter(needsImage), 3, async (v) => {
+        try {
+          const img = await falImage({ prompt: v.imagePrompt!, aspect: ASSET_ASPECT[v.asset], name: `${pkg.id}-${v.asset}`, subject: `${ctx.idea.name} · ${v.asset}` });
+          v.imageUrl = img.url;
+          v.imageModel = img.model;
+        } catch {
+          // keep the art direction showing; the rest of the package still completes
+        }
+      });
+      storyboardFrames = await mapLimit(storyboardFrames, 3, async (f) => {
+        try {
+          const img = await falImage({ prompt: f.prompt, aspect: "16:9", name: `${pkg.id}-frame-${f.frame}`, subject: `${ctx.idea.name} · frame ${f.frame}` });
+          return { ...f, imageUrl: img.url };
+        } catch {
+          return f;
+        }
+      });
+    }
+    return { visuals, storyboardFrames, keyVisualUrl: visuals.find((v) => v.imageUrl)?.imageUrl ?? null, teaser: null };
   },
   channels: (ctx) =>
     gen(ctx, "strategist", "Strategist", S.ChannelsSchema,

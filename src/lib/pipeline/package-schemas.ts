@@ -1,4 +1,5 @@
 import * as z from "zod/v4";
+import { ASSET_KEYS, FORMAT_IDS, PALETTES } from "@/lib/brand/formats";
 
 /** Output schemas for each package section (brief chapter 5). UI types are inferred from these. */
 
@@ -199,6 +200,23 @@ export const CreativeWebVideoSchema = z.object({
   variants: CreativeSchema.shape.copy.shape.variants,
   video: CreativeSchema.shape.video,
 });
+
+export const VisualPlanSchema = z.object({
+  visuals: z.array(
+    z.object({
+      asset: z.enum(ASSET_KEYS),
+      format: z.enum(FORMAT_IDS),
+      headline: z.string().describe("Main text on the visual, 2 to 9 words"),
+      lines: z.array(z.string()).describe("Supporting text for the format, at most 6 short items (e.g. receipt items 'Label | $9', notifications 'App: text', chat 'Name: message')"),
+      caption: z.string().nullable(),
+      artDirection: z.string().describe("One or two sentences a designer could execute"),
+      imagePrompt: z.string().nullable().describe("Detailed prompt for the image model when the format needs an image, otherwise null"),
+      palette: z.enum(PALETTES),
+    }),
+  ),
+  storyboard: z.array(z.object({ frame: z.number(), imagePrompt: z.string() })).describe("One image prompt per storyboard frame"),
+});
+export type VisualPlan = z.infer<typeof VisualPlanSchema>;
 
 export type Insight = z.infer<typeof InsightSchema>;
 export type Strategy = z.infer<typeof StrategySchema>;

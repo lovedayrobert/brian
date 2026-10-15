@@ -79,7 +79,7 @@ Eleven sections, each with its own Zod schema (`package-schemas.ts`) and declare
 | Insight | Strategist (+ Prior Art web research) | — |
 | Strategy | Strategist | insight |
 | Creative | Creative Director | strategy, insight |
-| Mockups | code (+ image model) | creative |
+| Mockups | Art Director (+ fal.ai images) | creative |
 | Channels | Strategist | strategy, creative |
 | Business case | Strategist proposes inputs; **code computes** | channels, strategy |
 | Production | Producer | creative, channels |
@@ -97,6 +97,15 @@ Post-processing on every section:
 The launch date is fixed when the package is created: 7 days out for an emerging trend, 4 for rising, 10 otherwise.
 
 **Steering** takes a section and an instruction, bumps the version, logs the instruction, marks that section and every downstream dependant pending, and reruns them with the instruction in their brief.
+
+### Visuals: Art Director (`mockups` section, `src/lib/brand/formats.ts`)
+
+Every asset gets its own native format instead of one key visual stamped everywhere. The Art Director (Opus 5.5) picks, per asset, from 15 formats, using at least 5 different ones across the 8 assets:
+
+- **Exact layouts, built in code** (text must be right): meme, news headline, push notifications, receipt, official document, group chat, ticket or pass, typographic poster, app or web screen, quote card
+- **Generated images (fal.ai)**: photograph, illustration, 3D render, product shot, collage; meme and headline formats also carry a generated image
+
+Each visual has a palette (night, paper, acid, candy, mono), its own text and art direction, and Cashy present but small. Storyboard frames are generated as images; a teaser clip is made only on demand (`Make teaser video`), because video costs more. Every image and clip is reserved and charged against the hard spend cap. Without `FAL_KEY`, code formats still render and image formats show their art direction.
 
 ### Rapid Response (`src/lib/pipeline/rapid.ts`)
 

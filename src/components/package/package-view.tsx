@@ -19,6 +19,7 @@ import {
   RiskView,
   StrategyView,
   type BusinessContent,
+  type MockupsContent,
 } from "./sections";
 
 export interface SectionInfo {
@@ -55,7 +56,6 @@ export function PackageView({
   }, [busy, pkg.id]);
 
   const content = <T,>(k: SectionKey) => pkg.sections[k]?.content as T | undefined;
-  const kv = content<{ keyVisualUrl: string | null }>("mockups")?.keyVisualUrl ?? null;
 
   return (
     <div className="grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
@@ -111,7 +111,7 @@ export function PackageView({
                 </span>
               </div>
               {sec.status === "done" ? (
-                <SectionBody k={s.key} pkg={pkg} idea={idea} kv={kv} content={content} />
+                <SectionBody k={s.key} pkg={pkg} idea={idea} content={content} />
               ) : sec.status === "error" ? (
                 <div className="flex items-start gap-2 rounded-[12px] bg-bad-soft p-4 text-[13.5px] text-bad">
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {sec.error}
@@ -155,13 +155,11 @@ function SectionBody({
   k,
   pkg,
   idea,
-  kv,
   content,
 }: {
   k: SectionKey;
   pkg: Package;
   idea: Idea;
-  kv: string | null;
   content: <T>(k: SectionKey) => T | undefined;
 }) {
   switch (k) {
@@ -174,7 +172,7 @@ function SectionBody({
     case "creative":
       return <CreativeView c={content<S.Creative>(k)!} />;
     case "mockups":
-      return <MockupsView creative={content<S.Creative>("creative")} keyVisualUrl={kv} ideaName={idea.name} />;
+      return <MockupsView creative={content<S.Creative>("creative")} mockups={content<MockupsContent>("mockups")} ideaName={idea.name} />;
     case "channels":
       return <ChannelsView c={content<S.Channels>(k)!} />;
     case "business":

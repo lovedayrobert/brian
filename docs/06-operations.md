@@ -26,7 +26,7 @@ npm run dev          # http://localhost:3000
 | `BRIAN_DAILY_CAP_USD`, `BRIAN_MONTHLY_CAP_USD` | Hard AI spend caps (defaults 50 and 300) |
 | `BRIAN_INGEST_TOKEN` | Partner feed import endpoint |
 | `ANTHROPIC_API_KEY` | All agents: ideas, Lab, Critic, Red Lines, Prior Art, packages, Rapid Response, Cartographer, memory consolidation |
-| `OPENAI_API_KEY`, `IMAGE_MODEL` | Generated key visuals (default model `gpt-image-1`) |
+| `FAL_KEY`, `FAL_IMAGE_MODEL`, `FAL_VIDEO_MODEL`, `FAL_IMAGE_COST_USD`, `FAL_VIDEO_COST_USD` | Generated images, storyboard frames and teaser clips via fal.ai, charged against the spend cap |
 | `YOUTUBE_API_KEY` | YouTube trending |
 | `LINEAR_API_KEY`, `LINEAR_TEAM_ID` | Push to Linear |
 | `SLACK_WEBHOOK_URL` | Alerts and daily summary (planned) |
@@ -93,7 +93,7 @@ Claude pricing used: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 p
 ## Known limits
 
 - Rapid Response and memory consolidation haven't been exercised against the API yet; ideas, Lab and full packages have.
-- Visuals: every asset uses the same code-built key visual until an image model is connected.
+- Image formats show their art direction until `FAL_KEY` is set; code formats render either way.
 - Storage is a local file and long jobs run in the web process; production needs Postgres and a job queue.
 - GDELT throttles by IP; the sweep carries over its last good data.
 - Without the AI key, relevance and coin classification are keyword heuristics and are labelled as such; coin links to moments are switched off until the model has read the coins.

@@ -267,7 +267,7 @@ Eleven sections, each with its own Zod schema (`package-schemas.ts`) and declare
 | Insight | Strategist (+ Prior Art web research) | — |
 | Strategy | Strategist | insight |
 | Creative | Creative Director | strategy, insight |
-| Mockups | code (+ image model) | creative |
+| Mockups | Art Director (+ fal.ai images) | creative |
 | Channels | Strategist | strategy, creative |
 | Business case | Strategist proposes inputs; **code computes** | channels, strategy |
 | Production | Producer | creative, channels |
@@ -285,6 +285,15 @@ Post-processing on every section:
 The launch date is fixed when the package is created: 7 days out for an emerging trend, 4 for rising, 10 otherwise.
 
 **Steering** takes a section and an instruction, bumps the version, logs the instruction, marks that section and every downstream dependant pending, and reruns them with the instruction in their brief.
+
+### Visuals: Art Director (`mockups` section, `src/lib/brand/formats.ts`)
+
+Every asset gets its own native format instead of one key visual stamped everywhere. The Art Director (Opus 5.5) picks, per asset, from 15 formats, using at least 5 different ones across the 8 assets:
+
+- **Exact layouts, built in code** (text must be right): meme, news headline, push notifications, receipt, official document, group chat, ticket or pass, typographic poster, app or web screen, quote card
+- **Generated images (fal.ai)**: photograph, illustration, 3D render, product shot, collage; meme and headline formats also carry a generated image
+
+Each visual has a palette (night, paper, acid, candy, mono), its own text and art direction, and Cashy present but small. Storyboard frames are generated as images; a teaser clip is made only on demand (`Make teaser video`), because video costs more. Every image and clip is reserved and charged against the hard spend cap. Without `FAL_KEY`, code formats still render and image formats show their art direction.
 
 ### Rapid Response (`src/lib/pipeline/rapid.ts`)
 
@@ -498,7 +507,7 @@ npm run dev          # http://localhost:3000
 | `BRIAN_DAILY_CAP_USD`, `BRIAN_MONTHLY_CAP_USD` | Hard AI spend caps (defaults 50 and 300) |
 | `BRIAN_INGEST_TOKEN` | Partner feed import endpoint |
 | `ANTHROPIC_API_KEY` | All agents: ideas, Lab, Critic, Red Lines, Prior Art, packages, Rapid Response, Cartographer, memory consolidation |
-| `OPENAI_API_KEY`, `IMAGE_MODEL` | Generated key visuals (default model `gpt-image-1`) |
+| `FAL_KEY`, `FAL_IMAGE_MODEL`, `FAL_VIDEO_MODEL`, `FAL_IMAGE_COST_USD`, `FAL_VIDEO_COST_USD` | Generated images, storyboard frames and teaser clips via fal.ai, charged against the spend cap |
 | `YOUTUBE_API_KEY` | YouTube trending |
 | `LINEAR_API_KEY`, `LINEAR_TEAM_ID` | Push to Linear |
 | `SLACK_WEBHOOK_URL` | Alerts and daily summary (planned) |
@@ -565,7 +574,7 @@ Claude pricing used: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 p
 ## Known limits
 
 - Rapid Response and memory consolidation haven't been exercised against the API yet; ideas, Lab and full packages have.
-- Visuals: every asset uses the same code-built key visual until an image model is connected.
+- Image formats show their art direction until `FAL_KEY` is set; code formats render either way.
 - Storage is a local file and long jobs run in the web process; production needs Postgres and a job queue.
 - GDELT throttles by IP; the sweep carries over its last good data.
 - Without the AI key, relevance and coin classification are keyword heuristics and are labelled as such; coin links to moments are switched off until the model has read the coins.
