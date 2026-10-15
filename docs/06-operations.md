@@ -92,7 +92,8 @@ Claude pricing used: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 p
 
 ## Known limits
 
-- The AI pipelines are built and type-checked but have not yet been run end to end against the API.
+- Rapid Response and memory consolidation haven't been exercised against the API yet; ideas, Lab and full packages have.
+- Visuals: every asset uses the same code-built key visual until an image model is connected.
 - Storage is a local file and long jobs run in the web process; production needs Postgres and a job queue.
 - GDELT throttles by IP; the sweep carries over its last good data.
 - Without the AI key, relevance and coin classification are keyword heuristics and are labelled as such; coin links to moments are switched off until the model has read the coins.
@@ -104,7 +105,7 @@ Claude pricing used: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 p
 
 | Phase | Scope |
 |---|---|
-| Now | Connect the Anthropic key; run ideas, Lab and packages end to end; tune prompts on real output |
+| Now | Format-native visuals with image and video generation; run the blind test; secure access for reviewers |
 | Next | X adapter; real brand assets; Postgres and job queue; hosted deployment with auth; scheduled sweeps and Slack summary |
 | Then | Reddit, Kick, TikTok via vendor; competitor tracking; creator shortlists from live data; video storyboards; Figma export; comments and versions UI; BitStarz |
 | Later | Analytics integration, live campaign dashboards, forecast versus actual, recalibration of the forecaster |

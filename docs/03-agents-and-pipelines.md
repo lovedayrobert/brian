@@ -7,8 +7,8 @@ Most of Brian's "agents" are typed pipeline steps: one model call with a role, a
 | Agent | Model | Effort | Job | Output |
 |---|---|---|---|---|
 | Cartographer | Claude Haiku 5.5 | low | Re-scores relevance and talkability of trends and moments; classifies memecoins; runs once per sweep | category, 0–1 talkability, one-line reason |
-| Inventor | Claude Opus 5.5 | high | Ten candidate ideas per trend, moment or Lab lens | name, one-liner, mechanism, borrowed attention, headline, edge, backlash, why it's ours, key visual direction, cited evidence |
-| Critic | Claude Opus 5.5 | high | Runs the five tests, checks the banned list, scores, passes at most three | per-test pass/note, banned-pattern hit, scores with reasons, verdict |
+| Inventor | Claude Opus 5.5 | high | Ten attention-first candidates per trend, moment or Lab lens | name, one-liner, what happens, attention mechanic, borrowed attention, share moment, who amplifies, how Cashy rides along, headline, edge, backlash, key visual direction, cited evidence |
+| Critic | Claude Opus 5.5 | high | Runs the five tests, checks the banned list, scores shareability, reach, novelty, attribution and cost, passes at most three | per-test pass/note, banned-pattern hit, scores with reasons, verdict |
 | Red Lines | Claude Opus 5.5 | medium | Legal and safety hard stops; everything else listed as consequences | pass, issues, consequences |
 | Prior Art | Claude Sonnet 5.5 + web search | medium | Has anyone done this? | found, summary, cited examples |
 | Strategist | Claude Opus 5.5 | high | Insight, strategy, channel plan, business-case inputs, executive summary | per-section schema |
@@ -29,11 +29,21 @@ Built in `src/lib/pipeline/context.ts` and `src/lib/memory.ts`:
 5. **Accuracy rules**: cite only evidence URLs as given, `null` otherwise, label every number, never put words in a real person's mouth
 6. **Evidence**: the trend, moment or lens context with the only URLs that may be cited
 
-### The quality bar (summary)
+### The quality bar (engine 2, attention-first)
 
-- **Five tests**: one sentence, screenshot, headline, argument, copy (could Stake or Shuffle run it just as well?)
-- **Banned**: challenges, polls, races against everyday things, leaderboards/giveaways/tournaments as innovation, standard promotions renamed, anything scroll-past, anything that needs a feature explained
+- **The goal is attention**: shares, impressions and people talking. Ideas must be cool on their own, with Cashy riding along subtly but unmistakably (a name, a logo, a signature, an Easter egg). Cashy is the brand behind the stunt, never its subject.
+- **The idea agents never see Cashy's product strengths.** The Inventor, Critic and Rapid Response get the brand voice and the rules only (`brandVoiceContext`); product facts are only given to the campaign build, for CTAs, landing pages and terms (`brandContext`).
+- **Attention playbook**: hijack a moment, absurd real-world stunt, unexpected collab, parody product, troll the timeline, internet-native object, buy something ridiculous, creator chaos, Easter egg, character, mystery. Each run must use at least 6 different mechanics across its 10 candidates.
+- **Reference stunts**: the four gambling benchmarks (Stake, Duel, Housebets, Shuffle) plus Burger King's Whopper Detour, KFC's 11 follows, Duolingo killing its owl, Liquid Death, MSCHF, Oreo's blackout tweet, Ryanair's TikTok and Kick's xQc signing.
+- **Five tests**: one sentence, share (would a meme page repost it?), headline, argument, attribution (cool without the logo, but Cashy still unmistakably on it).
+- **Critic scores**: shareability ×2, reach ×1.5, novelty ×1.5, attribution ×1, cost ×0.5.
+- **Banned**: anything whose point is Cashy's product or strengths (payouts, wagering, win caps, bonuses, transparency, proof, trust, the Justice Fund), comparisons with rivals' terms, dashboards and data pages, explainers and PSAs, challenges, polls, races against everyday things, leaderboards and giveaways as innovation, renamed promotions, anything scroll-past.
 - **Edge levels**: safe, spicy, wild. Brian leans spicy and wild.
+- Ideas from the original USP-led engine are kept (`engine: 1`) but hidden by default.
+
+### Red lines: the only hard stops
+
+Illegal targeting (taking bets or pushing sign-ups where it's illegal), minors, hate speech and slurs, exploiting real tragedies, fake quotes, fake endorsements or defamation of real people, fraud or scams or data misuse, and targeting people showing signs of gambling harm. Red Lines defaults to pass: offensive, crude or dark humour, shock, taboo, roasting rivals and public figures, harmless pranks, and stunts that physically happen in markets where we don't take players all pass, with the consequence and the market for legal to check written out.
 
 ## Pipelines
 
@@ -100,13 +110,15 @@ See doc 4 for sources and ranking. The Cartographer step is skipped without a ke
 
 | Lens | Brief to the Inventor |
 |---|---|
-| Unfair advantages | Prove a real advantage publicly so the proof is the content |
-| Product as media | A feature or mechanic whose existence is the story |
-| Rival weak spots | Player complaints about rivals, used without defamation |
-| Channels we can use | Attention where a casino is allowed or nobody has looked |
-| Crypto-native plays | On-chain data, wallets, the trenches; privacy-safe |
-| Deals and contracts | The structure of the deal is the headline; no implied consent from real people |
+| Hijack what's happening | Get Cashy's name into what everyone's watching today, fast and first |
+| Absurd real-world stunt | Something physical, filmed and impossible not to share |
+| Unexpected collab | A partner nobody would expect next to a crypto casino |
+| Parody product or drop | A ridiculous thing that exists only to be talked about |
+| Troll the timeline | Cheeky public bait people pick sides on, never defamatory |
+| Internet-native object | A bot, filter, game, site or coin people play with and share |
+| Buy something ridiculous | Naming rights, absurd sponsorships, objects the internet cares about |
+| Creator chaos | A creator deal so strange the deal is the content |
 | Calendar ambush | Own a predictable moment without official-sponsor claims |
-| Blank page | Anything that passes the five tests under $50k |
+| Blank page | The most shared thing possible for under $50k |
 
 Each run accepts an optional steer ("under $5k", "for fight night").

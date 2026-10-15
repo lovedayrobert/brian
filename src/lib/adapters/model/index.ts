@@ -106,19 +106,41 @@ export async function callStructured<S extends z.ZodType>(opts: {
     ok: false,
     subject: opts.subject,
   };
-  const maxTokens = opts.maxTokens ?? 16000;
+  // Streamed so long outputs (thinking counts towards max_tokens) don't hit HTTP timeouts.
+  const maxTokens = opts.maxTokens ?? 32000;
   try {
     getClient();
-    await reserve(run.id, worstCaseCost({ model: cfg.model, inputChars: opts.system.length + opts.prompt.length + 4000, maxOutputTokens: maxTokens, fallback: supportsFallback(cfg.model) }));
-    const res = await getClient().beta.messages.parse({
-      model: cfg.model,
-      max_tokens: maxTokens,
-      system: opts.system,
-      messages: [{ role: "user", content: opts.prompt }],
-      output_config: { effort: cfg.effort, format: betaZodOutputFormat(opts.schema) },
-      ...(supportsFallback(cfg.model) ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const } : {}),
-    });
+    const estimate = worstCaseCost({ model: cfg.model, inputChars: opts.system.length + opts.prompt.length + 4000, maxOutputTokens: maxTokens, fallback: supportsFallback(cfg.model) });
+    await reserve(run.id, estimate);
+    let failedAttemptCost = 0;
+    const request = () =>
+      getClient()
+        .beta.messages.stream({
+          model: cfg.model,
+          max_tokens: maxTokens,
+          system: opts.system,
+          messages: [{ role: "user", content: opts.prompt }],
+          output_config: { effort: cfg.effort, format: betaZodOutputFormat(opts.schema) },
+          ...(supportsFallback(cfg.model) ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const } : {}),
+        })
+        .finalMessage();
+    let res;
+    try {
+      res = await request();
+    } catch (e) {
+      // A cut-off or malformed JSON answer is retried once; API errors are not.
+      if (e instanceof Anthropic.APIError || !/parse|JSON/i.test((e as Error).message)) throw e;
+      // The failed attempt's usage isn't returned, so it's charged at its worst case to keep the cap honest.
+      failedAttemptCost = estimate;
+      await reserve(`${run.id}:retry`, estimate);
+      try {
+        res = await request();
+      } finally {
+        reservations.delete(`${run.id}:retry`);
+      }
+    }
     record(run, res.usage, res.model ?? cfg.model);
+    run.costUsd = Math.round((run.costUsd + failedAttemptCost) * 10000) / 10000;
     if (res.stop_reason === "refusal") throw new Error(`The model declined this request (${res.stop_details?.category ?? "no category"}).`);
     if (res.stop_reason === "max_tokens") throw new Error("Output hit the token limit before finishing.");
     if (!res.parsed_output) throw new Error("Model output did not match the expected structure.");

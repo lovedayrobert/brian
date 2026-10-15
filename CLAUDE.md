@@ -38,7 +38,7 @@ npm run build
 
 ## Honest status
 
-- Discovery runs on live data from free sources. The AI agents are built and type-checked but have not yet been run end to end against the Anthropic API; they need `ANTHROPIC_API_KEY`.
+- Discovery runs on live data from free sources. The AI agents have been run end to end against the API (ideas, Lab, a full 11-section package); they need `ANTHROPIC_API_KEY`.
 - The lifecycle forecaster's backtest is reported as is: 74% of launch-window calls right versus 77% for naive momentum on the same data.
 - Storage is a local JSON file; the Postgres schema for the hosted build is in `supabase/migrations/`.
 - The sample package loaded by `npm run demo` is hand-written to show the format and is labelled as such in the app.

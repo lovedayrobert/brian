@@ -23,7 +23,7 @@ export default async function Lab() {
           </span>
         }
         title="Ideas that don't start with a trend"
-        subtitle="Trends tell you what everyone is looking at. The Lab looks for openings that are Cashy's own: what we have that rivals don't, what players hate about them, where a casino can still earn attention, and what only crypto makes possible. Every idea faces the same Critic, red lines and prior-art check."
+        subtitle="Trends tell you what everyone is looking at. The Lab invents ways to get Cashy in front of people that nobody has tried: stunts, collabs, parody drops, trolls, internet toys and deals so strange the deal is the story. Every lens is about shares and impressions, never about our product. Every idea faces the same Critic, red lines and prior-art check."
       />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">

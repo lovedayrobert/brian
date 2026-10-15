@@ -240,18 +240,35 @@ const GENERATORS: Record<SectionKey, (ctx: Ctx, pkg: Package) => Promise<unknown
       "strategist",
       "Strategist",
       S.InsightSchema,
-      `Write the insight and opportunity section. Use the research below for competitors; cite only URLs that appear in the evidence or research sources.\n\n<research>\n${r.notes}\n\nSources:\n${r.sources.map((s) => `- ${s.title} ${s.url}`).join("\n")}\n</research>`,
+      `Write the insight and opportunity section. For 'why Cashy can own it', the answer is being first and loudest with Cashy's name on it, never product features. Use the research below for competitors; cite only URLs that appear in the evidence or research sources.\n\n<research>\n${r.notes}\n\nSources:\n${r.sources.map((s) => `- ${s.title} ${s.url}`).join("\n")}\n</research>`,
       [],
     );
   },
   strategy: (ctx) =>
     gen(ctx, "strategist", "Strategist", S.StrategySchema,
-      "Write the strategy: objective, the one metric that matters, KPIs with targets and kill thresholds, audience segments (grounded in the evidence, never invented personas; if evidence is thin, say so), positioning, core idea and message house.",
+      "Write the strategy. The objective is attention: shares, impressions, mentions and people knowing it was Cashy; conversion follows reach. Give the one metric that matters, KPIs with targets and kill thresholds, audience segments (grounded in the evidence, never invented personas; if evidence is thin, say so), positioning, core idea and a message house where the key message is what people will say when they share it, not a product claim.",
       ["insight"]),
-  creative: (ctx) =>
-    gen(ctx, "creativeDirector", "Creative Director", S.CreativeSchema,
-      `Write the creative: concept, rationale, key visual system, full copy deck for X, Instagram (feed caption, 5-slide carousel, 3-frame story), TikTok (hook, 20-40s script, caption), Telegram, Discord and the landing page, plus A/B variants and a video script with a 6-frame storyboard. Include the interactive mechanic only if the idea has one; otherwise null. Every player-facing piece carries 18+ and a responsible gambling line where the format allows. Write in the brand voice. Never use banned phrases.`,
-      ["strategy", "insight"]),
+  async creative(ctx) {
+    // Generated in three parts: the full schema is over the API's structured-output size limit.
+    const rules = "Every asset exists to be shared, not to sell features: no payout speed, wagering, win caps, fairness or Justice Fund messaging in social posts. Cashy's name should be unmissable. Every player-facing piece carries 18+ and a responsible gambling line where the format allows. Write in the brand voice. Never use banned phrases.";
+    const core = await gen(ctx, "creativeDirector", "Creative Director", S.CreativeCoreSchema,
+      `Write the creative core: concept, rationale and the key visual system (with a 2 to 6 word hero line). Include the interactive mechanic only if the idea has one; otherwise null. ${rules}`,
+      ["strategy", "insight"]);
+    const brief = `<creative_core>\n${JSON.stringify(core)}\n</creative_core>`;
+    const [social, webVideo] = await Promise.all([
+      gen(ctx, "creativeDirector", "Creative Director", S.CreativeSocialSchema,
+        `${brief}\nWrite the social copy deck from this creative core: X (post, 3-post thread, reply bait), Instagram (feed caption, 5-slide carousel, 3-frame story), TikTok (hook, 20-40s script with timings, caption), Telegram and Discord. ${rules}`,
+        ["strategy"]),
+      gen(ctx, "creativeDirector", "Creative Director", S.CreativeWebVideoSchema,
+        `${brief}\nWrite the landing page copy (eyebrow, headline, subhead, CTA, 3 sections, 4 FAQs), 2-4 A/B variants with hypotheses, and a video script with a 6-frame storyboard, all from this creative core. ${rules}`,
+        ["strategy"]),
+    ]);
+    return {
+      ...core,
+      copy: { ...social, landing: webVideo.landing, variants: webVideo.variants },
+      video: webVideo.video,
+    } satisfies S.Creative;
+  },
   async mockups(ctx) {
     // Code-built mockups render from the creative section. The image model only
     // fills the key visual slot, and only when an image key is configured.
@@ -317,7 +334,7 @@ const GENERATORS: Record<SectionKey, (ctx: Ctx, pkg: Package) => Promise<unknown
   },
   handover: (ctx) =>
     gen(ctx, "producer", "Producer", S.HandoverSchema,
-      `Structure the Linear project: one epic per workstream, every issue fully briefed (objective, spec, copy where relevant, acceptance criteria, owner role, due day relative to launch, dependencies by issue title). Naming convention, exactly:\n- Design issues: "Cashy | Social | [Format] | [Description]"\n- Content issues: "Cashy | [Description] | [Channel] [Type]"`,
+      `Structure the Linear project: one epic per workstream, every issue fully briefed (objective, spec, copy where relevant, acceptance criteria, owner role, due day relative to launch, dependencies by issue title). Keep it to the 10-16 issues that matter: specs under 50 words, at most 4 acceptance criteria each, and copy only on content issues (under 300 characters; the full copy deck lives in the creative section). Naming convention, exactly:\n- Design issues: "Cashy | Social | [Format] | [Description]"\n- Content issues: "Cashy | [Description] | [Channel] [Type]"`,
       ["production", "creative"]),
 };
 

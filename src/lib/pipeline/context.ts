@@ -1,8 +1,26 @@
 import { BRANDS, CAMPAIGN_HISTORY } from "@/lib/brand/brands";
-import { QUALITY_BAR, STUNTS } from "@/lib/brand/quality-bar";
+import { ATTENTION_PLAYBOOK, QUALITY_BAR, REFERENCE_STUNTS, STUNTS } from "@/lib/brand/quality-bar";
 import type { BrandId, Citation, Signal, Trend } from "@/lib/domain/types";
 
-/** Shared context every agent sees: brand book, advantages, history, quality bar. */
+/**
+ * What the idea agents (Inventor, Critic, Rapid Response) see about the brand:
+ * voice and rules only. Product strengths are deliberately left out, because
+ * ideas built around them read as product marketing, not attention.
+ */
+export function brandVoiceContext(brandId: BrandId): string {
+  const b = BRANDS[brandId];
+  return `
+<brand name="${b.name}">
+Who we are: a crypto casino brand that wants to be the most talked-about name on crypto Twitter, Kick, TikTok and meme pages. Cashy is the brand behind the stunt, never the subject of it.
+Voice:
+${b.voice.map((v) => `- ${v}`).join("\n")}
+Banned phrases: ${b.bannedPhrases.join(", ")}
+Compliance rules:
+${b.compliance.map((c) => `- ${c}`).join("\n")}
+</brand>`.trim();
+}
+
+/** Full brand book, including product facts, for the campaign build (landing pages, CTAs, terms). */
 export function brandContext(brandId: BrandId): string {
   const b = BRANDS[brandId];
   return `
@@ -15,7 +33,7 @@ ${b.toneExamples.map((t) => `- Good: "${t.good}"  Bad: "${t.bad}"`).join("\n")}
 Banned phrases: ${b.bannedPhrases.join(", ")}
 Compliance rules:
 ${b.compliance.map((c) => `- ${c}`).join("\n")}
-Advantages (real, usable as proof):
+Product facts (for CTAs, landing pages and terms only; never the point of an idea):
 ${b.advantages.map((a) => `- ${a.claim}`).join("\n")}
 Campaign history:
 ${CAMPAIGN_HISTORY.filter((h) => h.brandId === brandId)
@@ -42,10 +60,16 @@ Red lines (the only hard stops):
 ${QUALITY_BAR.redLines.map((t) => `- ${t}`).join("\n")}
 </quality_bar>
 
-<stunt_library>
-The gold standard. Find a new twist of the same kind; never copy these.
-${STUNTS.map((s) => `- ${s.brand}: ${s.what} Twist: ${s.twist} Why: ${s.whyItWorked}`).join("\n")}
-</stunt_library>`.trim();
+<attention_playbook>
+How things actually spread. Every idea must use at least one of these:
+${ATTENTION_PLAYBOOK.map((m) => `- [${m.id}] ${m.name}: ${m.how}`).join("\n")}
+</attention_playbook>
+
+<reference_stunts>
+The benchmark, in and outside gambling. Find a new twist of the same kind; never copy these.
+${STUNTS.map((s) => `- ${s.brand}: ${s.what} Why: ${s.whyItWorked}`).join("\n")}
+${REFERENCE_STUNTS.map((s) => `- ${s.brand}: ${s.what} Why: ${s.why}`).join("\n")}
+</reference_stunts>`.trim();
 }
 
 export const ACCURACY_RULES = `

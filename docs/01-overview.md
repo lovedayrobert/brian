@@ -40,7 +40,9 @@ This folder is the full documentation. Start here, then read in order:
 | Discovery, trends, lifecycle, Live, calendar, safety filter | Working on live data from free sources |
 | Lifecycle backtest | Working; results reported honestly (see doc 4) |
 | Coverage and cost planner | Working |
-| Ideas, Lab, Rapid Response, Develop, Memory consolidation | Built and type-checked; switch on when `ANTHROPIC_API_KEY` is set. Not yet run end to end against the API |
+| Ideas, Lab, Develop | Run end to end against the API: idea batches about $1 and 4–5 minutes each, a full package about $2.40 and 10 minutes |
+| Rapid Response, Memory consolidation | Built; not yet exercised against the API |
+| Visuals | Code-built placeholder key visual on every asset; image and video generation not connected yet |
 | Mockups | Working (code-built visuals; generated key visuals with `OPENAI_API_KEY`) |
 | Linear push | Built; needs `LINEAR_API_KEY` and `LINEAR_TEAM_ID` |
 | Paid sources (X, Reddit, TikTok, Kick, on-chain analytics) | Slots and catalogue ready; adapters added once budget is approved |

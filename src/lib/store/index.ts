@@ -38,6 +38,9 @@ export interface DB {
 
 const EMPTY: DB = { signals: [], trends: [], moments: [], ideas: [], packages: [], agentRuns: [], sweeps: [], rapid: [], memories: [], memoryEvents: [], feedback: [], spendLedger: {}, imported: [], reviews: [] };
 
+const LOCK_STALE_MS = 30_000;
+const LOCK_WAIT_MS = 20_000;
+
 class FileRepository implements Repository {
   private queue: Promise<unknown> = Promise.resolve();
   constructor(private file: string) {}
@@ -52,19 +55,53 @@ class FileRepository implements Repository {
     }
   }
 
-  /** Serialised read-modify-write with an atomic rename, so concurrent jobs never corrupt the file. */
+  /**
+   * Read-modify-write under a lock file, so the app and scripts (separate
+   * processes) can't overwrite each other's changes. Within a process, writes
+   * are also queued. The rename is atomic, so readers never see a partial file.
+   */
   update(fn: (db: DB) => void | Promise<void>): Promise<DB> {
     const run = this.queue.then(async () => {
-      const db = await this.read();
-      await fn(db);
       await fs.mkdir(path.dirname(this.file), { recursive: true });
-      const tmp = `${this.file}.${process.pid}.tmp`;
-      await fs.writeFile(tmp, JSON.stringify(db));
-      await fs.rename(tmp, this.file);
-      return db;
+      const release = await this.lock();
+      try {
+        const db = await this.read();
+        await fn(db);
+        const tmp = `${this.file}.${process.pid}.tmp`;
+        await fs.writeFile(tmp, JSON.stringify(db));
+        await fs.rename(tmp, this.file);
+        return db;
+      } finally {
+        await release();
+      }
     });
     this.queue = run.catch(() => undefined);
     return run;
+  }
+
+  /** Exclusive lock across processes. Locks older than 30s are treated as left by a crashed process. */
+  private async lock(): Promise<() => Promise<void>> {
+    const lockPath = `${this.file}.lock`;
+    const started = Date.now();
+    for (;;) {
+      try {
+        const handle = await fs.open(lockPath, "wx");
+        await handle.writeFile(String(process.pid));
+        await handle.close();
+        return async () => {
+          await fs.rm(lockPath, { force: true });
+        };
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException).code !== "EEXIST") throw e;
+        const stat = await fs.stat(lockPath).catch(() => null);
+        if (stat && Date.now() - stat.mtimeMs > LOCK_STALE_MS) {
+          await fs.rm(lockPath, { force: true });
+          continue;
+        }
+        if (Date.now() - started > LOCK_WAIT_MS) throw new Error("Brian's data file is busy; try again in a moment.");
+        await new Promise((r) => setTimeout(r, 20 + Math.random() * 30));
+      }
+    }
   }
 }
 

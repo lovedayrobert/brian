@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { Idea } from "@/lib/domain/types";
 import { EdgeBadge, Pill } from "./ui";
 import { KeyVisual } from "./mockups/key-visual";
+import { scoreSet } from "@/lib/scores";
 
 export function IdeaCard({ idea, keyVisualUrl }: { idea: Idea; keyVisualUrl?: string | null }) {
-  const s = idea.scores;
   return (
     <Link
       href={`/ideas/${idea.id}`}
@@ -27,18 +27,11 @@ export function IdeaCard({ idea, keyVisualUrl }: { idea: Idea; keyVisualUrl?: st
           <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-ink-3">The headline</div>
           <div className="mt-1 font-serif text-[15px] italic leading-snug">“{idea.headline}”</div>
         </div>
-        <div className="mt-4 grid grid-cols-4 gap-2 text-center">
-          {(
-            [
-              ["Talk", s.talkability.value],
-              ["Simple", s.simplicity.value],
-              ["Ours", s.ownability.value],
-              ["Cheap", s.cost.value],
-            ] as const
-          ).map(([l, v]) => (
-            <div key={l} className="rounded-[10px] bg-surface-2 py-2">
-              <div className="tabular text-[17px] font-semibold">{v}</div>
-              <div className="text-[11px] text-ink-3">{l}</div>
+        <div className="mt-4 grid gap-2 text-center" style={{ gridTemplateColumns: `repeat(${scoreSet(idea).length}, minmax(0, 1fr))` }}>
+          {scoreSet(idea).map((k) => (
+            <div key={k.key} className="rounded-[10px] bg-surface-2 py-2">
+              <div className="tabular text-[17px] font-semibold">{idea.scores[k.key]?.value ?? "–"}</div>
+              <div className="text-[11px] text-ink-3">{k.short}</div>
             </div>
           ))}
         </div>

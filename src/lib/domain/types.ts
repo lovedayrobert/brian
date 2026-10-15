@@ -176,7 +176,14 @@ export interface Idea {
   mechanism: string; // the single twist
   borrowedAttention: string; // what existing thing it hijacks
   evidence: Claim[];
-  scores: { talkability: Score; simplicity: Score; ownability: Score; cost: Score };
+  /** Engine 2: shareability, reach, novelty, attribution, cost. Engine 1 (legacy): talkability, simplicity, ownability, cost. */
+  scores: Record<string, Score>;
+  /** Which idea engine produced it. 2 = attention-first (current); 1 = original USP-led engine. */
+  engine?: 1 | 2;
+  attentionMechanic?: string;
+  shareMoment?: string;
+  whoAmplifies?: string;
+  cashyRole?: string;
   screening: Screening;
   status: "candidate" | "killed" | "card" | "developing" | "developed";
   keyVisualPrompt: string;

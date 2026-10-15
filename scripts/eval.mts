@@ -8,8 +8,8 @@
 //  - the display order is shuffled once and frozen
 //
 // Usage: npm run eval   (needs ANTHROPIC_API_KEY; takes 30–60 minutes; ~$25–40 within the spend cap)
-import { loadEnvConfig } from "@next/env";
-loadEnvConfig(process.cwd()); // read .env.local like the app does
+import nextEnv from "@next/env";
+nextEnv.loadEnvConfig(process.cwd()); // read .env.local like the app does
 import { modelReady, spendStatus } from "@/lib/adapters/model";
 import type { Idea } from "@/lib/domain/types";
 import { LENSES } from "@/lib/brand/lenses";

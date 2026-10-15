@@ -1,11 +1,12 @@
 import * as z from "zod/v4";
 import { callStructured, research } from "@/lib/adapters/model";
 import type { BrandId, Claim, Citation, Idea, Moment, Signal, Trend } from "@/lib/domain/types";
-import { QUALITY_BAR } from "@/lib/brand/quality-bar";
+import { ATTENTION_PLAYBOOK, QUALITY_BAR } from "@/lib/brand/quality-bar";
+import { totalScore } from "@/lib/scores";
 import { lensById } from "@/lib/brand/lenses";
 import { newId, repo } from "@/lib/store";
 import { memoryForRun } from "@/lib/memory";
-import { ACCURACY_RULES, brandContext, qualityBarContext, resolveUrl, trendEvidence } from "./context";
+import { ACCURACY_RULES, brandVoiceContext, qualityBarContext, resolveUrl, trendEvidence } from "./context";
 
 const EdgeEnum = z.enum(["safe", "spicy", "wild"]);
 const ClaimOut = z.object({ text: z.string(), url: z.string().nullable() });
@@ -15,12 +16,15 @@ const InventorOut = z.object({
     z.object({
       name: z.string().describe("Short, memorable campaign name"),
       oneLiner: z.string().describe("The one sentence someone would retell at a bar"),
-      mechanism: z.string().describe("The single twist, in two or three sentences"),
-      borrowedAttention: z.string().describe("The existing thing it hijacks: meme, person, contract, data, moment"),
-      headline: z.string().describe("The headline iGaming or crypto press would write"),
+      mechanism: z.string().describe("What actually happens, in two or three sentences. Never about Cashy's product or strengths."),
+      attentionMechanic: z.enum(ATTENTION_PLAYBOOK.map((m) => m.id) as [string, ...string[]]),
+      borrowedAttention: z.string().describe("The existing thing it rides: meme, moment, person, object, platform behaviour"),
+      shareMoment: z.string().describe("The exact thing people screenshot, clip or repost"),
+      whoAmplifies: z.string().describe("Who passes it on unpaid: which meme pages, creators, communities or press"),
+      cashyRole: z.string().describe("How Cashy rides along subtly but unmistakably (logo, name, signature, Easter egg). Never a sales message."),
+      headline: z.string().describe("The headline gaming, culture, crypto or mainstream press would write"),
       edge: EdgeEnum,
       backlash: z.string().describe("Who will be annoyed or offended, and how it plays out"),
-      whyOurs: z.string().describe("Which real Cashy advantage or first-mover angle makes it ours"),
       keyVisualPrompt: z.string().describe("A one-paragraph art direction for the key visual. No real people's faces."),
       evidence: z.array(ClaimOut),
     }),
@@ -35,9 +39,10 @@ const CriticOut = z.object({
       bannedPatternHit: z.string().nullable(),
       verdict: z.enum(["pass", "kill"]),
       reasons: z.array(z.string()),
-      talkability: z.object({ value: z.number(), reason: z.string() }),
-      simplicity: z.object({ value: z.number(), reason: z.string() }),
-      ownability: z.object({ value: z.number(), reason: z.string() }),
+      shareability: z.object({ value: z.number(), reason: z.string() }),
+      reach: z.object({ value: z.number(), reason: z.string() }),
+      novelty: z.object({ value: z.number(), reason: z.string() }),
+      attribution: z.object({ value: z.number(), reason: z.string() }),
       cost: z.object({ value: z.number(), reason: z.string() }),
     }),
   ),
@@ -80,8 +85,8 @@ export async function generateIdeas(opts: {
   const memory = await memoryForRun(opts.brandId, `inventing ideas for ${subject}`);
   const system = [
     memory,
-    "You are the Inventor at Brian, Cashy's marketing brain. You find the one simple twist that turns a live trend into a stunt people cannot stop talking about.",
-    brandContext(opts.brandId),
+    "You are the Inventor at Brian, Cashy's marketing brain. Your only job is attention: ideas that get Cashy in front of huge numbers of people in ways they share, screenshot and argue about. Think like Liquid Death, MSCHF, Duolingo's social team and the best crypto shitposters, not like a casino marketer. Nobody cares about a casino's strengths, so never make an idea about Cashy's product, payouts, terms, fairness, transparency or the Justice Fund. Cashy is the brand behind the stunt, never its subject.",
+    brandVoiceContext(opts.brandId),
     qualityBarContext(),
     ACCURACY_RULES,
   ].join("\n\n");
@@ -94,10 +99,10 @@ export async function generateIdeas(opts: {
     prompt: opts.lens
       ? `${sourceText}
 
-Generate 10 original candidate ideas through this lens. These must not be reactions to a trend or copies of anything in the stunt library: find openings nobody has used. Each must be explainable in one sentence and make sense only for a crypto casino. Prefer spicy and wild. Do not produce anything on the banned list. Cite evidence URLs where you use a fact; use null where you are reasoning.`
+Generate 10 original candidate ideas through this lens. Find openings nobody has used; never copy the reference stunts. Use at least 6 different attention mechanics across the 10. Each must be explainable in one sentence and be something a meme page would post. Prefer spicy and wild. Do not produce anything on the banned list. Cite evidence URLs where you use a fact; use null where you are reasoning.`
       : `${sourceText}
 
-Generate 10 candidate ideas from this. Each must use something that already exists, be explainable in one sentence, and make sense only for a crypto casino. Prefer spicy and wild. Do not produce anything on the banned list. Ground every factual statement in the evidence above and cite its URL; use null where you are reasoning rather than citing.`,
+Generate 10 candidate ideas that ride this. Use at least 6 different attention mechanics across the 10. Each must be explainable in one sentence and be something a meme page would post. Prefer spicy and wild. Do not produce anything on the banned list. Ground every factual statement in the evidence above and cite its URL; use null where you are reasoning rather than citing.`,
   });
 
   const candidates = inv.candidates.slice(0, 10);
@@ -107,12 +112,12 @@ Generate 10 candidate ideas from this. Each must use something that already exis
     schema: CriticOut,
     system: [
       memory,
-      "You are the Critic at Brian. You are deliberately harsh. Most ideas should die with you. Boring is the worst crime; a standard promotion with a new name is an automatic kill.",
-      brandContext(opts.brandId),
+      "You are the Critic at Brian. You judge ideas the way a meme page editor and a viral marketer would: would this actually get shared? You are deliberately harsh and most ideas die with you. Automatic kills: anything that is really about Cashy's product or strengths (payouts, terms, fairness, transparency, the Justice Fund), anything that is mainly a page of data, and anything a viewer would scroll past.",
+      brandVoiceContext(opts.brandId),
       qualityBarContext(),
-      `Run all five tests for every candidate using these ids: ${QUALITY_BAR.tests.map((t) => t.id).join(", ")}. Score talkability, simplicity, ownability (could a rival copy it?) and cost (10 = nearly free) from 1 to 10, each with a one-line reason. Pass at most three.`,
+      `Run all five tests for every candidate using these ids: ${QUALITY_BAR.tests.map((t) => t.id).join(", ")}. Score from 1 to 10, each with a one-line reason: shareability (would people repost it unprompted?), reach (how far it can travel: who amplifies it), novelty (has anyone seen this before?), attribution (will people say Cashy's name when they share it?), cost (10 = nearly free). Pass at most three.`,
     ].join("\n\n"),
-    prompt: `${sourceText}\n\n<candidates>\n${candidates.map((c, i) => `${i}. ${c.name}: ${c.oneLiner}\nMechanism: ${c.mechanism}\nEdge: ${c.edge}`).join("\n\n")}\n</candidates>`,
+    prompt: `${sourceText}\n\n<candidates>\n${candidates.map((c, i) => `${i}. ${c.name}: ${c.oneLiner}\nWhat happens: ${c.mechanism}\nMechanic: ${c.attentionMechanic}. Share moment: ${c.shareMoment}\nWho amplifies: ${c.whoAmplifies}\nCashy's name: ${c.cashyRole}\nEdge: ${c.edge}`).join("\n\n")}\n</candidates>`,
   });
 
   const now = new Date().toISOString();
@@ -131,13 +136,19 @@ Generate 10 candidate ideas from this. Each must use something that already exis
       headline: c.headline,
       edge: c.edge,
       backlash: c.backlash,
-      mechanism: `${c.mechanism}\n\nWhy it's ours: ${c.whyOurs}`,
+      mechanism: c.mechanism,
       borrowedAttention: c.borrowedAttention,
+      engine: 2,
+      attentionMechanic: c.attentionMechanic,
+      shareMoment: c.shareMoment,
+      whoAmplifies: c.whoAmplifies,
+      cashyRole: c.cashyRole,
       evidence: toClaims(c.evidence, allowed),
       scores: {
-        talkability: clampScore(r?.talkability),
-        simplicity: clampScore(r?.simplicity),
-        ownability: clampScore(r?.ownability),
+        shareability: clampScore(r?.shareability),
+        reach: clampScore(r?.reach),
+        novelty: clampScore(r?.novelty),
+        attribution: clampScore(r?.attribution),
         cost: clampScore(r?.cost),
       },
       screening: {
@@ -191,8 +202,8 @@ async function checkRedLines(idea: Idea, brandId: BrandId, sourceText: string) {
     subject: idea.name,
     schema: RedLinesOut,
     system: [
-      "You are Red Lines at Brian. You protect the brand from genuine legal and safety lines only. You never make ideas tamer: offensive humour, rival-baiting and stunts that annoy platforms or press are allowed and are listed as consequences, not issues. If an idea only works by disguising gambling promotion to get past a platform's ad or content rules, list that as a consequence and say plainly that it risks losing the account. Running in a market where we aren't licensed is an issue.",
-      brandContext(brandId),
+      "You are Red Lines at Brian. Default to pass. Fail an idea only if it clearly breaches one of the listed hard stops; when in doubt, pass it and write the risk as a consequence. You never make ideas tamer: offensive, crude or dark humour, shock, taboo, swearing, roasting rivals and public figures, harmless pranks, stunts that annoy platforms or press, and stunts that physically happen in markets where we don't take players are all allowed and listed as consequences (say which market legal should check). If an idea only works by disguising gambling promotion to get past a platform's rules, that's a consequence: say plainly it risks losing the account.",
+      brandVoiceContext(brandId),
       qualityBarContext(),
     ].join("\n\n"),
     prompt: `${sourceText}\n\n<idea>\n${idea.name}: ${idea.oneLiner}\n${idea.mechanism}\nEdge: ${idea.edge}\n</idea>\n\nDoes this breach a red line? List breaches as issues (fail) and everything else as consequences.`,
@@ -254,10 +265,7 @@ function clampScore(s?: { value: number; reason: string }) {
   return { value: Math.max(1, Math.min(10, Math.round(s.value))), reason: s.reason };
 }
 
-export function totalScore(i: Idea): number {
-  const s = i.scores;
-  return s.talkability.value * 2 + s.simplicity.value + s.ownability.value * 1.5 + s.cost.value * 0.5;
-}
+export { totalScore };
 
 /** Context for an original idea: the lens, plus the evidence that lens needs. */
 function labContext(moments: Moment[], signals: Signal[], lensId: string, steer?: string) {
@@ -271,8 +279,8 @@ function labContext(moments: Moment[], signals: Signal[], lensId: string, steer?
   const coins = signals.filter((s) => s.sourceId === "trenches" && s.narrative?.kind === "culture");
 
   const evidence: Signal[] = [
-    ...(lensId === "rival-weak-spots" ? [...rivals, ...pick(trade, 15)] : pick(rivals, 5)),
-    ...(lensId === "crypto-native" ? pick(coins, 15) : pick(coins, 4)),
+    ...(lensId === "troll" ? pick(rivals, 12) : pick(rivals, 3)),
+    ...(lensId === "internet-object" || lensId === "hijack-now" ? pick(coins, 10) : pick(coins, 3)),
   ];
   const allowed: Citation[] = [
     ...evidence.map((s) => ({ url: s.url, title: s.title, publisher: s.author ?? s.sourceId, retrievedAt: s.capturedAt })),
@@ -286,7 +294,7 @@ ${lens.prompt}
 ${steer ? `\n<steer>\nThe campaign owner adds: ${steer}\n</steer>\n` : ""}
 <context note="What is happening right now, for awareness. You are not required to use any of it.">
 Culture right now:
-${culture.slice(0, 12).map((m) => `- ${m.title} ${m.sourceUrl ?? ""}`).join("\n")}
+${culture.slice(0, lensId === "hijack-now" || lensId === "creator-chaos" ? 25 : 12).map((m) => `- ${m.title} ${m.sourceUrl ?? ""}`).join("\n")}
 
 Coming up:
 ${calendar.slice(0, 8).map((m) => `- ${m.date.slice(0, 10)} ${m.title} ${m.sourceUrl ?? ""}`).join("\n")}
@@ -334,7 +342,7 @@ export async function checkSteeringRedLines(ideaId: string, instruction: string)
     subject: `steer: ${instruction.slice(0, 60)}`,
     schema: SteerCheck,
     system: [
-      "You are Red Lines at Brian. Decide whether applying a steering instruction to a campaign would breach a red line. Only legal and safety lines count: making an idea bolder, ruder or more rival-baiting is allowed.",
+      "You are Red Lines at Brian. Decide whether applying a steering instruction to a campaign would clearly breach one of the hard stops. Default to pass: making an idea bolder, ruder, darker, more offensive or more rival-baiting is allowed.",
       qualityBarContext(),
     ].join("\n\n"),
     prompt: `<idea>\n${idea.name}: ${idea.oneLiner}\n</idea>\n<instruction>\n${instruction}\n</instruction>`,

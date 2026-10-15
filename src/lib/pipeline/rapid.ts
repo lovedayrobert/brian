@@ -3,7 +3,7 @@ import { callStructured } from "@/lib/adapters/model";
 import type { BrandId } from "@/lib/domain/types";
 import { newId, repo } from "@/lib/store";
 import { memoryForRun } from "@/lib/memory";
-import { ACCURACY_RULES, brandContext, qualityBarContext } from "./context";
+import { ACCURACY_RULES, brandVoiceContext, qualityBarContext } from "./context";
 
 /**
  * Rapid Response (brief §5k). Minutes, not days: three one-sentence takes on a
@@ -51,7 +51,7 @@ function system(brandId: BrandId, memory = "") {
   return [
     memory,
     "You are Rapid Response at Brian. A meme is dead in three days and a breaking moment in hours. You write native, fast, funny reactions that sound like the brand's social team, never like an ad. You understand the joke before you use it.",
-    brandContext(brandId),
+    brandVoiceContext(brandId),
     qualityBarContext(),
     ACCURACY_RULES,
   ].join("\n\n");

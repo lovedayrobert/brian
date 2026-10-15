@@ -181,6 +181,25 @@ export const HandoverSchema = z.object({
   ),
 });
 
+/*
+ * The API caps how large a structured-output schema can be, and the full
+ * creative section is over it. It is generated in three parts with these
+ * sub-schemas and merged back into CreativeSchema's shape.
+ */
+export const CreativeCoreSchema = CreativeSchema.pick({ concept: true, rationale: true, keyVisual: true, mechanic: true });
+export const CreativeSocialSchema = z.object({
+  x: CreativeSchema.shape.copy.shape.x,
+  instagram: CreativeSchema.shape.copy.shape.instagram,
+  tiktok: CreativeSchema.shape.copy.shape.tiktok,
+  telegram: z.string(),
+  discord: z.string(),
+});
+export const CreativeWebVideoSchema = z.object({
+  landing: CreativeSchema.shape.copy.shape.landing,
+  variants: CreativeSchema.shape.copy.shape.variants,
+  video: CreativeSchema.shape.video,
+});
+
 export type Insight = z.infer<typeof InsightSchema>;
 export type Strategy = z.infer<typeof StrategySchema>;
 export type Creative = z.infer<typeof CreativeSchema>;

@@ -1,5 +1,5 @@
-import { loadEnvConfig } from "@next/env";
-loadEnvConfig(process.cwd()); // read .env.local like the app does
+import nextEnv from "@next/env";
+nextEnv.loadEnvConfig(process.cwd()); // read .env.local like the app does
 import { runSweep } from "@/lib/pipeline/sweep";
 import { repo } from "@/lib/store";
 

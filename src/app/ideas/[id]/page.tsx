@@ -9,6 +9,8 @@ import { Card, EdgeBadge, PageHeader, Pill, ScoreBar, SectionTitle, SourceLink }
 import { modelReady } from "@/lib/adapters/model";
 import { relativeTime } from "@/lib/format";
 import { keyVisualFor, load } from "@/lib/queries";
+import { scoreSet } from "@/lib/scores";
+import { ATTENTION_PLAYBOOK } from "@/lib/brand/quality-bar";
 
 export default async function IdeaDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -71,8 +73,14 @@ export default async function IdeaDetail({ params }: { params: Promise<{ id: str
           </Card>
 
           <Card className="space-y-5 p-6 text-[14.5px] leading-relaxed">
-            <Block label="The twist">{mechanism}</Block>
-            {whyOurs && <Block label="Why it's ours">{whyOurs}</Block>}
+            <Block label="What happens">{mechanism}</Block>
+            {idea.attentionMechanic && (
+              <Block label="Attention mechanic">{ATTENTION_PLAYBOOK.find((m) => m.id === idea.attentionMechanic)?.name ?? idea.attentionMechanic}</Block>
+            )}
+            {idea.shareMoment && <Block label="What people share">{idea.shareMoment}</Block>}
+            {idea.whoAmplifies && <Block label="Who passes it on">{idea.whoAmplifies}</Block>}
+            {idea.cashyRole && <Block label="How Cashy gets the credit">{idea.cashyRole}</Block>}
+            {whyOurs && <Block label="Why it's ours (earlier engine)">{whyOurs}</Block>}
             <Block label="Borrowed attention">{idea.borrowedAttention}</Block>
             <Block label={`Edge: ${idea.edge}. Likely backlash`}>{idea.backlash}</Block>
           </Card>
@@ -103,10 +111,9 @@ export default async function IdeaDetail({ params }: { params: Promise<{ id: str
           <FeedbackBar target={{ type: "idea", id: idea.id, label: idea.name }} allowReject={idea.status !== "killed"} />
           <Card className="space-y-4 p-5">
             <div className="text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">Scores</div>
-            <ScoreBar label="Talkability" {...idea.scores.talkability} />
-            <ScoreBar label="Simplicity" {...idea.scores.simplicity} />
-            <ScoreBar label="Ownability" {...idea.scores.ownability} />
-            <ScoreBar label="Cost (10 = nearly free)" {...idea.scores.cost} />
+            {scoreSet(idea).map((k) => (
+              <ScoreBar key={k.key} label={k.label} value={idea.scores[k.key]?.value ?? 0} reason={idea.scores[k.key]?.reason ?? ""} />
+            ))}
             <p className="text-[11.5px] text-ink-3">Scores are the Critic&rsquo;s judgement, not measurements.</p>
           </Card>
 
