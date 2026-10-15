@@ -1,0 +1,108 @@
+import * as z from "zod/v4";
+import { callStructured } from "@/lib/adapters/model";
+import type { BrandId } from "@/lib/domain/types";
+import { newId, repo } from "@/lib/store";
+import { memoryForRun } from "@/lib/memory";
+import { ACCURACY_RULES, brandContext, qualityBarContext } from "./context";
+
+/**
+ * Rapid Response (brief §5k). Minutes, not days: three one-sentence takes on a
+ * breaking moment, then post-ready copy for the approved take. Nothing is
+ * ever posted automatically.
+ */
+const TakesOut = z.object({
+  takes: z.array(
+    z.object({
+      take: z.string().describe("The reactive idea in one sentence"),
+      format: z.string().describe("The native format: meme template, quote-post, reply, fake-receipt, etc."),
+      edge: z.enum(["safe", "spicy", "wild"]),
+      redLine: z.object({ pass: z.boolean(), note: z.string() }),
+      riskNote: z.string().describe("What could go wrong, who might be offended, whether it touches a real person or sensitive topic"),
+    }),
+  ),
+});
+
+const AssetsOut = z.object({
+  x: z.object({ post: z.string(), altVariant: z.string() }),
+  instagramFeed: z.object({ visual: z.string(), caption: z.string() }),
+  instagramStory: z.object({ frames: z.array(z.string()) }),
+  tiktok: z.object({ hook: z.string(), beats: z.array(z.string()), caption: z.string() }),
+  telegram: z.string(),
+  discord: z.string(),
+  postingTime: z.string().describe("Recommended posting time and why"),
+  visualDirection: z.string(),
+  riskNote: z.string(),
+});
+
+export type Takes = z.infer<typeof TakesOut>["takes"];
+export type RapidAssets = z.infer<typeof AssetsOut>;
+
+export interface RapidResponse {
+  id: string;
+  momentId: string;
+  brandId: BrandId;
+  takes: Takes;
+  chosen: number | null;
+  assets: RapidAssets | null;
+  createdAt: string;
+}
+
+function system(brandId: BrandId, memory = "") {
+  return [
+    memory,
+    "You are Rapid Response at Brian. A meme is dead in three days and a breaking moment in hours. You write native, fast, funny reactions that sound like the brand's social team, never like an ad. You understand the joke before you use it.",
+    brandContext(brandId),
+    qualityBarContext(),
+    ACCURACY_RULES,
+  ].join("\n\n");
+}
+
+export async function reactToMoment(momentId: string, brandId: BrandId): Promise<RapidResponse> {
+  const db = await repo.read();
+  const m = db.moments.find((x) => x.id === momentId);
+  if (!m) throw new Error("Moment not found");
+  if (m.sensitivity === "blocked") throw new Error(`Blocked by the red-line filter: ${m.sensitivityReason ?? "sensitive topic"}`);
+  const out = await callStructured({
+    agent: "rapidResponse",
+    subject: m.title,
+    schema: TakesOut,
+    system: system(brandId, await memoryForRun(brandId, `reacting to ${m.title}`)),
+    prompt: `<moment>\n${m.title}\n${m.description}\nSources:\n${(m.sources ?? []).map((s) => `- [${s.outlet}] ${s.title} ${s.url}`).join("\n")}\n</moment>\n\nGive exactly three reactive takes.`,
+  });
+  const rr: RapidResponse = {
+    id: newId("rr"),
+    momentId,
+    brandId,
+    takes: out.takes.slice(0, 3),
+    chosen: null,
+    assets: null,
+    createdAt: new Date().toISOString(),
+  };
+  await repo.update((d) => {
+    d.rapid = [rr, ...(d.rapid ?? [])];
+  });
+  return rr;
+}
+
+export async function buildRapidAssets(rapidId: string, takeIndex: number): Promise<RapidResponse> {
+  const db = await repo.read();
+  const rr = db.rapid.find((r) => r.id === rapidId);
+  if (!rr) throw new Error("Rapid response not found");
+  const m = db.moments.find((x) => x.id === rr.momentId);
+  const take = rr.takes[takeIndex];
+  const assets = await callStructured({
+    agent: "rapidResponse",
+    subject: take.take,
+    schema: AssetsOut,
+    system: system(rr.brandId, await memoryForRun(rr.brandId, `writing assets for ${take.take}`)),
+    prompt: `<moment>\n${m?.title}\n${m?.description}\n</moment>\n<approved_take>\n${take.take}\nFormat: ${take.format}\n</approved_take>\n\nWrite post-ready assets for every channel, in the moment's real format and our voice. Include 18+ where the platform format allows.`,
+  });
+  await repo.update((d) => {
+    const r = d.rapid.find((x) => x.id === rapidId);
+    if (r) {
+      r.chosen = takeIndex;
+      r.assets = assets;
+    }
+  });
+  return { ...rr, chosen: takeIndex, assets };
+}

@@ -1,0 +1,50 @@
+# Guide for AI assistants reviewing Brian
+
+Brian is Cashy's AI marketing engine (Next.js 16, TypeScript, Anthropic SDK). If you've been asked to review or explain it, start here.
+
+## Read first
+
+1. `docs/01-overview.md`: what it does and its current state
+2. `docs/02-architecture.md`: code layout, data model, request flows
+3. `docs/03-agents-and-pipelines.md`: every agent and pipeline
+4. `docs/04-sources-and-accuracy.md`: sources, ranking, accuracy enforcement, lifecycle model and backtest
+5. `docs/05-memory.md`: learning from feedback
+6. `docs/06-operations.md`: setup, costs, known limits, roadmap
+
+## Where the important code is
+
+| Concern | File |
+|---|---|
+| Data model | `src/lib/domain/types.ts` |
+| Agent config, model calls, cost logging | `src/lib/adapters/model/index.ts` |
+| Idea pipeline (Inventor, Critic, Red Lines, Prior Art) | `src/lib/pipeline/ideas.ts` |
+| Campaign package pipeline | `src/lib/pipeline/develop.ts`, `src/lib/pipeline/package-schemas.ts` |
+| Discovery sweep and ranking | `src/lib/pipeline/sweep.ts` |
+| Pure maths (tested) | `src/lib/engine/` |
+| Data sources | `src/lib/adapters/sources/` |
+| Memory | `src/lib/memory.ts` |
+| Brand book, quality bar, Lab lenses | `src/lib/brand/` |
+
+## Verify claims yourself
+
+```bash
+npm install
+npm test            # 41 unit tests
+npm run typecheck
+npm run lint
+npm run build
+```
+
+## Honest status
+
+- Discovery runs on live data from free sources. The AI agents are built and type-checked but have not yet been run end to end against the Anthropic API; they need `ANTHROPIC_API_KEY`.
+- The lifecycle forecaster's backtest is reported as is: 74% of launch-window calls right versus 77% for naive momentum on the same data.
+- Storage is a local JSON file; the Postgres schema for the hosted build is in `supabase/migrations/`.
+- The sample package loaded by `npm run demo` is hand-written to show the format and is labelled as such in the app.
+
+## Conventions for anyone changing the code
+
+- Next.js 16 has breaking changes from older versions; read `node_modules/next/dist/docs/` before changing framework code (see `AGENTS.md`).
+- Anything that produces a number belongs in `src/lib/engine/` with a test.
+- Every external service sits behind an adapter; missing keys must switch features off, not break the app.
+- Never let a model write a URL that isn't in the evidence; never let a model do arithmetic.
