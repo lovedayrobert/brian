@@ -107,6 +107,12 @@ Every asset gets its own native format instead of one key visual stamped everywh
 
 Each visual has a palette (night, paper, acid, candy, mono), its own text and art direction, and Cashy present but small. Storyboard frames are generated as images; a teaser clip is made only on demand (`Make teaser video`), because video costs more. Every image and clip is reserved and charged against the hard spend cap. Without `FAL_KEY`, code formats still render and image formats show their art direction.
 
+Defaults and what we learned testing them (October 2026):
+- Images: `fal-ai/flux-pro/v1.1-ultra`, $0.06 each, about 12 seconds. The safety checker stays on at tolerance 4: at its strictest it blanked a harmless underwater slot machine. A still-flagged result is refused rather than saved as a black image. Prompts never use words like "children", even in a "no …" instruction, because the checker reacts to the word.
+- Video: `fal-ai/kling-video/v3/turbo/standard/text-to-video`, $0.112 a second (about $0.56 for 5 seconds), 1–3 minutes.
+- Image and video models garble lettering, so exact text belongs in the code formats; image and video prompts ask for no readable text.
+- Generated files are stored in `.data/generated` and served by `/generated/:name` behind the login (files added to `public` after a production build aren't served).
+
 ### Rapid Response (`src/lib/pipeline/rapid.ts`)
 
 Three takes (format, edge, red-line check, risk note), then on approval: X post and variant, Instagram feed and story, TikTok hook and beats, Telegram, Discord, recommended posting time, visual direction and risk note.

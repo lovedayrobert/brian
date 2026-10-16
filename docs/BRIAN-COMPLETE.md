@@ -49,7 +49,7 @@ This folder is the full documentation. Start here, then read in order:
 | Coverage and cost planner | Working |
 | Ideas, Lab, Develop | Run end to end against the API: idea batches about $1 and 4–5 minutes each, a full package about $2.40 and 10 minutes |
 | Rapid Response, Memory consolidation | Built; not yet exercised against the API |
-| Visuals | Code-built placeholder key visual on every asset; image and video generation not connected yet |
+| Visuals | Art Director gives every asset its own format; code formats render now, image formats and storyboard frames need `FAL_KEY` |
 | Mockups | Working (code-built visuals; generated key visuals with `OPENAI_API_KEY`) |
 | Linear push | Built; needs `LINEAR_API_KEY` and `LINEAR_TEAM_ID` |
 | Paid sources (X, Reddit, TikTok, Kick, on-chain analytics) | Slots and catalogue ready; adapters added once budget is approved |
@@ -294,6 +294,12 @@ Every asset gets its own native format instead of one key visual stamped everywh
 - **Generated images (fal.ai)**: photograph, illustration, 3D render, product shot, collage; meme and headline formats also carry a generated image
 
 Each visual has a palette (night, paper, acid, candy, mono), its own text and art direction, and Cashy present but small. Storyboard frames are generated as images; a teaser clip is made only on demand (`Make teaser video`), because video costs more. Every image and clip is reserved and charged against the hard spend cap. Without `FAL_KEY`, code formats still render and image formats show their art direction.
+
+Defaults and what we learned testing them (October 2026):
+- Images: `fal-ai/flux-pro/v1.1-ultra`, $0.06 each, about 12 seconds. The safety checker stays on at tolerance 4: at its strictest it blanked a harmless underwater slot machine. A still-flagged result is refused rather than saved as a black image. Prompts never use words like "children", even in a "no …" instruction, because the checker reacts to the word.
+- Video: `fal-ai/kling-video/v3/turbo/standard/text-to-video`, $0.112 a second (about $0.56 for 5 seconds), 1–3 minutes.
+- Image and video models garble lettering, so exact text belongs in the code formats; image and video prompts ask for no readable text.
+- Generated files are stored in `.data/generated` and served by `/generated/:name` behind the login (files added to `public` after a production build aren't served).
 
 ### Rapid Response (`src/lib/pipeline/rapid.ts`)
 

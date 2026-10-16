@@ -252,7 +252,7 @@ const GENERATORS: Record<SectionKey, (ctx: Ctx, pkg: Package) => Promise<unknown
       ["insight"]),
   async creative(ctx) {
     // Generated in three parts: the full schema is over the API's structured-output size limit.
-    const rules = "Every asset exists to be shared, not to sell features: no payout speed, wagering, win caps, fairness or Justice Fund messaging in social posts. Cashy's name should be unmissable. Every player-facing piece carries 18+ and a responsible gambling line where the format allows. Write in the brand voice. Never use banned phrases.";
+    const rules = "Every asset exists to be shared, not to sell features: no payout speed, wagering, win caps, fairness or Justice Fund messaging in social posts. Cashy's name should be unmissable. Every player-facing piece carries 18+ and a responsible gambling line where the format allows. Write in the brand voice. Never use banned phrases. Write only the final words that get posted: no production notes, stage directions, posting instructions or [bracketed] notes inside copy; links may appear as [link].";
     const core = await gen(ctx, "creativeDirector", "Creative Director", S.CreativeCoreSchema,
       `Write the creative core: concept, rationale and the key visual system (with a 2 to 6 word hero line). Include the interactive mechanic only if the idea has one; otherwise null. ${rules}`,
       ["strategy", "insight"]);
@@ -277,7 +277,7 @@ const GENERATORS: Record<SectionKey, (ctx: Ctx, pkg: Package) => Promise<unknown
     const fresh = (await repo.read()).packages.find((p) => p.id === pkg.id) ?? pkg;
     const creative = fresh.sections.creative.content as S.Creative;
     const plan = await gen(ctx, "artDirector", "Art Director", S.VisualPlanSchema,
-      `Design the visual for every asset: ${["x", "ig", "carousel", "story", "tiktok", "landing", "telegram", "discord"].join(", ")}. One visual per asset, each in the format that is most native to that channel and funniest for this idea. Use at least 5 different formats across the 8 assets; never one look stamped everywhere. The visual has to be cool and shareable on its own; Cashy's presence is subtle (the templates add a small wordmark). Never put product claims on visuals.
+      `Design the visual for every asset: ${["x", "ig", "carousel", "story", "tiktok", "landing", "telegram", "discord"].join(", ")}. One visual per asset, each in the format that is most native to that channel and funniest for this idea. Use at least 5 different formats across the 8 assets; never one look stamped everywhere. The visual has to be cool and shareable on its own; Cashy's presence is subtle (the templates add a small wordmark). Never put product claims on visuals. Headline, lines and caption are the exact words that appear on the visual: never put production notes or instructions there (those go in artDirection).
 
 Formats available:
 ${FORMATS.map((f) => `- ${f.id} (${f.kind === "image" ? "generated image" : "exact layout"}): ${f.use}`).join("\n")}

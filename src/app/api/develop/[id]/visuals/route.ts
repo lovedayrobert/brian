@@ -21,7 +21,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       if (!falReady()) throw new Error("Video needs FAL_KEY in .env.local.");
       const creative = pkg.sections.creative.content as Creative | undefined;
       if (!creative) throw new Error("The creative section isn't ready yet.");
-      const prompt = `A ${creative.video.storyboard.length}-shot teaser. ${creative.video.storyboard.map((f) => `${f.shot}: ${f.visual}`).join(" Then ")}`;
+      // Video models garble lettering, so captions are left for the edit; at most one short brand word in the scene.
+      const prompt = `A ${creative.video.storyboard.length}-shot teaser. ${creative.video.storyboard.map((f) => `${f.shot}: ${f.visual}`).join(" Then ")} No captions, subtitles or on-screen text; at most one short brand word if it is physically part of the scene.`;
       const clip = await falVideo({ prompt, aspect: "9:16", name: `${id}-teaser`, subject: `teaser ${id}` });
       await repo.update((d) => {
         const p = d.packages.find((x) => x.id === id);

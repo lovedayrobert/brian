@@ -32,7 +32,7 @@ export async function generateKeyVisual(prompt: string, id: string): Promise<Ima
   const json = (await res.json()) as { data: { b64_json?: string; url?: string }[] };
   const item = json.data[0];
   const file = `${id}.png`;
-  const dir = path.join(process.cwd(), "public", "generated");
+  const dir = path.join(process.cwd(), ".data", "generated");
   await fs.mkdir(dir, { recursive: true });
   if (item.b64_json) await fs.writeFile(path.join(dir, file), Buffer.from(item.b64_json, "base64"));
   else if (item.url) await fs.writeFile(path.join(dir, file), Buffer.from(await (await fetch(item.url)).arrayBuffer()));
