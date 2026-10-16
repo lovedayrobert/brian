@@ -211,25 +211,39 @@ Write 10 pieces of content that ride this. Each one is a real thing to post or b
     .sort((a, b) => totalScore(b) - totalScore(a))
     .slice(0, 3);
 
-  await Promise.all(
-    survivors.map(async (idea) => {
-      const [red, prior] = await Promise.all([checkRedLines(idea, opts.brandId, sourceText), checkPriorArt(idea)]);
+  // Save straight after the Critic: the paid work is done, and a later failure must never lose it.
+  for (const i of ideas) i.sourceContext = sourceContextFor(i, db);
+  const save = () =>
+    repo.update((d) => {
+      const ids = new Set(ideas.map((i) => i.id));
+      d.ideas = [...ideas, ...d.ideas.filter((i) => !ids.has(i.id))];
+    });
+  await save();
+
+  // One at a time, so the spend cap reserves one check's worst case, not three.
+  for (const idea of survivors) {
+    try {
+      // BRIAN_SKIP_PRIOR_ART=1 drops the web check to save credit on test runs; Red Lines always runs.
+      const [red, prior] = await Promise.all([
+        checkRedLines(idea, opts.brandId, sourceText),
+        process.env.BRIAN_SKIP_PRIOR_ART ? Promise.resolve({ found: false, summary: "Web check skipped on this test run.", examples: [] }) : checkPriorArt(idea),
+      ]);
       idea.screening.redLines = red;
       idea.screening.priorArt = prior;
       idea.status = red.pass ? "card" : "killed";
       if (!red.pass) idea.screening.critic.reasons.unshift(`Red line: ${red.issues.join("; ")}`);
-    }),
-  );
+    } catch (e) {
+      // Shown as a card with Red Lines still to run; ensureRedLinesPass runs it before anything is developed.
+      idea.status = "card";
+      idea.screening.redLines = null;
+      idea.screening.critic.reasons.push(`Red Lines hasn't checked this yet (${(e as Error).message}). It runs before the idea can be developed.`);
+    }
+  }
   for (const i of ideas) if (i.status === "candidate") {
     i.status = "killed";
     i.screening.critic.reasons.unshift("Passed the Critic but ranked below the top three.");
   }
-
-  // Keep the source with each idea so it can be shown wherever the idea travels.
-  for (const i of ideas) i.sourceContext = sourceContextFor(i, db);
-  await repo.update((d) => {
-    d.ideas = [...ideas, ...d.ideas];
-  });
+  await save();
   return { cards: ideas.filter((i) => i.status === "card"), killed: ideas.filter((i) => i.status === "killed") };
 }
 
