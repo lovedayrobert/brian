@@ -7,7 +7,7 @@ import { mapLimit } from "./wikipedia";
  * "trade" feeds (iGaming and institutional crypto news) power Competitors and
  * the Industry filter. Everything else is culture: what people actually talk about.
  */
-export type FeedKind = "trade" | "crypto-culture" | "streaming" | "internet" | "gaming";
+export type FeedKind = "trade" | "crypto-culture" | "streaming" | "internet" | "gaming" | "tech";
 
 export const PRESS_FEEDS: { id: string; name: string; url: string; kind: FeedKind }[] = [
   // Culture: streamers, creators, memes, internet weirdness
@@ -20,6 +20,12 @@ export const PRESS_FEEDS: { id: string; name: string; url: string; kind: FeedKin
   { id: "404media", name: "404 Media", url: "https://www.404media.co/rss/", kind: "internet" },
   { id: "kotaku", name: "Kotaku", url: "https://kotaku.com/rss", kind: "gaming" },
   { id: "polygon", name: "Polygon", url: "https://www.polygon.com/rss/index.xml", kind: "gaming" },
+  // Tech and Elon-world: launches and stunts the crypto crowd memes instantly
+  { id: "electrek", name: "Electrek", url: "https://electrek.co/feed/", kind: "tech" },
+  { id: "teslarati", name: "Teslarati", url: "https://www.teslarati.com/feed/", kind: "tech" },
+  { id: "verge", name: "The Verge", url: "https://www.theverge.com/rss/index.xml", kind: "tech" },
+  { id: "techcrunch", name: "TechCrunch", url: "https://techcrunch.com/feed/", kind: "tech" },
+  { id: "engadget", name: "Engadget", url: "https://www.engadget.com/rss.xml", kind: "tech" },
   // Crypto culture: drama, exploits, scandals
   { id: "protos", name: "Protos", url: "https://protos.com/feed/", kind: "crypto-culture" },
   { id: "rekt", name: "Rekt News", url: "https://rekt.news/rss/feed.xml", kind: "crypto-culture" },
@@ -35,6 +41,14 @@ export const PRESS_FEEDS: { id: string; name: string; url: string; kind: FeedKin
 
 const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "@" });
 const MAX_AGE_MS = 4 * 86_400_000;
+
+type AtomEntry = {
+  title?: string | { "#text": string };
+  link?: { "@href"?: string; "@rel"?: string } | { "@href"?: string; "@rel"?: string }[];
+  published?: string;
+  updated?: string;
+  summary?: string | { "#text": string };
+};
 
 type RssItem = {
   title?: string | { "#text": string };
@@ -55,7 +69,17 @@ export const press: SourceAdapter = {
         const res = await fetch(feed.url, { headers: { "User-Agent": USER_AGENT }, signal: AbortSignal.timeout(20_000) });
         if (!res.ok) throw new Error(`${res.status}`);
         const xml = parser.parse(await res.text());
-        const items: RssItem[] = [xml?.rss?.channel?.item ?? []].flat();
+        // RSS (<item>) or Atom (<entry>, used by The Verge)
+        const atom: AtomEntry[] = [xml?.feed?.entry ?? []].flat();
+        const items: RssItem[] = [
+          ...[xml?.rss?.channel?.item ?? []].flat(),
+          ...atom.map((e) => ({
+            title: typeof e.title === "object" ? e.title["#text"] : e.title,
+            link: [e.link].flat().find((l) => l?.["@rel"] !== "edit")?.["@href"],
+            pubDate: e.published ?? e.updated,
+            description: typeof e.summary === "object" ? e.summary["#text"] : e.summary,
+          })),
+        ];
         return items.slice(0, 30).flatMap((it): Signal[] => {
           const title = clean(typeof it.title === "object" ? it.title["#text"] : it.title);
           const link = it.link;

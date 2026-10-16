@@ -42,17 +42,22 @@ for (let i = 0; i < 8; i++) {
 }
 
 console.log(`2/4 Generating until ${TARGET} cards (${queue.length} subjects queued)…`);
+// Three subjects at a time for speed; cards are always collected in queue order, so
+// "every card, in the order produced" holds regardless of which run finishes first.
 const cards: Idea[] = [];
-for (const subject of queue) {
-  if (cards.length >= TARGET) break;
-  try {
-    const r = await generateIdeas({ brandId: "cashy", ...subject });
-    cards.push(...r.cards);
-    console.log(`   ${JSON.stringify(subject)} → ${r.cards.length} card(s), ${r.killed.length} killed. Total ${cards.length}`);
-  } catch (e) {
-    console.log(`   ${JSON.stringify(subject)} → skipped: ${(e as Error).message}`);
-    if ((e as Error).constructor.name === "SpendCapError") break;
-  }
+let capHit = false;
+for (let i = 0; i < queue.length && cards.length < TARGET && !capHit; i += 3) {
+  const batch = queue.slice(i, i + 3);
+  const results = await Promise.allSettled(batch.map((subject) => generateIdeas({ brandId: "cashy", ...subject })));
+  results.forEach((r, j) => {
+    if (r.status === "fulfilled") {
+      cards.push(...r.value.cards);
+      console.log(`   ${JSON.stringify(batch[j])} → ${r.value.cards.length} card(s), ${r.value.killed.length} killed. Total ${cards.length}`);
+    } else {
+      console.log(`   ${JSON.stringify(batch[j])} → skipped: ${(r.reason as Error).message}`);
+      if ((r.reason as Error).constructor.name === "SpendCapError") capHit = true;
+    }
+  });
 }
 const set = cards.slice(0, TARGET);
 if (set.length < TARGET) console.log(`   Only ${set.length} cards were produced; the review will use all of them.`);
@@ -60,16 +65,22 @@ if (set.length < TARGET) console.log(`   Only ${set.length} cards were produced;
 console.log("3/4 Developing Brian's own top 2 cards…");
 const top2 = [...set].sort((a, b) => totalScore(b) - totalScore(a)).slice(0, 2);
 const packageIds: string[] = [];
-for (const idea of top2) {
-  try {
-    const pkg = await startPackage(idea.id);
-    await runPackage(pkg.id);
-    packageIds.push(pkg.id);
-    console.log(`   Package ready: ${idea.name}`);
-  } catch (e) {
-    console.log(`   Package for ${idea.name} failed: ${(e as Error).message}`);
-  }
-}
+const packageIdea = new Map<string, string>();
+await Promise.all(
+  top2.map(async (idea) => {
+    try {
+      const pkg = await startPackage(idea.id);
+      await runPackage(pkg.id);
+      packageIds.push(pkg.id);
+      packageIdea.set(pkg.id, idea.id);
+      console.log(`   Package ready: ${idea.name}`);
+    } catch (e) {
+      console.log(`   Package for ${idea.name} failed: ${(e as Error).message}`);
+    }
+  }),
+);
+// Keep the packages in Brian's ranking order, not finish order.
+packageIds.sort((a, b) => top2.findIndex((i) => i.id === packageIdea.get(a)) - top2.findIndex((i) => i.id === packageIdea.get(b)));
 
 console.log("4/4 Freezing the blind review…");
 const review = await createReviewSet({

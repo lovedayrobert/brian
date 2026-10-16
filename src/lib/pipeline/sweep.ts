@@ -214,7 +214,7 @@ function talkability(members: Signal[], relevance: number, industry: boolean): n
   // Topic match counts for less than whether people will react to it.
   let t = 0.4 * relevance;
   if (members.some((m) => m.sourceId === "googletrends")) t += 0.15;
-  if (members.some((m) => m.topics.some((k) => ["streaming", "internet", "crypto-culture", "gaming"].includes(k)))) t += 0.3;
+  if (members.some((m) => m.topics.some((k) => ["streaming", "internet", "crypto-culture", "gaming", "tech"].includes(k)))) t += 0.3;
   if (DRAMA.test(text)) t += 0.3;
   if (/\b(casino|gambl\w*|betting|stake|kick)\b/i.test(text) && !industry) t += 0.2;
   if (DULL.test(text)) t -= 0.35;

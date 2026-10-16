@@ -12,7 +12,7 @@ const CATEGORIES: { id: string; weight: number; re: RegExp }[] = [
   { id: "memes", weight: 0.9, re: /\b(memes?|viral|brainrot|skibidi|rizz|sigma|copypasta|tiktok trend)\b/i },
   { id: "markets", weight: 0.7, re: /\b(stock|market crash|nasdaq|s&p|fed|interest rate|polymarket|kalshi|prediction market|recession)\b/i },
   { id: "entertainment", weight: 0.5, re: /\b(film|movie|season \d|series|album|tour|grammy|oscar|emmy|netflix|box office|trailer)\b/i },
-  { id: "tech", weight: 0.5, re: /\b(ai|openai|chatgpt|apple|iphone|google|meta|elon|tesla|spacex|outage)\b/i },
+  { id: "tech", weight: 0.7, re: /\b(ai|openai|chatgpt|apple|iphone|google|meta|elon|musk|tesla|spacex|starship|cybertruck|roadster|neuralink|xai|grok|outage)\b/i },
   { id: "politics", weight: 0.4, re: /\b(trump|election|president|prime minister|senate|congress|tariff)\b/i },
 ];
 
