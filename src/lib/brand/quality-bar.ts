@@ -75,6 +75,17 @@ export const STUNTS: Stunt[] = [
     sources: [BRIEF],
   },
   {
+    id: "gta-map-directions",
+    brand: "@itsHunterTV (creator, not a brand)",
+    what: "Asked real strangers in LA for directions using a printed GTA 5 map. 255k views and 1,280 bookmarks from a 75k-follower account, a month before GTA 6.",
+    emotion: "WTF and hype: the game world colliding with the real city, at peak GTA anticipation.",
+    shareLine: "bro is navigating LA with the GTA map",
+    whyItWorked: "One real act, real people's genuine confusion as the content, zero cost, riding the biggest anticipation of the year. Nothing scripted.",
+    kind: "wrong place",
+    result: null,
+    sources: [{ url: "https://x.com/itsHunterTV/status/2110739181836333321", title: "Asking for directions in LA using GTA 5 map", publisher: "X (@itsHunterTV)", retrievedAt: "2026-10-16T00:00:00Z" }],
+  },
+  {
     id: "housebets-wallet-rewards",
     brand: "Housebets",
     what: "Rewards based on a player's past deposits to other casinos, read from their crypto wallet.",
@@ -137,7 +148,7 @@ export const AUDIENCE_PANEL: { id: string; who: string }[] = [
 
 export const QUALITY_BAR = {
   traits: [
-    "One act, not content: something Cashy actually does in the world (signs, pays, mutes, bans, builds, buys, plays somewhere, puts its name somewhere). The act is the news; any video or post is just the evidence.",
+    "One act, not content: something Cashy actually does in the world (signs, pays, mutes, bans, builds, buys, plays somewhere, puts its name somewhere, asks real people something). The act is the news; any video or post is just the evidence. A real act filmed raw with real people genuinely reacting counts; anything scripted or acted doesn't.",
     "It aims a feeling the audience already has, at full strength: hate, outrage, wtf, schadenfreude, tribalism, disgust, love. Cashy doesn't create the feeling; it points it.",
     "One sentence, retold with no explanation: 'Shuffle paid Jack Doherty to stop posting.' If it needs a second sentence, it's dead.",
     "People share it to say something about themselves: 'finally', 'this is so wrong lmao', 'wait, is that real?'. Write that line.",
@@ -146,7 +157,7 @@ export const QUALITY_BAR = {
     "Nobody has done it. A first, not a format.",
   ],
   banned: [
-    "Content as the idea: posts, TikTok POVs, skits, slideshows, memes, threads, replies, series, recurring bits, characters. Those are how you film an act, never the act",
+    "Scripted content as the idea: TikTok POVs, acted skits, slideshows, memes, threads, replies, series, recurring bits, characters. A real act filmed with real reactions is fine; anything acted out is not",
     "Campaigns, multi-phase plans, launches and anything that needs explaining",
     "Polished agency stunts: giant objects, billboards as art, flash mobs, mascots, press conferences, fake product launches, merch drops",
     "Anything whose point is Cashy's product or strengths: payouts, bonuses, wagering, games, transparency, trust, the Justice Fund",
@@ -155,7 +166,7 @@ export const QUALITY_BAR = {
     "Ideas with no emotion behind them: clever, nice or interesting isn't enough",
   ],
   tests: [
-    { id: "one-act", name: "One-act test", question: "Is it a single real thing Cashy does in the world (not a post, series, POV, skit or campaign), and can it be retold in one sentence with no explanation?" },
+    { id: "one-act", name: "One-act test", question: "Is it a single real thing Cashy does in the world, with real people reacting for real (not a scripted post, series, POV, skit or campaign), and can it be retold in one sentence with no explanation?" },
     { id: "feeling", name: "Feeling test", question: "Does it aim a strong feeling the audience already has (hate, outrage, wtf, schadenfreude, tribal, disgust, love) at full strength?" },
     { id: "share", name: "Share test", question: "Would the panel share it? Count love-hate: haters sharing to condemn it is a pass." },
     { id: "real", name: "Real test", question: "Can Cashy actually do it, raw and cheaply, within a couple of weeks?" },

@@ -144,7 +144,7 @@ Find 10 acts Cashy could do on this. First work out what people actually feel ab
     schema: CriticOut,
     system: [
       memory,
-      "You are the audience panel at Brian. For every candidate you first react as each panel member, instantly and in their own voice, the way they'd react seeing it on their timeline: would they share it, and what would they feel? Only then do you judge. You are harsh: most ideas die here. Love-hate counts: if haters would share it to condemn it, that's distribution. Automatic kills: content dressed up as an idea (posts, POVs, skits, series, threads, memes), campaigns, polished agency stunts, anything about Cashy's product, anything with no strong feeling behind it, and anything that sounds like an ad or an AI wrote it.",
+      "You are the audience panel at Brian. For every candidate you first react as each panel member, instantly and in their own voice, the way they'd react seeing it on their timeline: would they share it, and what would they feel? Only then do you judge. You are harsh: most ideas die here. Love-hate counts: if haters would share it to condemn it, that's distribution. Automatic kills: scripted content dressed up as an idea (POVs, acted skits, series, threads, memes; a real act filmed with real people reacting is fine), campaigns, polished agency stunts, anything about Cashy's product, anything with no strong feeling behind it, and anything that sounds like an ad or an AI wrote it.",
       `<panel>\n${AUDIENCE_PANEL.map((p) => `- [${p.id}] ${p.who}`).join("\n")}\n</panel>`,
       brandVoiceContext(opts.brandId),
       qualityBarContext(),
