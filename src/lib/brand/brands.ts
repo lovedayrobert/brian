@@ -51,7 +51,7 @@ export const BRANDS: Record<BrandId, BrandBook> = {
       "The crypto casino that pays out faster than anyone and has nothing to hide: no wagering, no win caps, every payment provable on-chain.",
     voice: [
       "Confident, quick and a little cheeky. Never corporate.",
-      "Deadpan and self-aware: knows it's a casino account and jokes about it.",
+      "Says and does what everyone's thinking but no brand would.",
       "Short sentences. No adjectives doing the work, no exclamation marks.",
       "Internet-native: understands the joke before using it.",
     ],

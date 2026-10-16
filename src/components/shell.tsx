@@ -18,7 +18,7 @@ import {
   Settings,
   Swords,
   X,
-} from "lucide-react";
+ HeartPulse } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -29,6 +29,7 @@ const NAV = [
     group: "Discover",
     items: [
       { href: "/live", label: "Live", icon: Flame },
+      { href: "/pulse", label: "Pulse", icon: HeartPulse },
       { href: "/", label: "Today", icon: CalendarClock },
       { href: "/trends", label: "Trends", icon: Activity },
       { href: "/lab", label: "Lab", icon: FlaskConical },

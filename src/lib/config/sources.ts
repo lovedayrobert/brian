@@ -73,6 +73,18 @@ export const SOURCES: SourceDef[] = [
     phase: 1,
   },
   {
+    id: "audience",
+    name: "Where the audience hangs out (Reddit)",
+    category: "social",
+    access: "free",
+    liveAdapter: true,
+    envKeys: [],
+    monthlyCost: { low: 0, high: 0 },
+    costNote: "Free: Reddit RSS",
+    unlocks: "Today's top posts in the communities this audience lives in: streamer clips and drama (LivestreamFail, Kick), viral TikToks and cringe, wallstreetbets, betting, crypto, memes and public fails. The Pulse reads them for the feeling driving each one.",
+    phase: 1,
+  },
+  {
     id: "builds",
     name: "What people are vibe coding",
     category: "social",

@@ -12,6 +12,7 @@ import { capsFromEnv, checkBudget, FALLBACK_WORST, PRICES, spendFromRuns, WEB_SE
  */
 export type AgentName =
   | "cartographer"
+  | "pulse"
   | "analyst"
   | "inventor"
   | "critic"
@@ -28,11 +29,12 @@ type Effort = "low" | "medium" | "high" | "xhigh" | "max";
 
 export const AGENTS: Record<AgentName, { model: string; effort: Effort; label: string; job: string }> = {
   cartographer: { model: "claude-haiku-5-5", effort: "low", label: "Cartographer", job: "Scores relevance and clusters signals" },
+  pulse: { model: "claude-sonnet-5-5", effort: "medium", label: "Pulse", job: "Reads what the audience is consuming and the emotion driving it" },
   analyst: { model: "claude-sonnet-5-5", effort: "medium", label: "Analyst", job: "Why a trend is spreading and who drives it" },
-  inventor: { model: "claude-opus-5-5", effort: "high", label: "Inventor", job: "Finds the one twist that makes a trend Cashy's" },
-  critic: { model: "claude-opus-5-5", effort: "high", label: "Critic", job: "Applies the quality bar, kills anything boring" },
+  inventor: { model: "claude-opus-5-5", effort: "high", label: "Inventor", job: "Finds the one act Cashy can do to a feeling the audience already has" },
+  critic: { model: "claude-opus-5-5", effort: "high", label: "Audience panel", job: "Five real-audience reactions; kills anything nobody would share" },
   priorArt: { model: "claude-sonnet-5-5", effort: "medium", label: "Prior Art", job: "Has anyone done it? Searches the web" },
-  redLines: { model: "claude-opus-5-5", effort: "medium", label: "Red Lines", job: "Legal, minors, real people, RG, data use" },
+  redLines: { model: "claude-sonnet-5-5", effort: "medium", label: "Red Lines", job: "Legal, minors, real people, RG, data use" },
   factChecker: { model: "claude-sonnet-5-5", effort: "medium", label: "Fact Checker", job: "Traces every claim to a source" },
   strategist: { model: "claude-opus-5-5", effort: "high", label: "Strategist", job: "Strategy, channel plan, business case" },
   creativeDirector: { model: "claude-opus-5-5", effort: "high", label: "Creative Director", job: "Concept, copy, key visual system" },

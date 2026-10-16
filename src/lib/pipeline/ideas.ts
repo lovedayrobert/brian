@@ -1,7 +1,8 @@
 import * as z from "zod/v4";
 import { callStructured, research } from "@/lib/adapters/model";
 import type { BrandId, Claim, Citation, Idea, Moment, Signal, Trend } from "@/lib/domain/types";
-import { CONTENT_FORMATS, QUALITY_BAR } from "@/lib/brand/quality-bar";
+import { AUDIENCE_PANEL, EMOTIONS, MOVES, QUALITY_BAR } from "@/lib/brand/quality-bar";
+import { pulseContext } from "./pulse";
 import { totalScore } from "@/lib/scores";
 import { sourceContextFor } from "@/lib/source-context";
 import { REACTIVE_LENSES } from "@/lib/horizon";
@@ -17,23 +18,22 @@ const ClaimOut = z.object({ text: z.string(), url: z.string().nullable() });
 const InventorOut = z.object({
   candidates: z.array(
     z.object({
-      name: z.string().describe("What it is, plainly, like a line in a content calendar: 'TikTok POV: the slot after you say last spin'. No pun names, no campaign titles."),
-      format: z.enum(CONTENT_FORMATS.map((m) => m.id) as [string, ...string[]]),
-      platform: z.string().describe("Where it goes first: TikTok, Reels, X, Kick clips, a link people share"),
-      hook: z.string().describe("The exact first line on screen, or what happens in the first second"),
-      script: z.string().describe("The content itself, written out: the post text, the slides one per line, the video beats with on-screen text, or what the build does when you open it. Ready to make."),
-      oneLiner: z.string().describe("What it is in one plain sentence"),
-      whyViews: z.string().describe("Why it gets views with zero ad spend: the relatable truth, the trending sound or format it rides, the reply bait"),
-      shareMoment: z.string().describe("Why someone sends it to the group chat or tags a friend"),
-      borrowedAttention: z.string().describe("The meme, format, sound, moment or in-joke it rides, if any"),
-      whoAmplifies: z.string().describe("Who reposts it unpaid: which meme pages, clip accounts, creators or communities"),
-      cashyRole: z.string().describe("How Cashy's name travels with it: the posting account, a watermark, a small part of the bit. Never a sales message."),
-      series: z.string().nullable().describe("How it repeats as a recurring bit, or null if it's a one-off"),
-      makeIt: z.string().describe("Who makes it, with what, and how long: '1 person, phone + CapCut, 2 hours'"),
-      shelfLife: z.string().describe("How long it keeps working (e.g. '24 hours', 'weeks as a series')"),
+      move: z.string().describe("The act, in one sentence, the way people will retell it: 'Cashy paid X to …', 'Cashy put its logo on …', 'A guy gambled on Cashy using …'. No campaign names."),
+      archetype: z.enum(MOVES.map((m) => m.id) as [string, ...string[]]),
+      emotion: z.enum(EMOTIONS.map((e) => e.id) as [string, ...string[]]),
+      emotionTarget: z.string().describe("Who or what the feeling is aimed at, and why the audience already feels it"),
+      pulseRef: z.string().nullable().describe("The Pulse item or signal it rides, named, or null"),
+      shareLine: z.string().describe("The exact words people type when they share it, in their voice, lower case if that's how they'd write it"),
+      reactions: z.array(z.object({ who: z.string(), says: z.string() })).describe("Three gut reactions from different corners of the internet, in their own words"),
+      howItWorks: z.string().describe("How Cashy actually does it: who, where, what's needed, what it costs, how long. Raw, not polished."),
+      proof: z.string().describe("What gets filmed or screenshotted as evidence it happened"),
+      headline: z.string().describe("The title a drama channel, clip account or press would give it"),
+      cashyRole: z.string().describe("Why you can't retell it without saying Cashy"),
+      firstness: z.string().describe("Why nobody has done this"),
       edge: EdgeEnum,
-      backlash: z.string().describe("Who could be annoyed, and how it plays out. 'Nobody much' is a fine answer."),
-      keyVisualPrompt: z.string().describe("What the first frame or the image looks like, lo-fi and native to the platform. No real people's faces."),
+      backlash: z.string().describe("Who will be angry, and how that helps or hurts"),
+      cost: z.string().describe("Rough cost and time, e.g. '$300, a weekend'"),
+      keyVisualPrompt: z.string().describe("The raw phone-camera frame that proves it happened. No real people's faces."),
       evidence: z.array(ClaimOut),
     }),
   ),
@@ -43,14 +43,17 @@ const CriticOut = z.object({
   reviews: z.array(
     z.object({
       index: z.number().describe("0-based index of the candidate"),
+      panel: z
+        .array(z.object({ id: z.string(), reaction: z.string().describe("Their gut reaction, in their voice, one line"), shares: z.boolean(), feeling: z.string() }))
+        .describe("One entry per panel member, in order"),
       tests: z.array(z.object({ id: z.string(), pass: z.boolean(), note: z.string() })),
-      bannedPatternHit: z.string().nullable().describe("The banned or cringe-list item it hits, or null"),
+      bannedPatternHit: z.string().nullable(),
       verdict: z.enum(["pass", "kill"]),
       reasons: z.array(z.string()),
-      views: z.object({ value: z.number(), reason: z.string() }),
-      shareability: z.object({ value: z.number(), reason: z.string() }),
-      native: z.object({ value: z.number(), reason: z.string() }),
-      makeable: z.object({ value: z.number(), reason: z.string() }),
+      charge: z.object({ value: z.number(), reason: z.string() }),
+      spread: z.object({ value: z.number(), reason: z.string() }),
+      simplicity: z.object({ value: z.number(), reason: z.string() }),
+      realness: z.object({ value: z.number(), reason: z.string() }),
       attribution: z.object({ value: z.number(), reason: z.string() }),
     }),
   ),
@@ -76,14 +79,14 @@ export interface IdeaRunResult {
 /** Inventor → Critic → Red Lines → Prior Art for one trend or moment. */
 const HORIZON_BRIEF: Record<Horizon, string> = {
   reactive:
-    "These are QUICK REACTIONS to something that will be over in 24-48 hours: a post, a meme, a reply, a slideshow or a quick edit that Cashy's social team can have live today. Small and sharp. The joke everyone's thinking, said first and said well.",
+    "These are QUICK MOVES on something people feel strongly about right now and will forget in a day or two. Each must be an act Cashy can do within 24-48 hours, while the feeling is hot.",
   evergreen:
-    "These are BIGGER PLAYS, but still simple content: a recurring bit or series that can run for weeks, a tiny build people keep sharing, or a set of posts prepared for a big moment people wait weeks for (GTA 6, the World Cup, a holiday) and posted on the day. Never a campaign, a stunt or a deal. Nothing a crypto casino (Stake, Shuffle, Rollbit, Roobet, BC.Game, Duel, Rainbet) has already done.",
+    "These are BIGGER MOVES: one act big enough that people are still talking about it next week, either aimed at a feeling that lasts (a villain people have hated for months, a long-running rivalry) or ready for a big moment people wait weeks for (GTA 6, the World Cup, a holiday). Still one act, still one sentence, still raw. Never a campaign or a series.",
 };
 
 const HORIZON_TEST: Record<Horizon, { id: string; name: string; question: string }> = {
-  reactive: { id: "speed", name: "Speed test", question: "Can it be live today, while the moment is still hot?" },
-  evergreen: { id: "legs", name: "Legs test", question: "Does it keep working: can it run as a series for weeks, keep getting shared as a build, or land on the day of a big moment? And has no crypto casino already done it?" },
+  reactive: { id: "speed", name: "Speed test", question: "Can Cashy do it within 48 hours, while the feeling is still hot?" },
+  evergreen: { id: "talked-about", name: "Next-week test", question: "Will drama channels, clip accounts and press still be talking about it a week later?" },
 };
 
 export async function generateIdeas(opts: {
@@ -100,6 +103,7 @@ export async function generateIdeas(opts: {
     ? labContext(db.moments, db.signals, opts.lens, opts.steer)
     : subjectContext(db.trends, db.moments, db.signals, opts);
 
+  const pulse = pulseContext(db.pulses);
   if ((trend?.sensitivity ?? moment?.sensitivity) === "blocked") {
     throw new Error(`Blocked by the red-line filter: ${trend?.sensitivityReason ?? moment?.sensitivityReason ?? "sensitive topic"}`);
   }
@@ -110,7 +114,7 @@ export async function generateIdeas(opts: {
   const memory = await memoryForRun(opts.brandId, `inventing ideas for ${subject}`);
   const system = [
     memory,
-    "You are the Inventor at Brian, Cashy's content brain. You write for a social team of two who post on TikTok, X, Reels and Kick clip accounts. Your job is content that gets views and gets sent to group chats: posts, videos, slideshows, memes, replies, recurring bits and tiny vibe-coded builds that one or two people can make this week. You are not an ad agency and you don't do campaigns, stunts, events, deals or launches. Write like the funniest person on crypto Twitter and gambling TikTok: deadpan, relatable, self-aware, a bit unhinged in the way real people are, never in the way brands try to be. Nobody cares about a casino's strengths, so never make anything about Cashy's product, payouts, terms, fairness or the Justice Fund. Cashy is the account posting the joke, never its subject. Before you write each idea, ask: would a 21-year-old who's online all day post this, or send it to a friend? If it sounds like an ad, an agency or an AI wrote it, throw it away.",
+    "You are the Inventor at Brian. You think like the person at Shuffle who had the idea of paying Jack Doherty to stop posting, the person at Duel who put the host in that costume, and the person at Stake who put the logo on every viral video. You don't make content and you don't run campaigns. You find ONE act Cashy can do in the real world that aims a feeling the audience already has (hate, outrage, wtf, schadenfreude, tribalism, disgust, love) at full strength, so they share it to say something about themselves. Start from the feeling, never from the brand: who do they hate right now, what would make them say 'they actually did that', where would a casino be absurd. Every idea is one sentence a 20-year-old would retell. Nobody cares about a casino's strengths, so Cashy's product is never the point. If it sounds like an ad agency, an AI, a TikTok series or a marketing plan, throw it away.",
     brandVoiceContext(opts.brandId),
     qualityBarContext(),
     `<horizon>\n${HORIZON_BRIEF[horizon]}\n</horizon>`,
@@ -123,12 +127,14 @@ export async function generateIdeas(opts: {
     schema: InventorOut,
     system,
     prompt: opts.lens
-      ? `${sourceText}
+      ? `${pulse}
+${sourceText}
 
-Write 10 pieces of content through this lens. Each one is a real thing to post or build: give the exact hook and write the script or post out in full. Simple beats clever: one joke per idea. Use at least 4 different formats across the 10 unless the lens names one. Nothing from the banned or cringe lists, and no pun names. Cite evidence URLs where you use a fact; use null where you are reasoning.`
-      : `${sourceText}
+Find 10 acts through this lens. Read the pulse first: aim at feelings people have right now, at the people and things they're actually reacting to. Each act is one sentence, real, raw and a first. Write the line people type when they share it. Nothing from the banned list: no posts, series, POVs, skits or campaigns. Cite evidence URLs where you use a fact; use null where you are reasoning.`
+      : `${pulse}
+${sourceText}
 
-Write 10 pieces of content that ride this. Each one is a real thing to post or build: give the exact hook and write the script or post out in full. Simple beats clever: one joke per idea, and the joke people are already making, said better, beats a concept. Use at least 4 different formats across the 10. Nothing from the banned or cringe lists, and no pun names. Ground every factual statement in the evidence above and cite its URL; use null where you are reasoning rather than citing.`,
+Find 10 acts Cashy could do on this. First work out what people actually feel about it (hate, outrage, wtf, schadenfreude, tribal, love) and who or what that feeling is aimed at; then find the act that points it. Use at least 4 different kinds of move across the 10. Each act is one sentence, real, raw and a first. Write the line people type when they share it. Nothing from the banned list: no posts, series, POVs, skits or campaigns. Ground every factual statement in the evidence above and cite its URL; use null where you are reasoning rather than citing.`,
   });
 
   const candidates = inv.candidates.slice(0, 10);
@@ -138,19 +144,20 @@ Write 10 pieces of content that ride this. Each one is a real thing to post or b
     schema: CriticOut,
     system: [
       memory,
-      "You are the Critic at Brian. You are 22, you run a meme page and a clip account, and you have watched every brand try too hard. You judge one thing: would this actually get views and get sent around, or would people scroll past it or screenshot it to laugh at the brand? You are harsh and most ideas die with you. Automatic kills: anything about Cashy's product or strengths; any stunt, event, deal, sponsorship, purchase, product launch or merch drop; anything that needs more than a week or a couple of thousand dollars; anything on the cringe list; pun names; and anything that reads like an ad agency or an AI wrote it.",
+      "You are the audience panel at Brian. For every candidate you first react as each panel member, instantly and in their own voice, the way they'd react seeing it on their timeline: would they share it, and what would they feel? Only then do you judge. You are harsh: most ideas die here. Love-hate counts: if haters would share it to condemn it, that's distribution. Automatic kills: content dressed up as an idea (posts, POVs, skits, series, threads, memes), campaigns, polished agency stunts, anything about Cashy's product, anything with no strong feeling behind it, and anything that sounds like an ad or an AI wrote it.",
+      `<panel>\n${AUDIENCE_PANEL.map((p) => `- [${p.id}] ${p.who}`).join("\n")}\n</panel>`,
       brandVoiceContext(opts.brandId),
       qualityBarContext(),
       `<horizon>\n${HORIZON_BRIEF[horizon]}\n</horizon>`,
-      `Run all six tests for every candidate using these ids: ${[...QUALITY_BAR.tests, HORIZON_TEST[horizon]].map((t) => t.id).join(", ")}. The sixth is the ${HORIZON_TEST[horizon].name}: ${HORIZON_TEST[horizon].question} Fail any test and the idea dies. Score from 1 to 10, each with a one-line reason: views (would it get views with zero ad spend?), shareability (would people send it to the group chat?), native (does it look like a real person made it? 1 = obvious ad or AI), makeable (10 = one person, today), attribution (will Cashy's name travel with it?). Pass at most three.`,
+      `For each candidate: give the panel's five reactions using ids ${AUDIENCE_PANEL.map((p) => p.id).join(", ")}. Then run all seven tests using these ids: ${[...QUALITY_BAR.tests, HORIZON_TEST[horizon]].map((t) => t.id).join(", ")}. The seventh is the ${HORIZON_TEST[horizon].name}: ${HORIZON_TEST[horizon].question} Fail any test and the idea dies, and so does any idea fewer than three panel members would share. Score from 1 to 10, each with a one-line reason: charge (how strong the feeling is), spread (how far it travels: who reposts it), simplicity (10 = one sentence, nothing to explain), realness (10 = Cashy could do it this week, raw), attribution (10 = impossible to retell without Cashy). Pass at most three.`,
     ].join("\n\n"),
-    prompt: `${sourceText}\n\n<candidates>\n${candidates.map((c, i) => `${i}. ${c.name} [${c.format}, ${c.platform}]\nHook: ${c.hook}\nThe content:\n${c.script}\nWhy views: ${c.whyViews}\nWhy it gets sent: ${c.shareMoment}\nCashy's name: ${c.cashyRole}\nMake it: ${c.makeIt}\nSeries: ${c.series ?? "one-off"}\nEdge: ${c.edge}`).join("\n\n")}\n</candidates>`,
+    prompt: `${pulse}\n${sourceText}\n\n<candidates>\n${candidates.map((c, i) => `${i}. ${c.move}\nMove: ${c.archetype}. Feeling: ${c.emotion}, aimed at ${c.emotionTarget}\nShare line: "${c.shareLine}"\nHow it's done: ${c.howItWorks} (${c.cost})\nProof: ${c.proof}\nWhy it's Cashy's: ${c.cashyRole}\nWhy it's a first: ${c.firstness}\nEdge: ${c.edge}`).join("\n\n")}\n</candidates>`,
   });
 
   const now = new Date().toISOString();
   const ideas: Idea[] = candidates.map((c, i) => {
     const r = critic.reviews.find((x) => x.index === i);
-    const passed = r?.verdict === "pass" && !r.bannedPatternHit;
+    const passed = r?.verdict === "pass" && !r.bannedPatternHit && (r.panel ?? []).filter((x) => x.shares).length >= 3;
     return {
       id: newId("idea"),
       brandId: opts.brandId,
@@ -158,32 +165,35 @@ Write 10 pieces of content that ride this. Each one is a real thing to post or b
       momentId: moment?.id,
       origin: opts.lens ? "lab" : trend ? "trend" : "moment",
       lens: opts.lens,
-      name: c.name,
-      oneLiner: c.oneLiner,
-      headline: c.hook,
+      name: c.move,
+      oneLiner: c.move,
+      headline: c.headline,
       edge: c.edge,
       backlash: c.backlash,
-      mechanism: c.script,
-      borrowedAttention: c.borrowedAttention,
-      engine: 3,
+      mechanism: c.howItWorks,
+      borrowedAttention: c.emotionTarget,
+      engine: 4,
       horizon,
-      effort: c.makeIt,
-      shelfLife: c.shelfLife,
-      attentionMechanic: c.format,
-      platform: c.platform,
-      hook: c.hook,
-      script: c.script,
-      whyViews: c.whyViews,
-      series: c.series ?? undefined,
-      shareMoment: c.shareMoment,
-      whoAmplifies: c.whoAmplifies,
+      effort: c.cost,
+      attentionMechanic: c.archetype,
+      emotion: c.emotion,
+      emotionTarget: c.emotionTarget,
+      pulseRef: c.pulseRef ?? undefined,
+      howItWorks: c.howItWorks,
+      proof: c.proof,
+      shareMoment: c.shareLine,
+      whoAmplifies: c.firstness,
       cashyRole: c.cashyRole,
+      // The panel's reactions when it gave them; the Inventor's guesses otherwise.
+      reactions: r?.panel?.length
+        ? r.panel.map((x) => ({ who: AUDIENCE_PANEL.find((p) => p.id === x.id)?.who.split(":")[0] ?? x.id, says: x.reaction, shares: x.shares }))
+        : c.reactions.map((x) => ({ who: x.who, says: x.says, shares: true })),
       evidence: toClaims(c.evidence, allowed),
       scores: {
-        views: clampScore(r?.views),
-        shareability: clampScore(r?.shareability),
-        native: clampScore(r?.native),
-        makeable: clampScore(r?.makeable),
+        charge: clampScore(r?.charge),
+        spread: clampScore(r?.spread),
+        simplicity: clampScore(r?.simplicity),
+        realness: clampScore(r?.realness),
         attribution: clampScore(r?.attribution),
       },
       screening: {
@@ -328,11 +338,14 @@ function labContext(moments: Moment[], signals: Signal[], lensId: string, steer?
   const coins = signals.filter((s) => s.sourceId === "trenches" && s.narrative?.kind === "culture");
   const builds = signals.filter((s) => s.sourceId === "builds");
   const posts = signals.filter((s) => s.sourceId.startsWith("ext:"));
+  const rivals = signals.filter((s) => s.sourceId === "press" && /\b(stake|shuffle|rollbit|roobet|bc\.game|rainbet|duel)\b/i.test(`${s.title} ${s.summary ?? ""}`));
 
   const evidence: Signal[] = [
-    ...(lensId === "tiny-builds" ? pick(builds, 20) : pick(builds, 4)),
-    ...(lensId === "hijack-now" ? pick(coins, 8) : pick(coins, 3)),
-    ...pick(posts, lensId === "hijack-now" || lensId === "shitposts" ? 20 : 8),
+    ...(lensId === "wrong-place" || lensId === "everywhere" ? pick(builds, 12) : pick(builds, 4)),
+    ...(lensId === "main-character" ? pick(coins, 8) : pick(coins, 3)),
+    ...pick(signals.filter((s) => s.sourceId === "audience"), lensId === "blank-page" || lensId === "main-character" || lensId === "villain" ? 40 : 20),
+    ...pick(posts, 25),
+    ...pick(rivals, lensId === "rival-raid" ? 15 : 3),
   ];
   const allowed: Citation[] = [
     ...evidence.map((s) => ({ url: s.url, title: s.title, publisher: s.author ?? s.sourceId, retrievedAt: s.capturedAt })),
@@ -346,7 +359,7 @@ ${lens.prompt}
 ${steer ? `\n<steer>\nThe campaign owner adds: ${steer}\n</steer>\n` : ""}
 <context note="What is happening right now, for awareness. You are not required to use any of it.">
 Culture right now:
-${culture.slice(0, lensId === "hijack-now" || lensId === "clips" || lensId === "shitposts" ? 25 : 12).map((m) => `- ${m.title} ${m.sourceUrl ?? ""}`).join("\n")}
+${culture.slice(0, lensId === "main-character" || lensId === "villain" || lensId === "schadenfreude" ? 25 : 12).map((m) => `- ${m.title} ${m.sourceUrl ?? ""}`).join("\n")}
 
 Coming up:
 ${calendar.slice(0, 8).map((m) => `- ${m.date.slice(0, 10)} ${m.title} ${m.sourceUrl ?? ""}`).join("\n")}

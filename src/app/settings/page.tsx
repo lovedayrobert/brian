@@ -167,7 +167,7 @@ function BrandTab() {
         <div className="mb-3 text-[17px] font-semibold">The quality bar</div>
         <div className="grid gap-6 md:grid-cols-3">
           <div>
-            <div className="text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">Five tests</div>
+            <div className="text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">The tests</div>
             <ul className="mt-2 space-y-2 text-[13px]">
               {QUALITY_BAR.tests.map((t) => (
                 <li key={t.id}>
@@ -185,11 +185,11 @@ function BrandTab() {
             </ul>
           </div>
           <div>
-            <div className="text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">Stunt library</div>
+            <div className="text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">What worked, and why</div>
             <ul className="mt-2 space-y-2 text-[13px]">
               {STUNTS.map((s) => (
                 <li key={s.id}>
-                  <span className="font-medium">{s.brand}:</span> <span className="text-ink-2">{s.twist}</span>
+                  <span className="font-medium">{s.brand}:</span> <span className="text-ink-2">{s.what} {s.emotion}</span>
                 </li>
               ))}
             </ul>

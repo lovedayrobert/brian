@@ -2,7 +2,7 @@
 import nextEnv from "@next/env";
 nextEnv.loadEnvConfig(process.cwd());
 import { spendStatus } from "@/lib/adapters/model";
-import { formatName } from "@/lib/brand/quality-bar";
+import { emotionName, moveName } from "@/lib/brand/quality-bar";
 import { generateIdeas } from "@/lib/pipeline/ideas";
 
 const subjects = process.argv.slice(2).map((a) => {
@@ -15,7 +15,7 @@ results.forEach((r, i) => {
   console.log(`\n=== ${JSON.stringify(subjects[i])}`);
   if (r.status === "rejected") return console.log("FAILED:", (r.reason as Error).message);
   for (const c of r.value.cards)
-    console.log(`  CARD [${c.edge}] [${formatName(c.attentionMechanic ?? "")}] ${c.name}\n       Hook: ${c.hook}\n       ${(c.script ?? "").replace(/\n/g, "\n       ")}`);
+    console.log(`  CARD [${c.edge}] [${moveName(c.attentionMechanic ?? "")} / ${emotionName(c.emotion ?? "")}] ${c.name}\n       Shared as: "${c.shareMoment}"\n       How: ${c.howItWorks}\n       Panel: ${(c.reactions ?? []).map((r) => `${r.shares ? "+" : "-"} ${r.who}: ${r.says}`).join("\n              ")}`);
   for (const k of r.value.killed) console.log(`  kill  ${k.name}: ${k.screening.critic.reasons[0]?.slice(0, 100)}`);
 });
 const s = await spendStatus();

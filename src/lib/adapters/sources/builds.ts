@@ -1,6 +1,6 @@
-import { XMLParser } from "fast-xml-parser";
 import type { Signal } from "@/lib/domain/types";
-import { getJson, sleep, USER_AGENT, type SourceAdapter } from "./types";
+import { redditTop, stripHtml } from "./reddit";
+import { getJson, type SourceAdapter } from "./types";
 
 /**
  * What people are vibe coding and getting attention for: one-joke websites,
@@ -17,20 +17,10 @@ const SUBREDDITS: { name: string; onlyBuilds: boolean }[] = [
 ];
 
 const BUILT = /\b(built|made|launched|created|shipped|vibe ?coded|my (first )?(app|site|website|game|tool))\b/i;
-const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "@" });
 
 interface HnHits {
   hits: { objectID: string; title: string; url?: string; points: number; num_comments: number; author: string; created_at: string; story_text?: string }[];
 }
-
-type RedditEntry = {
-  title?: string;
-  link?: { "@href"?: string };
-  published?: string;
-  author?: { name?: string };
-  content?: string | { "#text": string };
-  "media:thumbnail"?: { "@url"?: string };
-};
 
 export const builds: SourceAdapter = {
   id: "builds",
@@ -61,41 +51,24 @@ export const builds: SourceAdapter = {
       log(`Show HN: ${(e as Error).message}`);
     }
 
-    for (const [i, sub] of SUBREDDITS.entries()) {
-      if (i) await sleep(3_000); // Reddit rate-limits back-to-back requests
+    for (const sub of SUBREDDITS) {
       try {
-        const get = () =>
-          fetch(`https://www.reddit.com/r/${sub.name}/top/.rss?t=week&limit=25`, {
-            headers: { "User-Agent": `Mozilla/5.0 ${USER_AGENT}` },
-            signal: AbortSignal.timeout(20_000),
-          });
-        let res = await get();
-        if (res.status === 429) {
-          await sleep(10_000);
-          res = await get();
-        }
-        if (!res.ok) throw new Error(`${res.status}`);
-        const entries: RedditEntry[] = [parser.parse(await res.text())?.feed?.entry ?? []].flat();
-        entries.forEach((e, rank) => {
-          const title = e.title?.trim();
-          const url = e.link?.["@href"];
-          if (!title || !url) return;
-          const text = stripHtml(typeof e.content === "object" ? e.content["#text"] : e.content) ?? "";
-          if (sub.onlyBuilds && !BUILT.test(`${title} ${text}`)) return;
+        for (const p of await redditTop(sub.name, "week")) {
+          if (sub.onlyBuilds && !BUILT.test(`${p.title} ${p.text}`)) continue;
           out.push({
-            id: `builds:reddit:${url}`,
+            id: `builds:reddit:${p.url}`,
             sourceId: "builds",
-            url,
-            title,
-            summary: text.replace(/submitted by .*$/i, "").trim().slice(0, 300) || undefined,
+            url: p.url,
+            title: p.title,
+            summary: p.text.slice(0, 300) || undefined,
             author: `r/${sub.name}`,
-            imageUrl: e["media:thumbnail"]?.["@url"],
-            metric: { label: `Rank in r/${sub.name} this week`, value: rank + 1 },
+            imageUrl: p.thumbnail,
+            metric: { label: `Rank in r/${sub.name} this week`, value: p.rank },
             topics: ["builds", "reddit"],
             capturedAt: now.toISOString(),
-            publishedAt: e.published,
+            publishedAt: p.published,
           });
-        });
+        }
       } catch (e) {
         log(`r/${sub.name}: ${(e as Error).message}`);
       }
@@ -103,18 +76,3 @@ export const builds: SourceAdapter = {
     return out;
   },
 };
-
-function stripHtml(s?: string): string | undefined {
-  if (!s) return undefined;
-  return s
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&quot;/g, '"')
-    .replace(/&#x27;|&#39;/g, "'")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&#32;/g, " ")
-    .replace(/\[link\]|\[comments\]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}

@@ -4,8 +4,8 @@ import { totalScore } from "@/lib/pipeline/ideas";
 import { repo, type DB } from "@/lib/store";
 import { applySeed } from "@/lib/seed";
 
-/** Ideas from engines 1 and 2 (USP-led, then stunts) are retired: kept in the data file, never shown. */
-export const isRetired = (i: Pick<Idea, "engine">) => i.engine !== 3;
+/** Ideas from engines 1-3 (USP-led, stunts, content formats) are retired: kept in the data file, never shown. */
+export const isRetired = (i: Pick<Idea, "engine">) => i.engine !== 4;
 
 /**
  * Everything most screens read. Retired ideas, and packages built from them,

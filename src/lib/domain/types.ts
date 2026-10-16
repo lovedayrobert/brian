@@ -189,10 +189,17 @@ export interface Idea {
   evidence: Claim[];
   /** Engine 2: shareability, reach, novelty, attribution, cost. Engine 1 (legacy): talkability, simplicity, ownability, cost. */
   scores: Record<string, Score>;
-  /** Which idea engine produced it. 3 = native content (current); 2 = attention stunts; 1 = original USP-led engine. */
-  engine?: 1 | 2 | 3;
+  /** Which idea engine produced it. 4 = single acts aimed at a feeling (current); 3 = native content; 2 = attention stunts; 1 = USP-led. */
+  engine?: 1 | 2 | 3 | 4;
   /** Engine 2: attention mechanic id. Engine 3: content format id (CONTENT_FORMATS). */
   attentionMechanic?: string;
+  /** Engine 4: the act, the feeling it aims and the reaction it gets */
+  emotion?: string;
+  emotionTarget?: string;
+  reactions?: { who: string; says: string; shares: boolean }[];
+  howItWorks?: string;
+  proof?: string;
+  pulseRef?: string;
   /** Engine 3: the piece of content itself */
   platform?: string;
   hook?: string;
@@ -308,3 +315,26 @@ export interface SourceContext {
 }
 
 export type Horizon = "reactive" | "evergreen";
+
+/** The Pulse: what the audience is consuming right now and the feeling driving it. */
+export interface PulseItem {
+  subject: string;
+  happening: string;
+  emotion: string;
+  intensity: number;
+  why: string;
+  where: string;
+  lifespan: string;
+  opening: string | null;
+  urls: string[];
+}
+
+export interface Pulse {
+  id: string;
+  createdAt: string;
+  mood: string;
+  villain: string | null;
+  mainCharacter: string | null;
+  items: PulseItem[];
+  signalCount: number;
+}

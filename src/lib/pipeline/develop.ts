@@ -198,7 +198,9 @@ function buildContext(pkg: Package, ideas: Idea[], trends: Trend[], signals: Sig
   // Sources already validated into earlier sections may be cited again downstream.
   for (const k of SECTION_ORDER) collectUrls(pkg.sections[k].content, ev.allowed);
   const launchDate = pkg.launchDate;
-  const ideaText = idea.engine === 3
+  const ideaText = idea.engine === 4
+    ? `<idea>\nThe act: ${idea.name}\nMove: ${idea.attentionMechanic}. Feeling: ${idea.emotion}, aimed at ${idea.emotionTarget}\nWhat people say sharing it: "${idea.shareMoment}"\nHow it's done: ${idea.howItWorks}\nProof that gets shared: ${idea.proof}\nCost: ${idea.effort}\nWhy it's Cashy's: ${idea.cashyRole}\nHeadline: ${idea.headline}\nEdge: ${idea.edge}. Likely backlash: ${idea.backlash}\nThis is ONE raw, real act. Everything you write is about executing and amplifying that act, filmed raw: no campaign phases, no polish it doesn't need, no product messaging.\n</idea>`
+    : idea.engine === 3
     ? `<idea>\nName: ${idea.name}\nFormat: ${idea.attentionMechanic} on ${idea.platform}\nOne-liner: ${idea.oneLiner}\nHook: ${idea.hook}\nThe content:\n${idea.script}\nWhy it gets views: ${idea.whyViews}\nSeries: ${idea.series ?? "one-off"}\nMake it: ${idea.effort}\nEdge: ${idea.edge}. Likely backlash: ${idea.backlash}\nThis is a simple piece of native content. Keep everything you write at that scale and in that voice: no campaign-speak, no stunts, no polish it doesn't need.\n</idea>`
     : `<idea>\nName: ${idea.name}\nOne-liner: ${idea.oneLiner}\nMechanism: ${idea.mechanism}\nBorrowed attention: ${idea.borrowedAttention}\nPress headline: ${idea.headline}\nEdge: ${idea.edge}. Likely backlash: ${idea.backlash}\n</idea>`;
   return {

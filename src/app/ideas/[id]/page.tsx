@@ -11,7 +11,7 @@ import { relativeTime } from "@/lib/format";
 import { keyVisualFor, load } from "@/lib/queries";
 import { scoreSet } from "@/lib/scores";
 import { horizonFor } from "@/lib/horizon";
-import { formatName } from "@/lib/brand/quality-bar";
+import { emotionName, moveName } from "@/lib/brand/quality-bar";
 
 export default async function IdeaDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -37,7 +37,7 @@ export default async function IdeaDetail({ params }: { params: Promise<{ id: str
           </span>
         }
         title={idea.name}
-        subtitle={idea.oneLiner}
+        subtitle={idea.oneLiner !== idea.name ? idea.oneLiner : undefined}
         actions={
           idea.screening.redLines && !idea.screening.redLines.pass ? (
             <span className="inline-flex h-9 items-center rounded-full bg-bad-soft px-4 text-[13px] font-medium text-bad">Blocked by Red Lines</span>
@@ -74,40 +74,46 @@ export default async function IdeaDetail({ params }: { params: Promise<{ id: str
             <KeyVisual line={idea.name} imageUrl={keyVisualFor(idea.id, db.packages)} className="aspect-[16/9] w-full" />
           </Card>
 
-          {idea.engine === 3 ? (
-            <Card className="p-6">
-              <div className="text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">
-                {idea.attentionMechanic ? formatName(idea.attentionMechanic) : "The content"}
-                {idea.platform && <> · {idea.platform}</>}
+          <Card className="p-6">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {idea.attentionMechanic && <Pill>{moveName(idea.attentionMechanic)}</Pill>}
+              {idea.emotion && <Pill tone={["hate", "outrage", "disgust"].includes(idea.emotion) ? "bad" : "accent"}>{emotionName(idea.emotion)}</Pill>}
+            </div>
+            {idea.emotionTarget && <p className="mt-3 text-[14.5px] leading-relaxed text-ink-2">{idea.emotionTarget}</p>}
+            {idea.shareMoment && (
+              <div className="mt-4 rounded-[12px] bg-surface-2 px-4 py-3.5">
+                <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-ink-3">What people say sharing it</div>
+                <p className="mt-1 text-[19px] font-semibold leading-snug">&ldquo;{idea.shareMoment}&rdquo;</p>
               </div>
-              <p className="mt-2 text-[20px] font-semibold leading-snug tracking-tight">{idea.hook}</p>
-              <div className="mt-4 whitespace-pre-line rounded-[12px] bg-surface-2 px-4 py-3.5 text-[14.5px] leading-relaxed">{idea.script}</div>
-            </Card>
-          ) : (
+            )}
+            <div className="mt-4 text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">The headline</div>
+            <p className="mt-1 font-serif text-[18px] italic leading-snug">&ldquo;{idea.headline}&rdquo;</p>
+          </Card>
+
+          {idea.reactions && idea.reactions.length > 0 && (
             <Card className="p-6">
-              <div className="text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">The headline press would write</div>
-              <p className="mt-2 font-serif text-[22px] italic leading-snug">“{idea.headline}”</p>
+              <div className="mb-3 text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">The audience panel</div>
+              <ul className="space-y-3">
+                {idea.reactions.map((r) => (
+                  <li key={r.who} className="flex gap-2.5 text-[14px] leading-snug">
+                    {r.shares ? <Check className="mt-0.5 h-4 w-4 shrink-0 text-good" /> : <X className="mt-0.5 h-4 w-4 shrink-0 text-ink-3" />}
+                    <div>
+                      <div className="text-[12px] text-ink-3">{r.who}</div>
+                      <div>&ldquo;{r.says}&rdquo;</div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </Card>
           )}
 
           <Card className="space-y-5 p-6 text-[14.5px] leading-relaxed">
-            {idea.engine === 3 ? (
-              <>
-                {idea.whyViews && <Block label="Why it gets views">{idea.whyViews}</Block>}
-                {idea.effort && <Block label="Making it">{idea.effort}</Block>}
-                {idea.series && <Block label="As a series">{idea.series}</Block>}
-              </>
-            ) : (
-              <>
-                <Block label="What happens">{mechanism}</Block>
-                {idea.attentionMechanic && <Block label="Attention mechanic">{idea.attentionMechanic}</Block>}
-              </>
-            )}
-            {idea.shareMoment && <Block label={idea.engine === 3 ? "Why it gets sent" : "What people share"}>{idea.shareMoment}</Block>}
-            {idea.whoAmplifies && <Block label="Who passes it on">{idea.whoAmplifies}</Block>}
-            {idea.cashyRole && <Block label="How Cashy gets the credit">{idea.cashyRole}</Block>}
+            <Block label="How it's done">{idea.howItWorks ?? mechanism}</Block>
+            {idea.proof && <Block label="The proof that gets shared">{idea.proof}</Block>}
+            {idea.effort && <Block label="Cost and time">{idea.effort}</Block>}
+            {idea.cashyRole && <Block label="Why it's Cashy's">{idea.cashyRole}</Block>}
+            {idea.whoAmplifies && <Block label="Why nobody's done it">{idea.whoAmplifies}</Block>}
             {whyOurs && <Block label="Why it's ours (earlier engine)">{whyOurs}</Block>}
-            <Block label="Borrowed attention">{idea.borrowedAttention}</Block>
             <Block label={`Edge: ${idea.edge}. Likely backlash`}>{idea.backlash}</Block>
           </Card>
 
@@ -144,7 +150,7 @@ export default async function IdeaDetail({ params }: { params: Promise<{ id: str
           </Card>
 
           <Card className="p-5">
-            <div className="mb-3 text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">The Critic</div>
+            <div className="mb-3 text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">The tests</div>
             <ul className="space-y-3">
               {sc.critic.tests.map((t) => (
                 <li key={t.name} className="flex gap-2.5 text-[13px] leading-snug">

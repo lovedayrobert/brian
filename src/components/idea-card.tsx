@@ -4,7 +4,7 @@ import { EdgeBadge, Pill } from "./ui";
 import { KeyVisual } from "./mockups/key-visual";
 import { scoreSet } from "@/lib/scores";
 import { HORIZON_COPY, horizonFor } from "@/lib/horizon";
-import { formatName } from "@/lib/brand/quality-bar";
+import { emotionName, moveName } from "@/lib/brand/quality-bar";
 
 export function IdeaCard({ idea, keyVisualUrl }: { idea: Idea; keyVisualUrl?: string | null }) {
   return (
@@ -23,31 +23,23 @@ export function IdeaCard({ idea, keyVisualUrl }: { idea: Idea; keyVisualUrl?: st
         </div>
       </div>
       <div className="flex flex-1 flex-col p-5">
-        {idea.engine === 3 && idea.attentionMechanic && (
-          <div className="mb-1.5 text-[11.5px] font-medium uppercase tracking-[0.05em] text-ink-3">
-            {formatName(idea.attentionMechanic)}
-            {idea.platform && <> · {idea.platform}</>}
+        {idea.attentionMechanic && (
+          <div className="mb-2 flex flex-wrap items-center gap-1.5">
+            <Pill>{moveName(idea.attentionMechanic)}</Pill>
+            {idea.emotion && <Pill tone={["hate", "outrage", "disgust"].includes(idea.emotion) ? "bad" : "accent"}>{emotionName(idea.emotion)}</Pill>}
           </div>
         )}
         <h3 className="text-[17px] font-semibold leading-snug tracking-tight">{idea.name}</h3>
-        <p className="mt-1.5 text-[14px] leading-relaxed text-ink-2">{idea.oneLiner}</p>
-        {(idea.effort || idea.shelfLife) && (
-          <p className="mt-2 text-[12px] text-ink-3">
-            {idea.effort && <>Takes: {idea.effort}</>}
-            {idea.effort && idea.shelfLife && " · "}
-            {idea.shelfLife && <>Lasts: {idea.shelfLife}</>}
-          </p>
-        )}
-        {idea.hook ? (
+        {idea.effort && <p className="mt-2 text-[12px] text-ink-3">{idea.effort}</p>}
+        {idea.shareMoment && (
           <div className="mt-4 rounded-[12px] bg-surface-2 px-3.5 py-3">
-            <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-ink-3">The hook</div>
-            <div className="mt-1 text-[15px] font-medium leading-snug">{idea.hook}</div>
-            {idea.script && <div className="mt-2 line-clamp-4 whitespace-pre-line text-[13px] leading-relaxed text-ink-2">{idea.script}</div>}
+            <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-ink-3">What people say sharing it</div>
+            <div className="mt-1 text-[15px] font-medium leading-snug">&ldquo;{idea.shareMoment}&rdquo;</div>
           </div>
-        ) : (
-          <div className="mt-4 rounded-[12px] bg-surface-2 px-3.5 py-3">
-            <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-ink-3">The headline</div>
-            <div className="mt-1 font-serif text-[15px] italic leading-snug">“{idea.headline}”</div>
+        )}
+        {idea.reactions && idea.reactions.length > 0 && (
+          <div className="mt-3 text-[12px] text-ink-3">
+            {idea.reactions.filter((r) => r.shares).length} of {idea.reactions.length} on the panel would share it
           </div>
         )}
         <div className="mt-4 grid gap-2 text-center" style={{ gridTemplateColumns: `repeat(${scoreSet(idea).length}, minmax(0, 1fr))` }}>

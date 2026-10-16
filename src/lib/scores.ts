@@ -2,6 +2,13 @@ import type { Idea } from "@/lib/domain/types";
 
 /** Score sets by engine, in display order. */
 export const SCORE_SETS = {
+  4: [
+    { key: "charge", label: "Charge (how strong the feeling is)", short: "Feel", weight: 2 },
+    { key: "spread", label: "Spread (who reposts it)", short: "Spread", weight: 1.5 },
+    { key: "simplicity", label: "Simplicity (one sentence)", short: "Simple", weight: 1.5 },
+    { key: "realness", label: "Realness (doable this week, raw)", short: "Real", weight: 1 },
+    { key: "attribution", label: "Attribution (can't retell it without Cashy)", short: "Cashy", weight: 1 },
+  ],
   3: [
     { key: "views", label: "Views (with zero ad spend)", short: "Views", weight: 2 },
     { key: "shareability", label: "Group-chat sends", short: "Sends", weight: 1.5 },
@@ -25,6 +32,7 @@ export const SCORE_SETS = {
 } as const;
 
 export function scoreSet(idea: Pick<Idea, "engine" | "scores">) {
+  if (idea.engine === 4 || "charge" in idea.scores) return SCORE_SETS[4];
   if (idea.engine === 3 || "views" in idea.scores) return SCORE_SETS[3];
   return idea.engine === 2 || "shareability" in idea.scores ? SCORE_SETS[2] : SCORE_SETS[1];
 }

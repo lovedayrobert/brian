@@ -118,7 +118,9 @@ export default async function Review({ params }: { params: Promise<{ id: string 
               <h3 className="text-[17px] font-semibold tracking-tight">{idea.name}</h3>
               <p className="mt-1 text-[14px] leading-relaxed">{idea.oneLiner}</p>
               <p className="mt-3 text-[13.5px] leading-relaxed text-ink-2">{mechanism}</p>
-              {idea.hook ? (
+              {idea.shareMoment && idea.engine === 4 ? (
+                <div className="mt-3 rounded-[12px] bg-surface-2 px-3.5 py-2.5 text-[14px] font-medium">&ldquo;{idea.shareMoment}&rdquo;</div>
+              ) : idea.hook ? (
                 <div className="mt-3 rounded-[12px] bg-surface-2 px-3.5 py-2.5">
                   <div className="text-[14px] font-medium">{idea.hook}</div>
                   {idea.script && <div className="mt-1.5 whitespace-pre-line text-[13px] leading-relaxed text-ink-2">{idea.script}</div>}

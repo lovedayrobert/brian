@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { dataDir } from "@/lib/paths";
-import type { AgentRun, Idea, Moment, Package, Signal, SweepRun, Trend } from "@/lib/domain/types";
+import type { AgentRun, Idea, Moment, Package, Pulse, Signal, SweepRun, Trend } from "@/lib/domain/types";
 import type { RapidResponse } from "@/lib/pipeline/rapid";
 import type { BacktestResult } from "@/lib/engine/backtest";
 import type { Feedback, Memory, MemoryEvent } from "@/lib/memory";
@@ -35,9 +35,11 @@ export interface DB {
   /** Records from external feeds (Brian Signal Format v1), kept for 14 days */
   imported: Signal[];
   reviews: ReviewSet[];
+  /** Latest Pulse readings, newest first */
+  pulses: Pulse[];
 }
 
-const EMPTY: DB = { signals: [], trends: [], moments: [], ideas: [], packages: [], agentRuns: [], sweeps: [], rapid: [], memories: [], memoryEvents: [], feedback: [], spendLedger: {}, imported: [], reviews: [] };
+const EMPTY: DB = { signals: [], trends: [], moments: [], ideas: [], packages: [], agentRuns: [], sweeps: [], rapid: [], memories: [], memoryEvents: [], feedback: [], spendLedger: {}, imported: [], reviews: [], pulses: [] };
 
 const LOCK_STALE_MS = 30_000;
 const LOCK_WAIT_MS = 20_000;

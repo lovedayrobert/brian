@@ -1,46 +1,76 @@
 import type { Citation } from "@/lib/domain/types";
 
 /**
- * The idea quality bar, humour guide and content formats, plus the competitor stunt library (brief §3c). These are the
- * Inventor's and Critic's ground truth. Stunt entries carry what we know and
- * where it came from; results are only stated where a source supports them.
+ * Engine 4: the idea quality bar. Rob's brief, after engines 2 (agency stunts)
+ * and 3 (TikTok formats and series) both missed: the plays that worked for
+ * crypto casinos were single real acts that aimed a feeling the audience
+ * already had (hate, outrage, love, "wtf") at full strength. These are the
+ * Inventor's and the audience panel's ground truth.
  */
 const BRIEF: Citation = {
   url: "internal:brian-build-brief",
-  title: "Brian build brief, section 2b (Rob Loveday)",
+  title: "Brian build brief, section 2b, and Rob Loveday's feedback, 16 Oct 2026",
   publisher: "Cashy internal",
-  retrievedAt: "2026-10-15T00:00:00Z",
+  retrievedAt: "2026-10-16T00:00:00Z",
 };
 
 export interface Stunt {
   id: string;
   brand: string;
   what: string;
-  twist: string;
+  /** The feeling it aimed, and at whom */
+  emotion: string;
+  /** What people actually said when they shared it */
+  shareLine: string;
   whyItWorked: string;
-  kind: "brand hijack" | "outrage format" | "data play" | "contract stunt" | "rival-baiting" | "meme hijack";
+  kind: string;
   result: string | null; // null until a sourced result is added
   sources: Citation[];
 }
 
+/** The benchmark. Facts are as given in the brief and by Rob; results are left out until sourced. */
 export const STUNTS: Stunt[] = [
   {
-    id: "stake-meme-logo",
-    brand: "Stake",
-    what: "Added its logo into legacy viral meme videos.",
-    twist: "Hijack culture people already love and share; every repost is free distribution.",
-    whyItWorked: "Near-zero cost. Borrowed attention from memes with built-in audiences.",
-    kind: "meme hijack",
+    id: "shuffle-doherty-clause",
+    brand: "Shuffle",
+    what: "Signed Jack Doherty to a deal that stopped him posting for six months.",
+    emotion: "Hate. A huge part of the internet can't stand him; the deal gave them what they wanted.",
+    shareLine: "finally someone shut him up",
+    whyItWorked: "The audience's own feeling is the punchline. One sentence, no explanation, and you can't retell it without saying Shuffle.",
+    kind: "villain play",
     result: null,
     sources: [BRIEF],
   },
   {
     id: "duel-offensive-blackjack",
     brand: "Duel",
-    what: "Launched a risky, offensive live blackjack game.",
-    twist: "A format designed to make people argue.",
-    whyItWorked: "Outrage and clips spread it further than any ad could.",
-    kind: "outrage format",
+    what: "Ran a live blackjack game where the host wore an offensive costume.",
+    emotion: "Outrage and love-hate. People shared it to condemn it, and fans shared it because it was so wrong it was funny. Both spread it.",
+    shareLine: "they actually did this lmao / this is disgusting",
+    whyItWorked: "Too far on purpose. Condemnation is distribution. It cost a costume.",
+    kind: "too far",
+    result: null,
+    sources: [BRIEF],
+  },
+  {
+    id: "stake-meme-logo",
+    brand: "Stake",
+    what: "Put its logo into legacy viral meme videos, so it turned up on clip after clip people were already reposting.",
+    emotion: "Love and familiarity. People already loved those videos; Stake just rode along on every repost.",
+    shareLine: "why is the Stake logo on every video lol",
+    whyItWorked: "The mechanism is the idea: distribution, not content. Near-zero cost, everywhere at once, and the ubiquity itself became the joke.",
+    kind: "be everywhere",
+    result: null,
+    sources: [BRIEF],
+  },
+  {
+    id: "fridge-casino",
+    brand: "A crypto casino (per Rob)",
+    what: "Sent a guy into a kitchen store to play on the casino site on a display fridge that had a web browser.",
+    emotion: "WTF disbelief: 'wait, you can do that?'",
+    shareLine: "bro is gambling on a fridge",
+    whyItWorked: "The casino thing, somewhere it absolutely shouldn't be. Real, filmed raw on a phone, cheap, and nobody had done it.",
+    kind: "wrong place",
     result: null,
     sources: [BRIEF],
   },
@@ -48,141 +78,118 @@ export const STUNTS: Stunt[] = [
     id: "housebets-wallet-rewards",
     brand: "Housebets",
     what: "Rewards based on a player's past deposits to other casinos, read from their crypto wallet.",
-    twist: "Public on-chain data turned into a weapon to steal competitors' players.",
-    whyItWorked: "Only possible in crypto. The mechanic itself is the headline.",
-    kind: "data play",
-    result: null,
-    sources: [BRIEF],
-  },
-  {
-    id: "shuffle-doherty-clause",
-    brand: "Shuffle",
-    what: "Signed Jack Doherty to a deal that stopped him posting for six months, without him realising.",
-    twist: "A clause in a contract became the headline.",
-    whyItWorked: "One sentence, instantly repeatable, and the whole internet talked.",
-    kind: "contract stunt",
+    emotion: "Tribal and cheeky: stealing rivals' players in public.",
+    shareLine: "they're reading your wallet to poach you",
+    whyItWorked: "Only possible in crypto. The act is the headline.",
+    kind: "rival raid",
     result: null,
     sources: [BRIEF],
   },
 ];
 
-/**
- * Engine 3. Rob's verdict on engine 2: "too AI and cheesy, way too gimmicky.
- * No one is doing these big wild stupid campaigns." Ideas are now pieces of
- * content a small social team can make this week, in the formats and humour
- * the audience already uses. The references below are simple content that
- * got views, not award-show stunts.
- */
-export const REFERENCE_CONTENT: { who: string; what: string; why: string }[] = [
-  { who: "Stake", what: "Dropped its logo into old viral meme videos and let them recirculate.", why: "Zero production. The meme does the work; the logo rides along on every repost." },
-  { who: "Ryanair (TikTok)", what: "Phone-shot clips of a plane with a face, roasting its own passengers with whatever sound is trending.", why: "Lo-fi, self-aware and on a trending sound. It says what customers already joke about." },
-  { who: "Duolingo (TikTok, before the 'funeral')", what: "A person in a cheap owl costume doing unhinged little skits on trending sounds, posted almost daily.", why: "A recurring character and a fixed format. Cheap, fast, and in the platform's own language." },
-  { who: "Wendy's (X)", what: "Short, rude replies to people and rival brands.", why: "Reply-guy humour from a brand account. Every roast is a screenshot." },
-  { who: "Scrub Daddy (TikTok)", what: "Daily low-effort skits and replies to comments, filmed on a phone.", why: "Volume and consistency in native formats beat one big production." },
-  { who: "Crypto Twitter shitposters", what: "Deadpan one-liners, fake screenshots of obviously fake things, 'me after my 4th leveraged long' memes.", why: "Relatable pain, said flatly. People repost what describes them." },
-  { who: "Vibe-coded one-day websites", what: "Tiny sites and toys built in an afternoon with AI that do one dumb thing well (a timer, a calculator, a generator, a browser game) and get passed around on X and TikTok.", why: "One joke, instantly usable, shareable as a link or a screen recording. Costs a weekend." },
-  { who: "Kick and Twitch clip accounts", what: "Captioned 10-second clips of streamers losing it, reposted with one line of text on top.", why: "The clip is already funny; the caption makes it relatable. Nothing to produce." },
+/** Outside gambling: the same pattern of one real act aimed at a strong feeling. Widely documented; results left out. */
+export const REFERENCE_MOVES: { who: string; what: string; emotion: string }[] = [
+  { who: "Burger King", what: "The Moldy Whopper (2020): ads showing a Whopper rotting over 34 days.", emotion: "Disgust, used on purpose: people shared it because it was gross." },
+  { who: "Liquid Death", what: "Turned its worst hate comments into a heavy-metal album.", emotion: "Hate as fuel: the haters became the content." },
+  { who: "KFC", what: "Its X account followed only the five Spice Girls and six men named Herb.", emotion: "WTF discovery: one person noticed, everyone shared." },
+  { who: "Burger King", what: "The Whopper Detour: a 1-cent Whopper unlocked only when you stood near a McDonald's.", emotion: "Tribal and petty: trolling the rival using the rival's own locations." },
 ];
 
-/**
- * What a piece of content actually is. Every idea is one of these, made by one
- * or two people with a phone, CapCut, Canva, an image model or a weekend of
- * vibe coding.
- */
-export const CONTENT_FORMATS: { id: string; name: string; how: string }[] = [
-  { id: "tiktok-pov", name: "TikTok/Reels POV or skit", how: "Phone-shot, one person, 7-20 seconds, a trending sound or a voiceover. 'POV: …' or a two-character bit. Hook in the first second." },
-  { id: "slideshow", name: "TikTok photo slideshow", how: "3-8 images with one line of text each, telling a tiny story or a list. The format TikTok pushes hardest right now." },
-  { id: "meme", name: "Image meme", how: "A known template or a screenshot format with our caption. Posted on our accounts and seeded to meme pages." },
-  { id: "x-post", name: "X post or thread", how: "A single deadpan post in the account's voice: a one-liner, a fake screenshot, a 'nobody: / me:' style bit." },
-  { id: "reply", name: "Reply-guy play", how: "Replying under the big post of the day (a streamer, a crypto account, a viral tweet) with the funniest line in the replies, from Cashy's account." },
-  { id: "series", name: "Recurring bit", how: "A fixed format posted on a schedule ('Day 14 of…', a weekly ranking, a character) so people come back for the next one." },
-  { id: "clip-edit", name: "Clip, edit or caption", how: "Recut, caption or remix something already funny (a stream moment, an old meme video, a game clip) with Cashy on it." },
-  { id: "tiny-build", name: "Tiny build", how: "A vibe-coded website, generator, filter, bot or browser game that does one dumb thing. Built in a day or two, shared as a link or a screen recording." },
-  { id: "creator-seed", name: "Creator seed", how: "Hand a small creator or streamer a bit, a sound or a template to run with, for a small fee or free. Not a sponsorship deal." },
+/** The feelings that make people share. Every idea names one. */
+export const EMOTIONS: { id: string; name: string; why: string }[] = [
+  { id: "hate", name: "Hate", why: "Shared to agree with everyone who can't stand the same person or thing: 'finally'." },
+  { id: "outrage", name: "Outrage / love-hate", why: "Shared to condemn it and shared because it's so wrong it's funny. Both spread it." },
+  { id: "wtf", name: "WTF disbelief", why: "Shared because 'wait, is this real?' needs a second opinion." },
+  { id: "schadenfreude", name: "Schadenfreude", why: "Shared to enjoy someone's public fall together." },
+  { id: "tribal", name: "Tribal", why: "Shared to take a side: us versus them, rival versus rival, fans versus haters." },
+  { id: "disgust", name: "Disgust", why: "Shared because it's gross and you have to show someone." },
+  { id: "love", name: "Love / hype", why: "Shared because people already love the thing it rides." },
+  { id: "envy", name: "Envy / aspiration", why: "Shared because 'I wish that was me'." },
 ];
 
-/**
- * The humour the audience actually uses. Written as registers and real-feeling
- * examples so the Inventor writes in them rather than about them.
- */
-export const HUMOUR_GUIDE = {
-  registers: [
-    "Deadpan: say the absurd thing flatly, with no exclamation marks and no wink. The less it tries, the funnier it is.",
-    "Relatable degen pain: the 4am loss, the parlay that died on the last leg, the 'just one more', the friend who always says he's up. People repost what describes them.",
-    "Self-aware brand: the account knows it's a casino account and jokes about it. Never defensive, never selling.",
-    "Absurdist and brainrot: non-sequiturs, escalating nonsense, internet-native references (rizz, aura, NPC, 'it's giving', 'we are so back', 'it's so over'). Use them because they fit, not to prove we know them.",
-    "Irony and fake seriousness: treating something stupid with total corporate or documentary seriousness.",
-    "Lo-fi on purpose: phone camera, bad crop, default TikTok font, MS Paint arrows. Polish reads as an ad and gets skipped.",
-    "Crypto Twitter and streamer in-jokes: the rug, the bags, 'few understand', the chat spamming W or L, the streamer's face when the slot does nothing.",
-  ],
-  sounds_like: [
-    "POV: you said 'last game' 40 minutes ago",
-    "me explaining to my girlfriend why the 14-leg parlay was actually a smart investment",
-    "nobody: / the slot after I said 'last spin': [clip]",
-    "day 31 of pretending I understand what my friend's memecoin does",
-    "every crypto guy's portfolio is just 4 screenshots and a prayer",
-    "slideshow: 'types of people at 2am in a casino discord' (6 slides, one line each)",
-    "a website where you enter how much you lost and it tells you what you could have bought instead, in increasingly stupid items",
-  ],
-  cringe: [
-    "Pun names and campaign titles ('Cash-tastic', 'The Great Cashy Heist', 'Operation …', 'Project …'). Name it by what it is.",
-    "Press-release energy: 'world's first', 'groundbreaking', 'disrupting', 'the internet will go crazy', 'unleash', 'epic', 'iconic'.",
-    "Fellow-kids slang stuffed in to sound young ('no cap fr fr this bonus is bussin').",
-    "Explaining the joke, or a caption that says 'we did a funny'.",
-    "Mascots or execs doing pranks, flash mobs, stunts in a costume in public.",
-    "Anything with a press conference, a launch event, an auction, a billboard, a giant object, naming rights or a sponsorship.",
-    "Fake products, limited drops and merch as the idea.",
-    "Big 'what if Cashy…' hypotheticals that would need lawyers, partners or a budget.",
-    "Polished, lit, agency-looking creative. If it looks like an ad, it gets skipped like one.",
-    "Words AI reaches for: 'chaos', 'unhinged' used as a selling point, 'the ultimate', 'legendary', 'next level', 'game-changer', 'meet …', 'introducing …'.",
-  ],
-};
+/** The kinds of act that worked. Each lens and each idea is one of these. */
+export const MOVES: { id: string; name: string; how: string; from: string }[] = [
+  { id: "villain", name: "Aim at the villain", how: "Find the person, brand or thing the audience hates right now and do something to it (mute it, pay it to stop, ban it, outbid it, troll it) that lets everyone cheer.", from: "Shuffle and Jack Doherty" },
+  { id: "too-far", name: "Too far", how: "Do something offensive, wrong or taboo enough that people share it to condemn it while fans share it because it's funny.", from: "Duel's blackjack" },
+  { id: "everywhere", name: "Be everywhere", how: "Put Cashy's name where attention already is, at a scale nobody else bothers with: inside viral videos, memes, clips, game lobbies, streams, comment sections, usernames. The distribution is the idea.", from: "Stake's logo on viral videos" },
+  { id: "wrong-place", name: "Wrong place", how: "Do the casino thing somewhere it absolutely shouldn't happen or be possible (a fridge, a car screen, a shop TV, a smart device), for real, filmed raw on a phone.", from: "Gambling on a kitchen-store fridge" },
+  { id: "deal-twist", name: "Deal with a twist", how: "A contract, payment, sponsorship or offer whose terms are the punchline. Real people are the target of an offer, never shown as having agreed.", from: "Shuffle's no-posting clause" },
+  { id: "main-character", name: "Main character of the day", how: "Do something real to, for or about whatever the internet is obsessed with today, while it's still the only thing anyone talks about.", from: "Oreo in the Super Bowl blackout" },
+  { id: "rival-raid", name: "Rival raid", how: "Steal rivals' players, attention or moments in public, cheekily: their streamers, their fans, their bad news.", from: "Housebets reading rivals' wallets" },
+  { id: "schadenfreude", name: "Laugh at the fall", how: "Mark someone's public failure (a rival, a public figure, a brand) with a real act that lets people enjoy it together.", from: "" },
+];
+
+export function moveName(id: string): string {
+  return MOVES.find((m) => m.id === id)?.name ?? CONTENT_FORMATS.find((f) => f.id === id)?.name ?? id;
+}
+export function emotionName(id: string): string {
+  return EMOTIONS.find((e) => e.id === id)?.name ?? id;
+}
+
+/** The audience panel. The Critic answers as each of these, instinctively, before judging. */
+export const AUDIENCE_PANEL: { id: string; who: string }[] = [
+  { id: "degen", who: "Degen, 24: lives on crypto Twitter and Kick, gambles, has seen every casino promo" },
+  { id: "clipper", who: "Clip and drama account admin: decides what gets posted to a million followers, posts what makes people react" },
+  { id: "teen", who: "19-year-old on TikTok: doesn't gamble, doesn't care about casinos, shares what's funny or insane" },
+  { id: "hater", who: "Someone who hates gambling brands: shares things to dunk on them" },
+  { id: "rival", who: "Marketer at Stake or Shuffle: knows what's been done, and would be jealous only of a genuine first" },
+];
 
 export const QUALITY_BAR = {
   traits: [
-    "It's a piece of content, not a campaign: a post, a video, a slideshow, a meme, a reply, a series or a tiny build. You can describe exactly what's on screen.",
-    "Makeable this week by one or two people with a phone, CapCut, Canva, an image model or a weekend of vibe coding. No partners, no lawyers, no events, no budget beyond a few hundred dollars.",
-    "It gets views on its own: the hook works in the first second or the first line, with zero ad spend.",
-    "It's funny the way the audience is funny: deadpan, relatable, self-aware, absurd. It looks like something a real person or a good meme account would post.",
-    "People send it to the group chat or tag a friend: 'this is literally you'.",
-    "Cashy is the account posting it, the watermark, or a small part of the bit. Never the point, never a sales message.",
-    "Repeatable is a bonus: a format that can run as a series beats a one-off.",
+    "One act, not content: something Cashy actually does in the world (signs, pays, mutes, bans, builds, buys, plays somewhere, puts its name somewhere). The act is the news; any video or post is just the evidence.",
+    "It aims a feeling the audience already has, at full strength: hate, outrage, wtf, schadenfreude, tribalism, disgust, love. Cashy doesn't create the feeling; it points it.",
+    "One sentence, retold with no explanation: 'Shuffle paid Jack Doherty to stop posting.' If it needs a second sentence, it's dead.",
+    "People share it to say something about themselves: 'finally', 'this is so wrong lmao', 'wait, is that real?'. Write that line.",
+    "Raw, cheap and real: a phone, a person, a contract, a logo. Polish says 'ad'.",
+    "You can't retell it without saying Cashy.",
+    "Nobody has done it. A first, not a format.",
   ],
   banned: [
-    "Anything whose point is Cashy's product or strengths: payouts, withdrawal speed, wagering, bonuses, games, transparency, trust, fairness, the Justice Fund or AskGamblers",
-    "Big IRL stunts: billboards, giant objects, flash mobs, vehicles, public events, anything in a physical place",
-    "Purchases and deals: sponsorships, naming rights, buying things, auctions, celebrity or streamer contracts, brand collabs that need negotiating",
-    "Fake products, product launches, limited drops, merch and 'parody brands' as the idea",
-    "Press-bait stunts whose only audience is journalists, or ideas that need press coverage to work",
-    "Comparisons with rivals' terms, exposés of how casinos treat players, or 'switch to us' offers",
-    "Dashboards, trackers, indexes, leaderboards and data pages",
-    "Challenges, polls, giveaways, tournaments and renamed promotions",
-    "Anything that takes more than a week or a couple of thousand dollars to make",
-    "Anything on the cringe list",
+    "Content as the idea: posts, TikTok POVs, skits, slideshows, memes, threads, replies, series, recurring bits, characters. Those are how you film an act, never the act",
+    "Campaigns, multi-phase plans, launches and anything that needs explaining",
+    "Polished agency stunts: giant objects, billboards as art, flash mobs, mascots, press conferences, fake product launches, merch drops",
+    "Anything whose point is Cashy's product or strengths: payouts, bonuses, wagering, games, transparency, trust, the Justice Fund",
+    "Challenges, polls, giveaways, tournaments, leaderboards and renamed promotions",
+    "Pun names, 'world's first', 'the ultimate', 'unhinged', 'legendary' and anything that sounds like an AI or an agency wrote it",
+    "Ideas with no emotion behind them: clever, nice or interesting isn't enough",
   ],
   tests: [
-    { id: "group-chat", name: "Group-chat test", question: "Would a 19-25 year old who's online all day send this to the group chat or tag a friend, without knowing it's from a brand?" },
-    { id: "hook", name: "Hook test", question: "Does the first second of the video, or the first line of the post, stop the scroll on its own? Quote the hook." },
-    { id: "native", name: "Native test", question: "Does it look and sound like something a real person or a good meme account would post, not an ad, not an agency and not an AI? Any pun name, press-release phrase or cringe-list item fails it." },
-    { id: "makeable", name: "Makeable test", question: "Can one or two people make it this week with a phone, CapCut, Canva, an image model or a quick vibe-coded build, for a few hundred dollars at most?" },
-    { id: "attribution", name: "Attribution test", question: "Is it funny with no logo, and does Cashy's name still travel with it (posting account, watermark, a small part of the bit)?" },
+    { id: "one-act", name: "One-act test", question: "Is it a single real thing Cashy does in the world (not a post, series, POV, skit or campaign), and can it be retold in one sentence with no explanation?" },
+    { id: "feeling", name: "Feeling test", question: "Does it aim a strong feeling the audience already has (hate, outrage, wtf, schadenfreude, tribal, disgust, love) at full strength?" },
+    { id: "share", name: "Share test", question: "Would the panel share it? Count love-hate: haters sharing to condemn it is a pass." },
+    { id: "real", name: "Real test", question: "Can Cashy actually do it, raw and cheaply, within a couple of weeks?" },
+    { id: "first", name: "First test", question: "Has nobody done this? Would a rival marketer be jealous?" },
+    { id: "attribution", name: "Attribution test", question: "Can you retell it without saying Cashy? If yes, it fails." },
   ],
   /**
-   * The only hard stops. Everything else (offensive, crude or dark humour,
-   * roasting rivals and public figures, taboo topics) passes with its
-   * consequences spelled out.
+   * The only hard stops. Offensive, crude, dark and taboo humour, roasting
+   * public figures and rivals, and outrage passes with consequences listed.
    */
   redLines: [
-    "Taking bets, or pushing sign-ups and deposits, from players in markets where it's illegal. Content that people anywhere can watch is not this: flag the market for legal instead",
+    "Taking bets, or pushing sign-ups and deposits, from players in markets where it's illegal. An act that people anywhere can watch is not this: flag the market for legal instead",
     "Anything aimed at or appealing to minors",
-    "Hate speech, slurs or content attacking people for race, religion, ethnicity, sexuality, gender, disability or similar. Edgy and offensive humour is fine; hate is not",
+    "Hate speech, slurs or content attacking people for race, religion, ethnicity, sexuality, gender, disability or similar. Offensive and taboo is fine; attacking a group is not",
     "Exploiting real tragedies: deaths, disasters, attacks and their victims",
-    "Fake quotes, fake endorsements or defamation of real people. Parody, roasting and reacting to their public moments are fine",
+    "Fake quotes, fake endorsements or defamation of real people. Offers made to them, parody, roasting and reacting to their public moments are fine",
     "Fraud, scams or deception that costs people money, or misusing personal data. Harmless pranks and misdirection are fine",
     "Targeting people showing signs of gambling harm, or undermining responsible-gambling protections",
   ],
 };
 
+/** Engine 3 content formats, kept only to label retired ideas. */
+export const CONTENT_FORMATS: { id: string; name: string }[] = [
+  { id: "tiktok-pov", name: "TikTok/Reels POV or skit" },
+  { id: "slideshow", name: "TikTok photo slideshow" },
+  { id: "meme", name: "Image meme" },
+  { id: "x-post", name: "X post or thread" },
+  { id: "reply", name: "Reply-guy play" },
+  { id: "series", name: "Recurring bit" },
+  { id: "clip-edit", name: "Clip, edit or caption" },
+  { id: "tiny-build", name: "Tiny build" },
+  { id: "creator-seed", name: "Creator seed" },
+];
+
 export function formatName(id: string): string {
-  return CONTENT_FORMATS.find((f) => f.id === id)?.name ?? id;
+  return moveName(id);
 }
