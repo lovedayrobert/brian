@@ -1,0 +1,1185 @@
+{
+ "ideas": [
+  {
+   "id": "idea_mvaplp2ht5z9l",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "pov-skits",
+   "name": "TikTok POV: interrogating the friend who says he's 'up overall'",
+   "oneLiner": "A two-person interrogation skit where the friend who's always up gets asked one follow-up question too many.",
+   "headline": "On-screen text: 'asking my friend who's always up some follow-up questions'. Friend, first line, flat: 'I'm up overall.'",
+   "edge": "safe",
+   "backlash": "Nobody much. Maybe the friends who got tagged.",
+   "mechanism": "Two people at a kitchen table, one desk lamp pointed at the friend like an interrogation room. Low suspense sound from the trending list, quiet under the dialogue.\nBeat 1 (0-2s): Friend: 'I'm up overall.'\nBeat 2: Me: 'Since when.' Friend: 'Since a date I've chosen.'\nBeat 3: Me: 'What about March.' Friend: 'March isn't in the sample.'\nBeat 4: Me: 'Show me.' Friend slides his phone across the table, face down. He doesn't flip it.\nBeat 5: Me: 'That's the back of your phone.' Friend, not blinking: 'That's the overall.'\nHard cut to black. Small cashy watermark bottom corner.\nCaption: 'everyone has one. 18+'",
+   "borrowedAttention": "The 'friend who's always up' in-joke and the interrogation-room skit format.",
+   "engine": 3,
+   "horizon": "evergreen",
+   "effort": "2 people, phone on a tripod, one lamp, CapCut for captions. 1 hour.",
+   "shelfLife": "Evergreen, months",
+   "attentionMechanic": "tiktok-pov",
+   "platform": "TikTok first, then Reels",
+   "hook": "On-screen text: 'asking my friend who's always up some follow-up questions'. Friend, first line, flat: 'I'm up overall.'",
+   "script": "Two people at a kitchen table, one desk lamp pointed at the friend like an interrogation room. Low suspense sound from the trending list, quiet under the dialogue.\nBeat 1 (0-2s): Friend: 'I'm up overall.'\nBeat 2: Me: 'Since when.' Friend: 'Since a date I've chosen.'\nBeat 3: Me: 'What about March.' Friend: 'March isn't in the sample.'\nBeat 4: Me: 'Show me.' Friend slides his phone across the table, face down. He doesn't flip it.\nBeat 5: Me: 'That's the back of your phone.' Friend, not blinking: 'That's the overall.'\nHard cut to black. Small cashy watermark bottom corner.\nCaption: 'everyone has one. 18+'",
+   "whyViews": "Every group has the guy who's 'up overall' and nobody has ever seen proof. The punchline lands in under 15 seconds and the comments fill up with people naming their own version of him.",
+   "shareMoment": "You tag the friend who's always up. He replies 'I am up though', which proves the point.",
+   "whoAmplifies": "Sports betting meme pages, degen TikTok comedy accounts, crypto Twitter accounts that repost TikToks with 'literally every group chat'.",
+   "cashyRole": "Posted from Cashy's account with a small corner watermark. Cashy isn't mentioned in the bit.",
+   "evidence": [
+    {
+     "text": "Reasoning only: the 'friend who's always up' trope is in the brand's own humour brief. No external source.",
+     "citations": [],
+     "status": "unresolved"
+    }
+   ],
+   "scores": {
+    "views": {
+     "value": 7,
+     "reason": "Instantly relatable degen pain with a tight punchline."
+    },
+    "shareability": {
+     "value": 8,
+     "reason": "Built-in tag-the-friend mechanic."
+    },
+    "native": {
+     "value": 8,
+     "reason": "Flat delivery, cheap set, no polish."
+    },
+    "makeable": {
+     "value": 10,
+     "reason": "One hour, a lamp and a phone."
+    },
+    "attribution": {
+     "value": 5,
+     "reason": "Watermark only. Reposts will crop it."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "kill",
+     "tests": [
+      {
+       "name": "Group-chat test",
+       "pass": true,
+       "note": "Everyone tags the friend who says he's 'up overall'. His defensive reply finishes the joke."
+      },
+      {
+       "name": "Hook test",
+       "pass": true,
+       "note": "'I'm up overall.' Said flat with an interrogation lamp. It lands instantly."
+      },
+      {
+       "name": "Native test",
+       "pass": true,
+       "note": "Deadpan, lo-fi, two people at a kitchen table. Reads like a real comedy account."
+      },
+      {
+       "name": "Makeable test",
+       "pass": true,
+       "note": "Two people, one lamp, one hour."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "Funny with no logo. The corner watermark and posting account carry the name."
+      },
+      {
+       "name": "Legs test",
+       "pass": false,
+       "note": "Pitched as a one-off with no moment to land on. One good video and done. It needs to be rebuilt as a recurring 'follow-up questions' interrogation series before it survives."
+      }
+     ],
+     "reasons": [
+      "Funniest single bit in the batch, but it fails Legs as pitched: one-off, no series, no moment.",
+      "Bring it back as a series ('asking my friend who's holding long term some follow-up questions', 'asking my friend who says it's not a problem…') and it's a contender."
+     ]
+    },
+    "priorArt": null,
+    "redLines": null
+   },
+   "status": "killed",
+   "keyVisualPrompt": "Dim kitchen, a single desk lamp aimed at a guy in a hoodie across the table, phone face down between them, default TikTok caption font, slightly crooked framing.",
+   "createdAt": "2026-10-16T08:32:06.952Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "POV and skits",
+    "summary": "Phone-shot TikToks about the moments everyone recognises."
+   }
+  },
+  {
+   "id": "idea_mvaplp2hia3dn",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "pov-skits",
+   "name": "TikTok POV: the one guy in stream chat who keeps typing 'it's coming'",
+   "oneLiner": "A silent skit about the chatter who promises the bonus is coming right up until the stream ends.",
+   "headline": "On-screen text: 'POV: you've been typing \"its coming\" in chat for 2 hours'",
+   "edge": "safe",
+   "backlash": "Nobody much. Streamers will probably repost it.",
+   "mechanism": "One person at a desk, face lit only by a monitor. Fake chat overlay down the right side, made in CapCut. Slow sad piano sound, whichever one is trending that week.\nBeat 1 (0:00 on-screen clock): He types 'its coming'. Chat overlay shows it.\nBeat 2 (clock 0:58): Same pose, slightly more slumped. Types 'its coming'.\nBeat 3 (clock 1:47): Room darker, hood up. Another chatter in the overlay: 'bro who are you'. He types 'its coming'.\nBeat 4: The monitor shows 'Streamer is offline.' He looks at it for a long beat.\nBeat 5: He types 'its coming' into the offline chat. Turns off the lamp.\nCorner watermark: cashy. Caption: 'every stream has one. 18+'",
+   "borrowedAttention": "The stream-chat in-joke where chat keeps calling a bonus that never lands, plus the sad-piano edit format.",
+   "engine": 3,
+   "horizon": "evergreen",
+   "effort": "1 person, phone, CapCut chat-overlay template. 1-2 hours.",
+   "shelfLife": "Weeks, longer as a series",
+   "attentionMechanic": "tiktok-pov",
+   "platform": "TikTok, then Kick clip accounts and X",
+   "hook": "On-screen text: 'POV: you've been typing \"its coming\" in chat for 2 hours'",
+   "script": "One person at a desk, face lit only by a monitor. Fake chat overlay down the right side, made in CapCut. Slow sad piano sound, whichever one is trending that week.\nBeat 1 (0:00 on-screen clock): He types 'its coming'. Chat overlay shows it.\nBeat 2 (clock 0:58): Same pose, slightly more slumped. Types 'its coming'.\nBeat 3 (clock 1:47): Room darker, hood up. Another chatter in the overlay: 'bro who are you'. He types 'its coming'.\nBeat 4: The monitor shows 'Streamer is offline.' He looks at it for a long beat.\nBeat 5: He types 'its coming' into the offline chat. Turns off the lamp.\nCorner watermark: cashy. Caption: 'every stream has one. 18+'",
+   "whyViews": "Anyone who's watched a slot stream knows this guy, or is this guy. It's all in the face, so it works on mute and travels as a clip.",
+   "series": "Can repeat as 'types of guys in chat': the backseat gambler, the guy who only types 'L', the guy who gifted one sub in 2023 and still brings it up.",
+   "shareMoment": "'This is you in [streamer]'s chat.' Clip accounts send it to the guy they always see typing it.",
+   "whoAmplifies": "Kick clip accounts, streamer fan pages, slot meme pages on X.",
+   "cashyRole": "Cashy's account posts it and the watermark sits in the corner of the fake chat overlay.",
+   "evidence": [
+    {
+     "text": "Reasoning only: the chat in-joke comes from the brand humour brief.",
+     "citations": [],
+     "status": "unresolved"
+    }
+   ],
+   "scores": {
+    "views": {
+     "value": 7,
+     "reason": "Strong in the streamer niche, softer outside it."
+    },
+    "shareability": {
+     "value": 7,
+     "reason": "'This is you in X's chat' is an easy tag."
+    },
+    "native": {
+     "value": 8,
+     "reason": "Looks like something a clip account would post."
+    },
+    "makeable": {
+     "value": 9,
+     "reason": "One person, one afternoon."
+    },
+    "attribution": {
+     "value": 6,
+     "reason": "Watermark in the overlay survives crops better than a corner logo."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "pass",
+     "tests": [
+      {
+       "name": "Group-chat test",
+       "pass": true,
+       "note": "Kick and slot-stream viewers will send it to the guy who is this guy. Narrower audience but a dense one."
+      },
+      {
+       "name": "Hook test",
+       "pass": true,
+       "note": "'POV: you've been typing \"its coming\" in chat for 2 hours.' Specific, recognisable, sad."
+      },
+      {
+       "name": "Native test",
+       "pass": true,
+       "note": "Monitor glow, hood up, fake chat overlay. Looks like a clip-account skit, not an ad."
+      },
+      {
+       "name": "Makeable test",
+       "pass": true,
+       "note": "One person, CapCut overlay, two hours."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "Works with no logo. The watermark sits inside the chat overlay, so it's harder to crop."
+      },
+      {
+       "name": "Legs test",
+       "pass": true,
+       "note": "'Types of guys in chat' gives you a deep bench: backseat gambler, the 'L' guy, the 2023 one-sub gifter. No crypto casino runs this as a character series."
+      }
+     ],
+     "reasons": [
+      "Real stream-culture in-joke, said with no wink. The ending in the offline chat is the right kind of bleak.",
+      "Works on mute, so it travels to Kick and Twitch clip accounts on X.",
+      "Series format turns it into a cast of chat archetypes people come back for."
+     ]
+    },
+    "priorArt": {
+     "found": false,
+     "summary": "Web check skipped on this test run.",
+     "examples": []
+    },
+    "redLines": {
+     "pass": true,
+     "issues": [],
+     "consequences": [
+      "Fake chat overlay should use invented usernames and a generic stream layout, not a real streamer's channel name or face. That avoids any implied endorsement problem.",
+      "The bit is a gambling-stream in-joke with no product, offer or link, so platform risk is low. TikTok can still limit reach on a casino-branded account. Cashy's watermark plus the 18+ caption keeps it clearly labelled rather than disguised.",
+      "Some viewers may read the obsessive chatter as a nod to gambling harm. It works as a joke about the chatter's faith in the streamer, not a push to play. Keep it there and don't add any CTA or bonus reference that turns his persistence into encouragement.",
+      "The actor should clearly look over 25 to stay inside the brand's minor-appeal rule. Avoid a teen-bedroom set (posters, school items)."
+     ]
+    }
+   },
+   "status": "card",
+   "keyVisualPrompt": "Dark bedroom, a guy's face lit blue by a monitor, chat bubbles stacked on the right reading 'its coming', lo-fi phone quality.",
+   "createdAt": "2026-10-16T08:32:06.952Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "POV and skits",
+    "summary": "Phone-shot TikToks about the moments everyone recognises."
+   }
+  },
+  {
+   "id": "idea_mvaplp2hxh5vq",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "pov-skits",
+   "name": "Series: 9am me investigating what 3am me did",
+   "oneLiner": "A recurring true-crime parody where your morning self investigates the damage your 3am self did.",
+   "headline": "On-screen text: '9am me investigating what 3am me did, episode 1'. A torch clicks on.",
+   "edge": "safe",
+   "backlash": "Nobody much.",
+   "mechanism": "One person plays both versions of themselves.\nEpisode 1, 'the 3am transaction':\nBeat 1: 9am me in a dressing gown with a mug and a notepad. True-crime voiceover, low and serious: 'The wallet was discovered at 9:02am.'\nBeat 2: Shines a phone torch onto another phone like it's evidence. VO: 'Last known activity: 3:14am. The note just says \"trust\".'\nBeat 3: Cut to 3am me. Hood up, screen brightness at 1%, whispering: 'trust.'\nBeat 4: Back to 9am me, who writes 'TRUST' on the notepad, circles it twice and stares into the camera.\nEnd card in the default font: 'case remains open'. Corner watermark: cashy. Caption: '18+'.\nFuture episodes: the 3am leveraged long, the 3am 'u up' text, the 3am 40-nugget order, the 3am coin named after a flying car, the 3am Amazon cart.",
+   "borrowedAttention": "True-crime TikTok narration and the 'me at 3am vs me in the morning' genre. Trenchers will get the flying-car coin episode.",
+   "engine": 3,
+   "horizon": "evergreen",
+   "effort": "1 person, phone, dressing gown, notepad, CapCut voice filter. 1 hour per episode, batch 6 in a day.",
+   "shelfLife": "Weeks to months as a series",
+   "attentionMechanic": "series",
+   "platform": "TikTok and Reels, 3 episodes a week",
+   "hook": "On-screen text: '9am me investigating what 3am me did, episode 1'. A torch clicks on.",
+   "script": "One person plays both versions of themselves.\nEpisode 1, 'the 3am transaction':\nBeat 1: 9am me in a dressing gown with a mug and a notepad. True-crime voiceover, low and serious: 'The wallet was discovered at 9:02am.'\nBeat 2: Shines a phone torch onto another phone like it's evidence. VO: 'Last known activity: 3:14am. The note just says \"trust\".'\nBeat 3: Cut to 3am me. Hood up, screen brightness at 1%, whispering: 'trust.'\nBeat 4: Back to 9am me, who writes 'TRUST' on the notepad, circles it twice and stares into the camera.\nEnd card in the default font: 'case remains open'. Corner watermark: cashy. Caption: '18+'.\nFuture episodes: the 3am leveraged long, the 3am 'u up' text, the 3am 40-nugget order, the 3am coin named after a flying car, the 3am Amazon cart.",
+   "whyViews": "Everyone has a 3am version of themselves. The true-crime voiceover gives it a fixed format people come back for, and most episodes have nothing to do with gambling, so the reach goes past the niche.",
+   "series": "Three episodes a week, each a new '3am case', numbered so people hunt for the earlier ones. Comments suggest the next case.",
+   "shareMoment": "'3am you is a menace' sent to the friend who orders food at 4am. People comment their own case files.",
+   "whoAmplifies": "Relatable-comedy meme pages, crypto Twitter accounts, true-crime parody fans.",
+   "cashyRole": "Cashy's account owns the series and the watermark. The detective's notepad has a tiny cashy doodle in the margin.",
+   "evidence": [
+    {
+     "text": "A flying Tesla Roadster memecoin ($FTR) did 18,164,153 USD in volume over 6 hours. Used only as the reference for the flying-car episode.",
+     "citations": [
+      {
+       "url": "https://dexscreener.com/solana/DFMt2FyLpB6ekPNAzVErLXgpSnJ9CRf1VnxBAkTLpump",
+       "title": "Flying Tesla Roadster ($FTR)",
+       "publisher": "trenches",
+       "retrievedAt": "2026-10-16T06:48:50.694Z"
+      }
+     ],
+     "status": "verified"
+    }
+   ],
+   "scores": {
+    "views": {
+     "value": 7,
+     "reason": "Broad relatability and a series hook that rewards following."
+    },
+    "shareability": {
+     "value": 7,
+     "reason": "People tag the 3am menace in their life."
+    },
+    "native": {
+     "value": 8,
+     "reason": "Cheap costume, default font end card, straight-faced voiceover."
+    },
+    "makeable": {
+     "value": 9,
+     "reason": "Batchable by one person."
+    },
+    "attribution": {
+     "value": 6,
+     "reason": "Series ownership builds recognition over time."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "pass",
+     "tests": [
+      {
+       "name": "Group-chat test",
+       "pass": true,
+       "note": "'3am you is a menace' goes to every friend who orders nuggets at 4am. Most cases aren't gambling, so the reach is wide."
+      },
+      {
+       "name": "Hook test",
+       "pass": true,
+       "note": "'9am me investigating what 3am me did, episode 1' plus the torch click. Numbered, so it promises more."
+      },
+      {
+       "name": "Native test",
+       "pass": true,
+       "note": "Dressing gown and true-crime voiceover. Fake seriousness done lo-fi."
+      },
+      {
+       "name": "Makeable test",
+       "pass": true,
+       "note": "One person, batch six episodes in a day."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "Funny without the logo. Account ownership plus the notepad doodle carry the name."
+      },
+      {
+       "name": "Legs test",
+       "pass": true,
+       "note": "An endless list of 3am cases, comment-driven, numbered episodes. No crypto casino has a recurring self-detective character."
+      }
+     ],
+     "reasons": [
+      "The 3am-vs-daytime-me idea is familiar, but the true-crime case-file frame gives it a fixed, bingeable format.",
+      "Non-gambling episodes push reach well past the niche while the account stays Cashy's.",
+      "Episode 1's 'trust' punchline is a bit soft. Lead with the 40-nugget or 'u up' case and keep 'trust' for later."
+     ]
+    },
+    "priorArt": {
+     "found": false,
+     "summary": "Web check skipped on this test run.",
+     "examples": []
+    },
+    "redLines": {
+     "pass": true,
+     "issues": [],
+     "consequences": [
+      "No red line is breached. It is a relatable self-parody about late-night impulse decisions. It does not show a deposit flow, a casino UI or a sign-up push, so no market-specific issue comes up from the content itself. If it gets boosted or targeted, legal should check that paid distribution excludes markets where Cashy doesn't take players (for example the US, the UK if unlicensed, Australia).",
+      "Responsible gambling angle: the joke is built on 3am compulsive behaviour (impulse wallet activity, leveraged longs). It is played as self-aware degen humour, not as encouragement, so it is fine. Keep it that way. No episode should show a gambling loss as something to chase or fix, and none should frame money trouble being solved by a win. A critic could still read 'case remains open' plus a casino watermark as making light of late-night problem gambling. Expect some RG-advocate quote-tweets.",
+      "Minor appeal: the dressing gown, mug and home setting are neutral. Cast talent who clearly reads 25+, and avoid anything that looks like a bedroom or school setting for the hooded 3am character.",
+      "The '3am coin named after a flying car' episode nods to the live $FTR / flying Tesla Roadster memecoin. Only mock the behaviour of aping in. Don't name or show a real token contract in a way that reads as a shill or as accusing anyone of a rug, or it could drift toward defamation of the token's creators.",
+      "The '3am u up text' and '40-nugget order' episodes are harmless. Keep any on-screen phone screens fictional so no real person's number or messages show up.",
+      "Platform risk is low. A casino watermark on TikTok/Reels can still trigger gambling-content review on some accounts, and the 18+ caption helps. The format isn't disguised promotion, so the account-loss risk is minimal as long as no episode slips in a casino screen or bonus."
+     ]
+    }
+   },
+   "status": "card",
+   "keyVisualPrompt": "A dim kitchen in the morning, someone in a dressing gown pointing a phone torch at another phone on the counter, a notepad with 'TRUST' circled, grainy, crime-doc subtitle font.",
+   "createdAt": "2026-10-16T08:32:06.952Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "POV and skits",
+    "summary": "Phone-shot TikToks about the moments everyone recognises."
+   }
+  },
+  {
+   "id": "idea_mvaplp2hoccfj",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "pov-skits",
+   "name": "TikTok POV: clutching a 1v4 while a customer asks if you have it in a medium",
+   "oneLiner": "A skit riffing on the viral streamer who clutched CS2 rounds while serving customers at his job.",
+   "headline": "On-screen text: 'POV: you stream from work'. Headset on behind a counter, muttering 'one down'.",
+   "edge": "safe",
+   "backlash": "Nobody much. It's a riff on the moment, not a depiction of the streamer.",
+   "mechanism": "Two people. One sits behind a table set up as a shop counter, wearing a headset, face lit by a laptop. The customer is shown only as hands and the back of a head.\nBeat 1: Text 'POV: you stream from work'. Employee, eyes on the screen: 'One down.'\nBeat 2: Customer: 'Do you have this in a medium.' Employee, not looking up: 'Check the back. Two down.'\nBeat 3: Customer: 'Can I pay by card.' Employee: 'Tap. Three.'\nBeat 4: Customer: 'Can I get a receipt.' Long pause. A gunshot sound effect. Employee: '...Four.'\nBeat 5: He stands up, calmly prints the receipt and hands it over. A chat overlay floods with 'W EMPLOYEE'.\nCorner watermark: cashy.",
+   "borrowedAttention": "The Dexerto story about a Russian streamer clutching CS2 rounds while helping customers at work.",
+   "engine": 3,
+   "horizon": "evergreen",
+   "effort": "2 people, phone, headset, laptop, CapCut. 1-2 hours. Post within days of the story.",
+   "shelfLife": "About a week while the story circulates",
+   "attentionMechanic": "tiktok-pov",
+   "platform": "TikTok, then Kick and CS2 clip accounts on X",
+   "hook": "On-screen text: 'POV: you stream from work'. Headset on behind a counter, muttering 'one down'.",
+   "script": "Two people. One sits behind a table set up as a shop counter, wearing a headset, face lit by a laptop. The customer is shown only as hands and the back of a head.\nBeat 1: Text 'POV: you stream from work'. Employee, eyes on the screen: 'One down.'\nBeat 2: Customer: 'Do you have this in a medium.' Employee, not looking up: 'Check the back. Two down.'\nBeat 3: Customer: 'Can I pay by card.' Employee: 'Tap. Three.'\nBeat 4: Customer: 'Can I get a receipt.' Long pause. A gunshot sound effect. Employee: '...Four.'\nBeat 5: He stands up, calmly prints the receipt and hands it over. A chat overlay floods with 'W EMPLOYEE'.\nCorner watermark: cashy.",
+   "whyViews": "It rides a gaming story that's already going round, and the call-and-response rhythm makes it easy to rewatch. CS2 and Kick audiences overlap with ours, and the skit needs no gambling context to be funny.",
+   "shareMoment": "Sent to the friend who games on his work laptop. 'This is you at the help desk.'",
+   "whoAmplifies": "CS2 meme pages, gaming clip accounts, Kick clippers.",
+   "cashyRole": "Posted from Cashy's account with a corner watermark. The receipt shows 'cashy' as the shop name.",
+   "evidence": [
+    {
+     "text": "Russian streamer stuns viewers with clutch CS2 rounds while helping customers at work",
+     "citations": [
+      {
+       "url": "https://www.dexerto.com/counter-strike-2/russian-streamer-stuns-viewers-with-clutch-cs2-rounds-while-helping-customers-at-work-3418976/",
+       "title": "Russian streamer stuns viewers with clutch CS2 rounds while helping customers at work",
+       "publisher": "news",
+       "retrievedAt": "2026-10-14T19:56:09.000Z"
+      }
+     ],
+     "status": "verified"
+    }
+   ],
+   "scores": {
+    "views": {
+     "value": 4,
+     "reason": "The real clip outcompetes the re-enactment."
+    },
+    "shareability": {
+     "value": 5,
+     "reason": "Mild 'this is you' energy."
+    },
+    "native": {
+     "value": 6,
+     "reason": "Fine but sketchy-skit generic."
+    },
+    "makeable": {
+     "value": 9,
+     "reason": "Simple setup."
+    },
+    "attribution": {
+     "value": 5,
+     "reason": "Watermark and receipt gag."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "kill",
+     "tests": [
+      {
+       "name": "Group-chat test",
+       "pass": true,
+       "note": "Sent to the friend gaming at the help desk."
+      },
+      {
+       "name": "Hook test",
+       "pass": false,
+       "note": "'POV: you stream from work' is generic. The scroll stopper is buried in the call-and-response."
+      },
+      {
+       "name": "Native test",
+       "pass": true,
+       "note": "Plausible skit."
+      },
+      {
+       "name": "Makeable test",
+       "pass": true,
+       "note": "Easy."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "Watermark plus 'cashy' on the receipt."
+      },
+      {
+       "name": "Legs test",
+       "pass": false,
+       "note": "A one-off news reaction that dies once the Dexerto story fades."
+      }
+     ],
+     "reasons": [
+      "It just re-enacts a story that's already funny as the real clip. People will share the original, not this.",
+      "No legs, weak hook."
+     ]
+    },
+    "priorArt": null,
+    "redLines": null
+   },
+   "status": "killed",
+   "keyVisualPrompt": "A cheap shop counter, a guy in a gaming headset staring at a laptop while a customer's hand holds up a folded t-shirt, harsh fluorescent light, phone-shot.",
+   "createdAt": "2026-10-16T08:32:06.952Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "POV and skits",
+    "summary": "Phone-shot TikToks about the moments everyone recognises."
+   }
+  },
+  {
+   "id": "idea_mvaplp2ht7o8d",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "pov-skits",
+   "name": "TikTok POV: every casino marketing team reading the Asmongold $20 million headline",
+   "oneLiner": "A self-aware skit where the casino account is the punchline of a headline about a streamer turning down gambling money.",
+   "headline": "First frame: a cropped screenshot of the Dexerto headline about Asmongold rejecting over $20 million in gambling ad offers. Text on top: 'every casino marketing team reading this'.",
+   "edge": "spicy",
+   "backlash": "Some of his fans may reply that casinos are the problem. The joke is on us, not him, so let it play out. Don't imply any offer from Cashy, and don't use his face or voice.",
+   "mechanism": "Beat 1 (0-2s): Screenshot of the headline. Text: 'every casino marketing team reading this'.\nBeat 2: A guy at a desk. A sticky note on his monitor reads 'streamer budget: $400 + a hoodie'. He looks at it for a long time.\nBeat 3: He peels it off, folds it twice and puts it in his pocket.\nBeat 4: He opens his notes app and types 'plan b: post through it'.\nBeat 5: He props his phone on a mug, points it at himself and hits record. The video loops back to the start.\nCorner watermark: cashy. Caption: 'we're fine. 18+'",
+   "borrowedAttention": "Asmongold's public comment that he rejected gambling ad offers worth over $20 million because he's already rich.",
+   "engine": 3,
+   "horizon": "evergreen",
+   "effort": "1 person, phone, sticky note, CapCut. 45 minutes. Post while the headline is fresh.",
+   "shelfLife": "3-5 days",
+   "attentionMechanic": "tiktok-pov",
+   "platform": "TikTok and X",
+   "hook": "First frame: a cropped screenshot of the Dexerto headline about Asmongold rejecting over $20 million in gambling ad offers. Text on top: 'every casino marketing team reading this'.",
+   "script": "Beat 1 (0-2s): Screenshot of the headline. Text: 'every casino marketing team reading this'.\nBeat 2: A guy at a desk. A sticky note on his monitor reads 'streamer budget: $400 + a hoodie'. He looks at it for a long time.\nBeat 3: He peels it off, folds it twice and puts it in his pocket.\nBeat 4: He opens his notes app and types 'plan b: post through it'.\nBeat 5: He props his phone on a mug, points it at himself and hits record. The video loops back to the start.\nCorner watermark: cashy. Caption: 'we're fine. 18+'",
+   "whyViews": "The headline is already being argued about in streamer circles. A casino account laughing at itself over it is the self-aware brand move people screenshot.",
+   "shareMoment": "People quote it with 'the casino account is self-aware now'. It ends up in streamer drama threads.",
+   "whoAmplifies": "Streamer drama accounts, Kick and Twitch news pages on X, crypto Twitter.",
+   "cashyRole": "Cashy is the brand laughing at itself. The posting account is the whole attribution. There's no pitch.",
+   "evidence": [
+    {
+     "text": "Asmongold says he rejected offers over $20 million for gambling ads as he's 'already rich'",
+     "citations": [
+      {
+       "url": "https://www.dexerto.com/kick/asmongold-says-he-rejected-offers-over-20-million-for-gambling-ads-as-hes-already-rich-3418802/",
+       "title": "Asmongold says he rejected offers over $20 million for gambling ads as he’s “already rich”",
+       "publisher": "news",
+       "retrievedAt": "2026-10-14T12:23:37.000Z"
+      }
+     ],
+     "status": "verified"
+    }
+   ],
+   "scores": {
+    "views": {
+     "value": 4,
+     "reason": "Niche drama-thread engagement at best."
+    },
+    "shareability": {
+     "value": 3,
+     "reason": "Quote-tweeted by industry people, not sent by friends."
+    },
+    "native": {
+     "value": 6,
+     "reason": "Self-aware, but it reads as a brand talking about itself."
+    },
+    "makeable": {
+     "value": 10,
+     "reason": "One person, today."
+    },
+    "attribution": {
+     "value": 6,
+     "reason": "Obviously Cashy, which is the problem."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "kill",
+     "tests": [
+      {
+       "name": "Group-chat test",
+       "pass": false,
+       "note": "No 19-year-old sends a joke about casino marketing budgets to the group chat. It's inside baseball."
+      },
+      {
+       "name": "Hook test",
+       "pass": true,
+       "note": "The headline screenshot is a real hook for streamer-drama people."
+      },
+      {
+       "name": "Native test",
+       "pass": true,
+       "note": "Lo-fi enough."
+      },
+      {
+       "name": "Makeable test",
+       "pass": true,
+       "note": "45 minutes."
+      },
+      {
+       "name": "Attribution test",
+       "pass": false,
+       "note": "Cashy is the subject of the joke, not the account posting it. It breaks the brand rule."
+      },
+      {
+       "name": "Legs test",
+       "pass": false,
+       "note": "One-off, gone when the headline fades."
+      }
+     ],
+     "bannedPatternHit": "Cashy as the subject of the bit (the brand rule: Cashy is the account posting the joke, never the subject)",
+     "reasons": [
+      "It's a joke about casino marketing. The only audience is other marketers and drama threads.",
+      "It makes the brand the subject and draws attention to casino ad spend."
+     ]
+    },
+    "priorArt": null,
+    "redLines": null
+   },
+   "status": "killed",
+   "keyVisualPrompt": "A cropped news headline screenshot over a shot of an office monitor with a yellow sticky note, harsh overhead light, slightly blurry.",
+   "createdAt": "2026-10-16T08:32:06.952Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "POV and skits",
+    "summary": "Phone-shot TikToks about the moments everyone recognises."
+   }
+  },
+  {
+   "id": "idea_mvaplp2ho8lmv",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "pov-skits",
+   "name": "TikTok POV: calling in sick on GTA 6 launch day (filmed now, posted Nov 19)",
+   "oneLiner": "A launch-day skit about the worst sick-day excuse anyone has ever given for GTA 6.",
+   "headline": "On-screen text: 'POV: you told work it was a family emergency on GTA 6 launch day'. The phone rings and the screen says 'BOSS'.",
+   "edge": "safe",
+   "backlash": "Nobody much. Avoid real Rockstar footage to stay clear of takedowns.",
+   "mechanism": "Beat 1: A guy on the sofa with a controller. His phone lights up: 'BOSS'. He mutes the TV.\nBeat 2: He answers in his weakest voice: 'Hey. Yeah. It's my grandmother.'\nBeat 3: Boss (voiceover from the phone): 'Which one.'\nBeat 4: He looks at the TV. Long pause. '...Vice City.'\nBeat 5: The boss says nothing. He hangs up slowly, unmutes the TV and puts the controller back in his hands.\nCorner watermark: cashy. Caption: 'rip nan'",
+   "borrowedAttention": "The GTA 6 launch on 2026-11-19 and the long running joke about how long everyone has waited for it.",
+   "engine": 3,
+   "horizon": "evergreen",
+   "effort": "1-2 people, phone, sofa, CapCut. 1 hour. Batch in advance.",
+   "shelfLife": "48 hours around launch",
+   "attentionMechanic": "tiktok-pov",
+   "platform": "TikTok and Reels, posted on launch morning",
+   "hook": "On-screen text: 'POV: you told work it was a family emergency on GTA 6 launch day'. The phone rings and the screen says 'BOSS'.",
+   "script": "Beat 1: A guy on the sofa with a controller. His phone lights up: 'BOSS'. He mutes the TV.\nBeat 2: He answers in his weakest voice: 'Hey. Yeah. It's my grandmother.'\nBeat 3: Boss (voiceover from the phone): 'Which one.'\nBeat 4: He looks at the TV. Long pause. '...Vice City.'\nBeat 5: The boss says nothing. He hangs up slowly, unmutes the TV and puts the controller back in his hands.\nCorner watermark: cashy. Caption: 'rip nan'",
+   "whyViews": "GTA 6 launch day will be one of the most-searched moments of the year, and the 'calling in sick' bit lands on the morning millions are doing exactly that. It's filmed ahead and posted at launch.",
+   "series": "Make 3 launch-day variants in advance: the call-in, the 'I'll play for 20 minutes' timelapse, and the friend still downloading at 9pm.",
+   "shareMoment": "Sent to the coworker who 'has a dentist appointment' on November 19.",
+   "whoAmplifies": "Gaming meme pages, GTA fan accounts, general relatable-comedy pages.",
+   "cashyRole": "Posting account and a small corner watermark. No gambling in the bit, so it reaches past the niche.",
+   "evidence": [
+    {
+     "text": "GTA 6 launch listed for 2026-11-19",
+     "citations": [
+      {
+       "url": "https://www.rockstargames.com/newswire",
+       "title": "GTA 6 launch",
+       "publisher": "calendar",
+       "retrievedAt": "2026-11-19T00:00:00Z"
+      }
+     ],
+     "status": "verified"
+    }
+   ],
+   "scores": {
+    "views": {
+     "value": 5,
+     "reason": "Moment traffic, but drowned out."
+    },
+    "shareability": {
+     "value": 4,
+     "reason": "Generic. People share the best version, not this one."
+    },
+    "native": {
+     "value": 7,
+     "reason": "Looks real enough."
+    },
+    "makeable": {
+     "value": 9,
+     "reason": "Easy to film ahead."
+    },
+    "attribution": {
+     "value": 4,
+     "reason": "Watermark lost in a flood of GTA content."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "kill",
+     "tests": [
+      {
+       "name": "Group-chat test",
+       "pass": false,
+       "note": "Every brand and every creator will post 'calling in sick for GTA 6' that morning. Yours is noise."
+      },
+      {
+       "name": "Hook test",
+       "pass": true,
+       "note": "BOSS calling while he holds a controller is clear."
+      },
+      {
+       "name": "Native test",
+       "pass": true,
+       "note": "Phone-shot sofa skit."
+      },
+      {
+       "name": "Makeable test",
+       "pass": true,
+       "note": "One hour, batchable."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "Watermark and posting account."
+      },
+      {
+       "name": "Legs test",
+       "pass": true,
+       "note": "Lands on a big moment."
+      }
+     ],
+     "reasons": [
+      "The most predictable joke of launch day. It'll be buried under a thousand identical posts.",
+      "The 'which one / Vice City' punchline is confusing, not funny."
+     ]
+    },
+    "priorArt": null,
+    "redLines": null
+   },
+   "status": "killed",
+   "keyVisualPrompt": "A dark living room, a guy on a sofa in a hoodie holding a phone to his ear, a game controller on his knee, the TV glow off-camera, phone-shot.",
+   "createdAt": "2026-10-16T08:32:06.952Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "POV and skits",
+    "summary": "Phone-shot TikToks about the moments everyone recognises."
+   }
+  },
+  {
+   "id": "idea_mvaplp2hq4kx8",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "pov-skits",
+   "name": "TikTok POV: going to a Halloween party dressed as my portfolio",
+   "oneLiner": "A bedsheet-ghost Halloween skit where the costume is a dead crypto portfolio.",
+   "headline": "First frame: a bedsheet ghost with a red falling candle chart drawn on in Sharpie. Text: 'going as my portfolio this halloween'.",
+   "edge": "safe",
+   "backlash": "Nobody much. Keep the setting clearly adult (a house party, not trick-or-treating).",
+   "mechanism": "Adult house party setting.\nBeat 1: The ghost at the front door. Host: 'What are you meant to be.' Ghost: 'Down 80%.'\nBeat 2: In the kitchen, someone offers a shot. Ghost: 'No thanks. Already liquidated.'\nBeat 3: A friend: 'You okay in there?' Ghost: 'It's a long-term costume.'\nBeat 4: Someone dressed as a cowboy says he's 'up 40% this week'. The ghost turns very slowly to face him.\nBeat 5: The ghost alone on the sofa, phone screen glowing through the eye holes, refreshing.\nCorner watermark: cashy. Caption: 'dead since march. 18+'",
+   "borrowedAttention": "Halloween (2026-10-31), the bedsheet ghost costume trend and crypto 'it's so over' humour.",
+   "engine": 3,
+   "horizon": "evergreen",
+   "effort": "2-3 people, a bedsheet, a Sharpie, phone, CapCut. 2 hours. Post Oct 28-31.",
+   "shelfLife": "About a week",
+   "attentionMechanic": "tiktok-pov",
+   "platform": "TikTok, Reels, X",
+   "hook": "First frame: a bedsheet ghost with a red falling candle chart drawn on in Sharpie. Text: 'going as my portfolio this halloween'.",
+   "script": "Adult house party setting.\nBeat 1: The ghost at the front door. Host: 'What are you meant to be.' Ghost: 'Down 80%.'\nBeat 2: In the kitchen, someone offers a shot. Ghost: 'No thanks. Already liquidated.'\nBeat 3: A friend: 'You okay in there?' Ghost: 'It's a long-term costume.'\nBeat 4: Someone dressed as a cowboy says he's 'up 40% this week'. The ghost turns very slowly to face him.\nBeat 5: The ghost alone on the sofa, phone screen glowing through the eye holes, refreshing.\nCorner watermark: cashy. Caption: 'dead since march. 18+'",
+   "whyViews": "Halloween costume content dominates the feed for a week, and 'my portfolio is dead' is the cheapest costume joke crypto people will repost. It's lo-fi on purpose: one bedsheet.",
+   "shareMoment": "Tagging the friend who's still holding. 'Your costume is sorted.'",
+   "whoAmplifies": "Crypto Twitter shitposters, crypto meme pages, Halloween costume roundup accounts.",
+   "cashyRole": "Posting account and watermark. There's a tiny 'cashy' tag sharpied near the ghost's hem like a laundry label.",
+   "evidence": [
+    {
+     "text": "Halloween on 2026-10-31 (calendar date, no source supplied)",
+     "citations": [],
+     "status": "unresolved"
+    }
+   ],
+   "scores": {
+    "views": {
+     "value": 4,
+     "reason": "Old joke in a crowded week."
+    },
+    "shareability": {
+     "value": 4,
+     "reason": "Crypto-only and familiar."
+    },
+    "native": {
+     "value": 6,
+     "reason": "Cheap costume, staged party."
+    },
+    "makeable": {
+     "value": 6,
+     "reason": "Needs a party set and extras."
+    },
+    "attribution": {
+     "value": 5,
+     "reason": "Watermark and tag."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "kill",
+     "tests": [
+      {
+       "name": "Group-chat test",
+       "pass": false,
+       "note": "'Dressed as my portfolio' has been posted every Halloween since 2018. Nobody sends a rerun."
+      },
+      {
+       "name": "Hook test",
+       "pass": false,
+       "note": "A bedsheet ghost with a red chart is a known, stale image."
+      },
+      {
+       "name": "Native test",
+       "pass": true,
+       "note": "Lo-fi."
+      },
+      {
+       "name": "Makeable test",
+       "pass": false,
+       "note": "Needs a staged house party, 3+ people and a cowboy extra. More than a couple of people."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "Watermark plus the laundry tag."
+      },
+      {
+       "name": "Legs test",
+       "pass": true,
+       "note": "Lands on Halloween."
+      }
+     ],
+     "reasons": [
+      "Recycled crypto Halloween joke.",
+      "Staging a party with drinks is extra production for a punchline people have already seen."
+     ]
+    },
+    "priorArt": null,
+    "redLines": null
+   },
+   "status": "killed",
+   "keyVisualPrompt": "A bedsheet ghost standing in a doorway at night, a red Sharpie candle chart crashing down the front, porch light glare, phone flash.",
+   "createdAt": "2026-10-16T08:32:06.952Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "POV and skits",
+    "summary": "Phone-shot TikToks about the moments everyone recognises."
+   }
+  },
+  {
+   "id": "idea_mvaplp2hv5ogc",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "pov-skits",
+   "name": "TikTok POV: your parlay's last leg is the World Series and it's the 9th inning",
+   "oneLiner": "A one-person skit about bargaining with God when the last leg of your parlay comes down to the World Series.",
+   "headline": "On-screen text: 'POV: 5 legs hit. the 6th is the world series. it's the 9th inning.'",
+   "edge": "safe",
+   "backlash": "Nobody much. Sports betting content: flag for legal which markets the account targets.",
+   "mechanism": "One guy on the sofa, totally still, TV glow off-camera, crowd noise low.\nBeat 1: He puts his hands together.\nBeat 2: He starts praying, then switches to Latin read off his phone, pronounced badly.\nBeat 3: He lights a tealight. Text: 'i am not religious'.\nBeat 4: The crowd on the TV groans. He doesn't move.\nBeat 5: He blows out the candle, puts his phone face down and says to nobody: 'Baseball's a boring sport anyway.'\nCorner watermark: cashy. Caption: '18+'",
+   "borrowedAttention": "The 2026 World Series and the parlay-dies-on-the-last-leg meme.",
+   "engine": 3,
+   "horizon": "evergreen",
+   "effort": "1 person, phone, candle, CapCut. 45 minutes. Film ahead and post during the game.",
+   "shelfLife": "24-48 hours",
+   "attentionMechanic": "tiktok-pov",
+   "platform": "TikTok and X, posted during the deciding World Series game",
+   "hook": "On-screen text: 'POV: 5 legs hit. the 6th is the world series. it's the 9th inning.'",
+   "script": "One guy on the sofa, totally still, TV glow off-camera, crowd noise low.\nBeat 1: He puts his hands together.\nBeat 2: He starts praying, then switches to Latin read off his phone, pronounced badly.\nBeat 3: He lights a tealight. Text: 'i am not religious'.\nBeat 4: The crowd on the TV groans. He doesn't move.\nBeat 5: He blows out the candle, puts his phone face down and says to nobody: 'Baseball's a boring sport anyway.'\nCorner watermark: cashy. Caption: '18+'",
+   "whyViews": "The parlay that dies on the last leg is the most reposted pain in sports betting, and timing it to the World Series rides a live moment. Watchers don't need to care about baseball.",
+   "series": "Repeat for the next big sporting moment people bet on, keeping the same 'last leg' prayer format.",
+   "shareMoment": "Tagging the friend whose parlay always dies on the last leg.",
+   "whoAmplifies": "Sports betting meme pages, MLB meme accounts, parlay-pain accounts on X.",
+   "cashyRole": "Posting account and watermark only.",
+   "evidence": [
+    {
+     "text": "World Series champion market resolves around 2026-10-31",
+     "citations": [
+      {
+       "url": "https://polymarket.com/event/mlb-world-series-champion-2026",
+       "title": "MLB World Series Champion 2026",
+       "publisher": "calendar",
+       "retrievedAt": "2026-10-31T23:55:00Z"
+      }
+     ],
+     "status": "verified"
+    }
+   ],
+   "scores": {
+    "views": {
+     "value": 5,
+     "reason": "Relatable, but a format people have seen a hundred times."
+    },
+    "shareability": {
+     "value": 5,
+     "reason": "Taggable but not fresh."
+    },
+    "native": {
+     "value": 5,
+     "reason": "Generic betting-account content."
+    },
+    "makeable": {
+     "value": 10,
+     "reason": "One person, one candle."
+    },
+    "attribution": {
+     "value": 4,
+     "reason": "Watermark lost among identical posts."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "kill",
+     "tests": [
+      {
+       "name": "Group-chat test",
+       "pass": true,
+       "note": "The last-leg parlay friend gets tagged."
+      },
+      {
+       "name": "Hook test",
+       "pass": true,
+       "note": "'5 legs hit. the 6th is the world series. it's the 9th inning.' Clear stakes."
+      },
+      {
+       "name": "Native test",
+       "pass": false,
+       "note": "Praying-over-the-last-leg is the most saturated sports-betting skit on TikTok. Bad Latin and a tealight don't make it new."
+      },
+      {
+       "name": "Makeable test",
+       "pass": true,
+       "note": "45 minutes."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "Watermark only."
+      },
+      {
+       "name": "Legs test",
+       "pass": false,
+       "note": "Timing depends on an unknown deciding game, and sportsbooks post this exact format every big game."
+      }
+     ],
+     "reasons": [
+      "Every sportsbook and betting meme page already runs this exact bit.",
+      "Flag for legal: US sports-betting framing from a crypto casino account. The audience is the US market."
+     ]
+    },
+    "priorArt": null,
+    "redLines": null
+   },
+   "status": "killed",
+   "keyVisualPrompt": "A guy on a dark sofa with his hands clasped over a lit tealight, TV glow on his face, phone-shot, slight grain.",
+   "createdAt": "2026-10-16T08:32:06.952Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "POV and skits",
+    "summary": "Phone-shot TikToks about the moments everyone recognises."
+   }
+  },
+  {
+   "id": "idea_mvaplp2h07b96",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "pov-skits",
+   "name": "Series: a hostage negotiator talking my friend out of 'one more'",
+   "oneLiner": "A recurring character who treats your friend's impulse decisions like a hostage situation.",
+   "headline": "First frame: a man kneeling outside a closed bathroom door with a clipboard, calm voice: 'Mike. Talk to me. What's the leverage.'",
+   "edge": "safe",
+   "backlash": "Nobody much. It pokes fun at impulse, it doesn't encourage it.",
+   "mechanism": "A recurring character: a dead-calm hostage negotiator in a cheap windbreaker, played completely straight.\nEpisode 1, 'the long':\nBeat 1: Negotiator, kneeling at the bathroom door: 'Mike. Talk to me. What's the leverage.'\nBeat 2: Muffled voice through the door: 'Fifty.'\nBeat 3: The negotiator closes his eyes, turns to the camera and says flatly: 'We're going to need a bigger team.'\nBeat 4: Into a walkie-talkie: 'He's at fifty. Get his mum on the phone.'\nCorner watermark: cashy. Caption: '18+'\nFuture episodes: talking a friend out of texting his ex at 2am, out of a fourth round, out of buying a coin named after a flying Tesla, out of 'one more bonus buy', out of a 7-leg parlay on a sport he's never watched.",
+   "borrowedAttention": "The hostage-negotiation movie scene, played deadpan.",
+   "engine": 3,
+   "horizon": "evergreen",
+   "effort": "2 people, phone, windbreaker, clipboard, toy walkie-talkie. 1 hour per episode, batch 6 at once.",
+   "shelfLife": "Months as a series",
+   "attentionMechanic": "series",
+   "platform": "TikTok and Reels, 2-3 episodes a week",
+   "hook": "First frame: a man kneeling outside a closed bathroom door with a clipboard, calm voice: 'Mike. Talk to me. What's the leverage.'",
+   "script": "A recurring character: a dead-calm hostage negotiator in a cheap windbreaker, played completely straight.\nEpisode 1, 'the long':\nBeat 1: Negotiator, kneeling at the bathroom door: 'Mike. Talk to me. What's the leverage.'\nBeat 2: Muffled voice through the door: 'Fifty.'\nBeat 3: The negotiator closes his eyes, turns to the camera and says flatly: 'We're going to need a bigger team.'\nBeat 4: Into a walkie-talkie: 'He's at fifty. Get his mum on the phone.'\nCorner watermark: cashy. Caption: '18+'\nFuture episodes: talking a friend out of texting his ex at 2am, out of a fourth round, out of buying a coin named after a flying Tesla, out of 'one more bonus buy', out of a 7-leg parlay on a sport he's never watched.",
+   "whyViews": "A fixed character and a fixed format build regulars, the Duolingo way. Each episode is a different impulse everyone recognises, and most aren't gambling at all.",
+   "series": "2-3 episodes a week, each named after the impulse ('the long', 'the ex', 'the fourth round'). Comments suggest the next situation.",
+   "shareMoment": "Comments say 'I need this man outside my door at 3am', and people tag the friend who needs him.",
+   "whoAmplifies": "Relatable comedy pages, crypto meme accounts, sports betting meme pages.",
+   "cashyRole": "Cashy's account owns the character. The windbreaker has a small cashy name tag.",
+   "evidence": [
+    {
+     "text": "A flying Tesla Roadster memecoin ($FTR) did 18,164,153 USD in volume over 6 hours. Used only as the reference for one episode.",
+     "citations": [
+      {
+       "url": "https://dexscreener.com/solana/DFMt2FyLpB6ekPNAzVErLXgpSnJ9CRf1VnxBAkTLpump",
+       "title": "Flying Tesla Roadster ($FTR)",
+       "publisher": "trenches",
+       "retrievedAt": "2026-10-16T06:48:50.694Z"
+      }
+     ],
+     "status": "verified"
+    }
+   ],
+   "scores": {
+    "views": {
+     "value": 8,
+     "reason": "Strong visual hook and a character people follow."
+    },
+    "shareability": {
+     "value": 8,
+     "reason": "Tag the friend who needs him, every episode."
+    },
+    "native": {
+     "value": 8,
+     "reason": "Reads like a comedy duo's channel, not a brand."
+    },
+    "makeable": {
+     "value": 9,
+     "reason": "Two people, cheap props, batchable."
+    },
+    "attribution": {
+     "value": 7,
+     "reason": "A recurring character tied to Cashy's account builds recall."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "pass",
+     "tests": [
+      {
+       "name": "Group-chat test",
+       "pass": true,
+       "note": "'I need this man outside my door at 3am'. People tag the friend who needs a negotiator."
+      },
+      {
+       "name": "Hook test",
+       "pass": true,
+       "note": "Man kneeling at a bathroom door with a clipboard: 'Mike. Talk to me. What's the leverage.' You stop scrolling to find out."
+      },
+      {
+       "name": "Native test",
+       "pass": true,
+       "note": "Cheap windbreaker, toy walkie-talkie, played dead straight. Proper deadpan character comedy."
+      },
+      {
+       "name": "Makeable test",
+       "pass": true,
+       "note": "Two people, batch six episodes in an hour each."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "Funny with no logo. The recurring character plus name tag builds recognition over time."
+      },
+      {
+       "name": "Legs test",
+       "pass": true,
+       "note": "Endless impulses to negotiate, most not gambling. A Duolingo-style recurring character no crypto casino has."
+      }
+     ],
+     "reasons": [
+      "Best format in the batch: a fixed character, deadpan, and a clear premise you get in one second.",
+      "'Get his mum on the phone' is the right flat escalation.",
+      "Impulses outside gambling (the ex, the fourth round) take the reach well past the niche."
+     ]
+    },
+    "priorArt": {
+     "found": false,
+     "summary": "Web check skipped on this test run.",
+     "examples": []
+    },
+    "redLines": {
+     "pass": true,
+     "issues": [],
+     "consequences": [
+      "A man kneeling outside a locked bathroom door with a crisis negotiator after a 50x leverage loss can read as a suicide or self-harm crisis scene. Crypto and gambling losses have real cases like that, so expect some quote-tweets calling it tasteless. Keep it absurd (clipboard, cheap windbreaker, walkie-talkie, mum) and never show or hint at self-harm. Don't post it next to any news of a real trader or gambler death.",
+      "Self-aware irony: a casino account posting a bit where the hero talks people out of 'one more bonus buy' will get 'you of all people' replies. That's fine and on-voice, but community managers should have a deadpan reply ready, not a defensive one.",
+      "Responsible-gambling critics may read the 'one more bonus buy' and 7-leg parlay episodes either as mocking intervention or as normalising it. Keep the negotiator competent and the friend the joke, never the person trying to stop.",
+      "The episode about the flying Tesla coin names a live memecoin ($FTR or the Chinese-ticker version). Mocking it is fine. Don't show a ticker or contract address in a way that reads as a shill or pump, and don't call it a scam as fact.",
+      "Platform risk is low. It's a skit with an 18+ caption and no gambling promotion. TikTok may still limit reach for gambling-adjacent accounts, and the bathroom hostage framing could trip violence or crisis classifiers. Avoid real guns or police props.",
+      "Market: the content is watchable anywhere and pushes no sign-ups, so there's no market-specific breach. If it's ever paired with a CTA or link in bio to deposits, legal should check UK/AU/US-state exposure, since 'bonus buy' references are sensitive in the UK, where bonus buys are banned under UKGC rules.",
+      "Casting: the negotiator and 'Mike' must clearly look over 25 to stay clear of the minors rule."
+     ]
+    }
+   },
+   "status": "card",
+   "keyVisualPrompt": "A narrow hallway, a man in a navy windbreaker kneeling at a closed bathroom door with a clipboard, harsh hallway light, phone-shot.",
+   "createdAt": "2026-10-16T08:32:06.952Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "POV and skits",
+    "summary": "Phone-shot TikToks about the moments everyone recognises."
+   }
+  },
+  {
+   "id": "idea_mvaplp2h9nbwt",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "pov-skits",
+   "name": "Creator seed: a nature-documentary voiceover for the friend who says 'last one'",
+   "oneLiner": "An original documentary-style sound about the friend who keeps saying 'last one', handed to small creators to use on their friends.",
+   "headline": "Sound, first second, in a hushed wildlife-documentary voice: 'And here, the human says \"last one\".'",
+   "edge": "safe",
+   "backlash": "Nobody much. Paid creators should mark the post as paid where the rules require it. Don't seed to creators with young-looking audiences.",
+   "mechanism": "Cashy records and uploads a 12-second original sound from its own account. The voiceover, delivered dead serious:\n'And here, the human says \"last one\". He has said \"last one\" eleven times. Researchers have stopped counting. Some believe there is no last one. Only the next one.'\nSeed it to 8-10 small comedy and friend-group creators (5k-50k followers), free or $50-100 each. Brief: put it over a clip of your friend doing 'one more' of anything. Example uses: the claw machine, the gym ('last set'), the bar ('last round'), the gaming lobby ('one more game'), the vape, the DoorDash.\nCashy posts its own version first: a friend on his ninth 'last game' of FIFA, filmed from the doorway like wildlife footage.",
+   "borrowedAttention": "Nature-documentary narration memes and the 'just one more' in-joke.",
+   "engine": 3,
+   "horizon": "evergreen",
+   "effort": "1 person records the voiceover, 1 person messages creators. Under $1,000 total. 2 days.",
+   "shelfLife": "Weeks while the sound circulates",
+   "attentionMechanic": "creator-seed",
+   "platform": "TikTok sound, seeded to small comedy creators",
+   "hook": "Sound, first second, in a hushed wildlife-documentary voice: 'And here, the human says \"last one\".'",
+   "script": "Cashy records and uploads a 12-second original sound from its own account. The voiceover, delivered dead serious:\n'And here, the human says \"last one\". He has said \"last one\" eleven times. Researchers have stopped counting. Some believe there is no last one. Only the next one.'\nSeed it to 8-10 small comedy and friend-group creators (5k-50k followers), free or $50-100 each. Brief: put it over a clip of your friend doing 'one more' of anything. Example uses: the claw machine, the gym ('last set'), the bar ('last round'), the gaming lobby ('one more game'), the vape, the DoorDash.\nCashy posts its own version first: a friend on his ninth 'last game' of FIFA, filmed from the doorway like wildlife footage.",
+   "whyViews": "An original sound spreads on its own once a few creators use it, and every use shows 'original sound - cashy' under the video. 'Last one' fits far more than gambling, so it travels well beyond the niche.",
+   "series": "Record a new documentary sound every couple of weeks ('the human checks his portfolio', 'the human says he's up') and seed the same creators.",
+   "shareMoment": "Everyone has a friend who's said 'last one' nine times tonight. People film them and post it.",
+   "whoAmplifies": "Small comedy creators, friend-group TikTok accounts, gaming creators, sports betting meme pages.",
+   "cashyRole": "The sound is uploaded from Cashy's account, so 'original sound - cashy' travels with every use. Creators aren't asked to mention Cashy.",
+   "evidence": [
+    {
+     "text": "Reasoning only: original sound attribution shows the uploader's account name under each use. No external source supplied.",
+     "citations": [],
+     "status": "unresolved"
+    }
+   ],
+   "scores": {
+    "views": {
+     "value": 5,
+     "reason": "Only spreads if creators adopt it, and the format is stale."
+    },
+    "shareability": {
+     "value": 6,
+     "reason": "The 'last one' friend is real."
+    },
+    "native": {
+     "value": 4,
+     "reason": "Overdone parody, AI-ish script."
+    },
+    "makeable": {
+     "value": 7,
+     "reason": "Needs creator outreach."
+    },
+    "attribution": {
+     "value": 8,
+     "reason": "The sound label travels with every use."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "kill",
+     "tests": [
+      {
+       "name": "Group-chat test",
+       "pass": true,
+       "note": "Filming the 'last one' friend is relatable."
+      },
+      {
+       "name": "Hook test",
+       "pass": true,
+       "note": "'And here, the human says \"last one\".' Clear."
+      },
+      {
+       "name": "Native test",
+       "pass": false,
+       "note": "The hushed nature-documentary voiceover is one of the most worn parody formats online, and 'Only the next one.' reads AI-written."
+      },
+      {
+       "name": "Makeable test",
+       "pass": true,
+       "note": "Two days, under $1,000."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "'original sound - cashy' is a smart way to carry the name."
+      },
+      {
+       "name": "Legs test",
+       "pass": true,
+       "note": "Repeatable sounds."
+      }
+     ],
+     "bannedPatternHit": "AI-sounding line ('Only the next one.')",
+     "reasons": [
+      "Tired documentary-voice format, with a script that tries too hard to be profound.",
+      "Paying small comedy creators (FIFA, claw machines, vapes) to carry a casino's sound pulls a gambling brand toward younger audiences. Compliance risk.",
+      "The sound-attribution mechanic is good. Keep it for a stronger original sound."
+     ]
+    },
+    "priorArt": null,
+    "redLines": null
+   },
+   "status": "killed",
+   "keyVisualPrompt": "A shaky doorway shot of a guy on a sofa holding a game controller at 2am, documentary-style subtitle at the bottom: 'the human says \"last one\"'.",
+   "createdAt": "2026-10-16T08:32:06.952Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "POV and skits",
+    "summary": "Phone-shot TikToks about the moments everyone recognises."
+   }
+  }
+ ],
+ "memories": [
+  {
+   "id": "mem_mvanrxmi21yng",
+   "brandId": "cashy",
+   "kind": "rule",
+   "text": "Simple content beats big campaigns. Nobody is doing big wild stunts: no IRL stunts, sponsorships, purchases, product drops or 'campaigns'. Every idea is a post, video, slideshow, meme, reply, recurring bit or tiny vibe-coded build that one or two people can make this week, that gets views on its own and fits how the new-gen audience is funny (deadpan, relatable, self-aware, absurd). If it sounds like AI or an agency wrote it, or it's cheesy or gimmicky, it's dead.",
+   "source": "taught",
+   "weight": 1,
+   "active": true,
+   "createdAt": "2026-10-16T07:40:58.745Z",
+   "updatedAt": "2026-10-16T07:40:58.745Z",
+   "usedCount": 2,
+   "refs": [],
+   "lastUsedAt": "2026-10-16T08:27:11.255Z"
+  },
+  {
+   "id": "mem_mv9ocz3mrcpr5",
+   "brandId": "cashy",
+   "kind": "rule",
+   "text": "Get Cashy in front of as many people as possible with things that are good on their own and subtly carry Cashy's name (posting account, watermark, logo in the corner). Never an idea that tells people why Cashy is great.",
+   "source": "taught",
+   "weight": 1,
+   "active": true,
+   "createdAt": "2026-10-15T15:09:34.257Z",
+   "updatedAt": "2026-10-16T07:40:58.782Z",
+   "usedCount": 26,
+   "refs": [],
+   "lastUsedAt": "2026-10-16T08:27:11.255Z"
+  }
+ ],
+ "retireMemoryPrefixes": [
+  "Aim for 10,000% attention"
+ ]
+}

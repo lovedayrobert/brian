@@ -2,6 +2,7 @@ import type { Idea, Moment, Package, Trend } from "@/lib/domain/types";
 import { inLaunchWindow } from "@/lib/engine/lifecycle";
 import { totalScore } from "@/lib/pipeline/ideas";
 import { repo, type DB } from "@/lib/store";
+import { applySeed } from "@/lib/seed";
 
 /** Ideas from engines 1 and 2 (USP-led, then stunts) are retired: kept in the data file, never shown. */
 export const isRetired = (i: Pick<Idea, "engine">) => i.engine !== 3;
@@ -12,6 +13,7 @@ export const isRetired = (i: Pick<Idea, "engine">) => i.engine !== 3;
  * screen asks for them (the review page and the package pages).
  */
 export async function load(opts: { includeReviewOnly?: boolean; includeRetired?: boolean } = {}): Promise<DB> {
+  await applySeed();
   const db = await repo.read();
   const ideas = opts.includeRetired ? db.ideas : db.ideas.filter((i) => !isRetired(i));
   const ids = new Set(ideas.map((i) => i.id));
