@@ -11,7 +11,7 @@ import { relativeTime } from "@/lib/format";
 import { keyVisualFor, load } from "@/lib/queries";
 import { scoreSet } from "@/lib/scores";
 import { horizonFor } from "@/lib/horizon";
-import { ATTENTION_PLAYBOOK } from "@/lib/brand/quality-bar";
+import { formatName } from "@/lib/brand/quality-bar";
 
 export default async function IdeaDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -74,17 +74,36 @@ export default async function IdeaDetail({ params }: { params: Promise<{ id: str
             <KeyVisual line={idea.name} imageUrl={keyVisualFor(idea.id, db.packages)} className="aspect-[16/9] w-full" />
           </Card>
 
-          <Card className="p-6">
-            <div className="text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">The headline press would write</div>
-            <p className="mt-2 font-serif text-[22px] italic leading-snug">“{idea.headline}”</p>
-          </Card>
+          {idea.engine === 3 ? (
+            <Card className="p-6">
+              <div className="text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">
+                {idea.attentionMechanic ? formatName(idea.attentionMechanic) : "The content"}
+                {idea.platform && <> · {idea.platform}</>}
+              </div>
+              <p className="mt-2 text-[20px] font-semibold leading-snug tracking-tight">{idea.hook}</p>
+              <div className="mt-4 whitespace-pre-line rounded-[12px] bg-surface-2 px-4 py-3.5 text-[14.5px] leading-relaxed">{idea.script}</div>
+            </Card>
+          ) : (
+            <Card className="p-6">
+              <div className="text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">The headline press would write</div>
+              <p className="mt-2 font-serif text-[22px] italic leading-snug">“{idea.headline}”</p>
+            </Card>
+          )}
 
           <Card className="space-y-5 p-6 text-[14.5px] leading-relaxed">
-            <Block label="What happens">{mechanism}</Block>
-            {idea.attentionMechanic && (
-              <Block label="Attention mechanic">{ATTENTION_PLAYBOOK.find((m) => m.id === idea.attentionMechanic)?.name ?? idea.attentionMechanic}</Block>
+            {idea.engine === 3 ? (
+              <>
+                {idea.whyViews && <Block label="Why it gets views">{idea.whyViews}</Block>}
+                {idea.effort && <Block label="Making it">{idea.effort}</Block>}
+                {idea.series && <Block label="As a series">{idea.series}</Block>}
+              </>
+            ) : (
+              <>
+                <Block label="What happens">{mechanism}</Block>
+                {idea.attentionMechanic && <Block label="Attention mechanic">{idea.attentionMechanic}</Block>}
+              </>
             )}
-            {idea.shareMoment && <Block label="What people share">{idea.shareMoment}</Block>}
+            {idea.shareMoment && <Block label={idea.engine === 3 ? "Why it gets sent" : "What people share"}>{idea.shareMoment}</Block>}
             {idea.whoAmplifies && <Block label="Who passes it on">{idea.whoAmplifies}</Block>}
             {idea.cashyRole && <Block label="How Cashy gets the credit">{idea.cashyRole}</Block>}
             {whyOurs && <Block label="Why it's ours (earlier engine)">{whyOurs}</Block>}

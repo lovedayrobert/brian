@@ -189,9 +189,16 @@ export interface Idea {
   evidence: Claim[];
   /** Engine 2: shareability, reach, novelty, attribution, cost. Engine 1 (legacy): talkability, simplicity, ownability, cost. */
   scores: Record<string, Score>;
-  /** Which idea engine produced it. 2 = attention-first (current); 1 = original USP-led engine. */
-  engine?: 1 | 2;
+  /** Which idea engine produced it. 3 = native content (current); 2 = attention stunts; 1 = original USP-led engine. */
+  engine?: 1 | 2 | 3;
+  /** Engine 2: attention mechanic id. Engine 3: content format id (CONTENT_FORMATS). */
   attentionMechanic?: string;
+  /** Engine 3: the piece of content itself */
+  platform?: string;
+  hook?: string;
+  script?: string;
+  whyViews?: string;
+  series?: string;
   shareMoment?: string;
   whoAmplifies?: string;
   cashyRole?: string;

@@ -13,11 +13,11 @@ export const HORIZON_COPY: Record<Horizon, { name: string; badge: string; blurb:
   reactive: {
     name: "Quick reactions",
     badge: "24–48h",
-    blurb: "Ride a story while it's hot: live the same day, almost no cost, gone in two days.",
+    blurb: "A post, meme, reply or quick video on a story while it's hot: live the same day, gone in two days.",
   },
   evergreen: {
-    name: "Big ideas",
-    badge: "Big idea",
-    blurb: "Simple, smart, original plays that keep Cashy visible for months, or are built around a big moment people wait weeks for (GTA 6, the World Cup, holidays). Nobody in our space has done them.",
+    name: "Series and big moments",
+    badge: "Series",
+    blurb: "Still simple content, with legs: a recurring bit that runs for weeks, a tiny build people keep sharing, or posts prepared for a big moment people wait weeks for (GTA 6, the World Cup, holidays).",
   },
 };

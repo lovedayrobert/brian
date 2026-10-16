@@ -73,6 +73,18 @@ export const SOURCES: SourceDef[] = [
     phase: 1,
   },
   {
+    id: "builds",
+    name: "What people are vibe coding",
+    category: "social",
+    access: "free",
+    liveAdapter: true,
+    envKeys: [],
+    monthlyCost: { low: 0, high: 0 },
+    costNote: "Free: Show HN (Algolia API) and Reddit RSS",
+    unlocks: "The one-joke websites, toys, generators and browser games people are building with AI and getting attention for this week (Show HN, r/vibecoding, r/SideProject, r/InternetIsBeautiful, r/WebGames). Feeds the Tiny builds lens. The ones that blow up on X arrive through the import format.",
+    phase: 1,
+  },
+  {
     id: "imported",
     name: "Partner feeds (import)",
     category: "social",

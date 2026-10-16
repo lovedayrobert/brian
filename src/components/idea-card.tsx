@@ -4,6 +4,7 @@ import { EdgeBadge, Pill } from "./ui";
 import { KeyVisual } from "./mockups/key-visual";
 import { scoreSet } from "@/lib/scores";
 import { HORIZON_COPY, horizonFor } from "@/lib/horizon";
+import { formatName } from "@/lib/brand/quality-bar";
 
 export function IdeaCard({ idea, keyVisualUrl }: { idea: Idea; keyVisualUrl?: string | null }) {
   return (
@@ -22,6 +23,12 @@ export function IdeaCard({ idea, keyVisualUrl }: { idea: Idea; keyVisualUrl?: st
         </div>
       </div>
       <div className="flex flex-1 flex-col p-5">
+        {idea.engine === 3 && idea.attentionMechanic && (
+          <div className="mb-1.5 text-[11.5px] font-medium uppercase tracking-[0.05em] text-ink-3">
+            {formatName(idea.attentionMechanic)}
+            {idea.platform && <> · {idea.platform}</>}
+          </div>
+        )}
         <h3 className="text-[17px] font-semibold leading-snug tracking-tight">{idea.name}</h3>
         <p className="mt-1.5 text-[14px] leading-relaxed text-ink-2">{idea.oneLiner}</p>
         {(idea.effort || idea.shelfLife) && (
@@ -31,10 +38,18 @@ export function IdeaCard({ idea, keyVisualUrl }: { idea: Idea; keyVisualUrl?: st
             {idea.shelfLife && <>Lasts: {idea.shelfLife}</>}
           </p>
         )}
-        <div className="mt-4 rounded-[12px] bg-surface-2 px-3.5 py-3">
-          <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-ink-3">The headline</div>
-          <div className="mt-1 font-serif text-[15px] italic leading-snug">“{idea.headline}”</div>
-        </div>
+        {idea.hook ? (
+          <div className="mt-4 rounded-[12px] bg-surface-2 px-3.5 py-3">
+            <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-ink-3">The hook</div>
+            <div className="mt-1 text-[15px] font-medium leading-snug">{idea.hook}</div>
+            {idea.script && <div className="mt-2 line-clamp-4 whitespace-pre-line text-[13px] leading-relaxed text-ink-2">{idea.script}</div>}
+          </div>
+        ) : (
+          <div className="mt-4 rounded-[12px] bg-surface-2 px-3.5 py-3">
+            <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-ink-3">The headline</div>
+            <div className="mt-1 font-serif text-[15px] italic leading-snug">“{idea.headline}”</div>
+          </div>
+        )}
         <div className="mt-4 grid gap-2 text-center" style={{ gridTemplateColumns: `repeat(${scoreSet(idea).length}, minmax(0, 1fr))` }}>
           {scoreSet(idea).map((k) => (
             <div key={k.key} className="rounded-[10px] bg-surface-2 py-2">

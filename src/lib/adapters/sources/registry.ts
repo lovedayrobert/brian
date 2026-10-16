@@ -1,4 +1,5 @@
 import { SOURCES, isConfigured } from "@/lib/config/sources";
+import { builds } from "./builds";
 import { gdelt } from "./gdelt";
 import { imported } from "./imported";
 import { googleTrends } from "./googletrends";
@@ -14,7 +15,7 @@ import { youtube } from "./youtube";
  * a slot: once budget is approved and keys are in .env, its adapter is added
  * here and the sweep picks it up. Nothing else changes.
  */
-const IMPLEMENTED: SourceAdapter[] = [imported, googleTrends, press, trenches, youtube, gdelt, wikipedia, polymarket];
+const IMPLEMENTED: SourceAdapter[] = [imported, googleTrends, press, builds, trenches, youtube, gdelt, wikipedia, polymarket];
 
 export function adapters(): SourceAdapter[] {
   // The blind test runs on free sources only, so partner imports can be switched off.

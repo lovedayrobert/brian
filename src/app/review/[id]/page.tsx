@@ -107,7 +107,14 @@ export default async function Review({ params }: { params: Promise<{ id: string 
               <h3 className="text-[17px] font-semibold tracking-tight">{idea.name}</h3>
               <p className="mt-1 text-[14px] leading-relaxed">{idea.oneLiner}</p>
               <p className="mt-3 text-[13.5px] leading-relaxed text-ink-2">{mechanism}</p>
-              <div className="mt-3 rounded-[12px] bg-surface-2 px-3.5 py-2.5 font-serif text-[14px] italic">&ldquo;{idea.headline}&rdquo;</div>
+              {idea.hook ? (
+                <div className="mt-3 rounded-[12px] bg-surface-2 px-3.5 py-2.5">
+                  <div className="text-[14px] font-medium">{idea.hook}</div>
+                  {idea.script && <div className="mt-1.5 whitespace-pre-line text-[13px] leading-relaxed text-ink-2">{idea.script}</div>}
+                </div>
+              ) : (
+                <div className="mt-3 rounded-[12px] bg-surface-2 px-3.5 py-2.5 font-serif text-[14px] italic">&ldquo;{idea.headline}&rdquo;</div>
+              )}
               <dl className="mt-3 space-y-1.5 text-[12.5px] leading-snug">
                 <div>
                   <dt className="inline font-medium text-ink-2">Rides on: </dt>

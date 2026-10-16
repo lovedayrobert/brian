@@ -1,13 +1,11 @@
 /**
  * Opportunity Lab lenses. Trends are one source of ideas; these are the
- * others. Each lens is an attention mechanic: a different way of getting
- * Cashy in front of people so they share it. None of them is about Cashy's
- * product; the brand is behind the stunt, not the subject of it.
+ * others. Each lens is a content format a small social team can make this
+ * week (engine 3). None of them is about Cashy's product; Cashy is the
+ * account posting the joke, not the subject of it.
  *
- * "Without being restricted" means finding channels and formats where a
- * casino is allowed, or where nobody has thought to look. It never means
- * disguising gambling promotion to get past platform rules: that loses
- * accounts, and Red Lines flags it.
+ * Platform rules still apply: nothing disguises gambling promotion to get
+ * past them. That loses accounts, and Red Lines flags it.
  */
 export interface Lens {
   id: string;
@@ -20,83 +18,74 @@ export interface Lens {
 export const LENSES: Lens[] = [
   {
     id: "hijack-now",
-    name: "Hijack what's happening",
-    tagline: "Get Cashy's name into the thing everyone's watching today.",
+    name: "Ride what's happening",
+    tagline: "The joke everyone's thinking about today, posted first.",
     prompt:
-      "Take something the internet is talking about right now (in the context below) and find the fastest, funniest way to insert Cashy into it so it gets shared with the moment. Think Oreo in the blackout, not a brand congratulating anyone. Speed and the obvious-but-unsaid joke win.",
-    examples: ["The post everyone wishes they'd made first", "A reaction so quick it becomes part of the story"],
+      "Take something the internet is talking about right now (in the context below) and write the post, meme, reply or quick video Cashy's account puts out today. The obvious-but-unsaid joke, said flatly and early. No campaign, no stunt: content that's live in an hour.",
+    examples: ["The reply that gets more likes than the post", "A meme of the moment with Cashy's watermark"],
   },
   {
-    id: "irl-stunt",
-    name: "Absurd real-world stunt",
-    tagline: "Something physical, filmed, and impossible not to share.",
+    id: "pov-skits",
+    name: "POV and skits",
+    tagline: "Phone-shot TikToks about the moments everyone recognises.",
     prompt:
-      "Invent a physical stunt in the real world that is absurd enough to be filmed on phones and posted everywhere: an object, a billboard, a vehicle, a place, a public act. It has to be cheap relative to the attention, legal in a permissive market, and obviously Cashy's.",
-    examples: ["A giant object in the wrong place", "A billboard that becomes the story"],
+      "Write TikTok/Reels POVs and short skits (7-20 seconds, one or two people, a phone, a trending sound or a voiceover) about moments people who gamble, trade crypto or watch streams instantly recognise: the 'last spin', the friend who's always up, the 3am bonus buy, the chat when the slot does nothing. Relatable first, Cashy second.",
+    examples: ["POV: you said 'last game' 40 minutes ago", "Types of people in a casino Discord at 2am"],
   },
   {
-    id: "collab",
-    name: "Unexpected collab",
-    tagline: "A partner nobody would expect a casino to touch.",
+    id: "memes",
+    name: "Memes and slideshows",
+    tagline: "Image memes and TikTok photo slideshows, made in Canva in an hour.",
     prompt:
-      "Invent a collaboration with a brand, artist, creator, community or institution that nobody would expect next to a crypto casino, where the pairing itself is the joke or the shock. Frame real people and brands as targets of an offer or a collaboration we'd pitch, never as already agreed.",
-    examples: ["A pairing that makes people say 'wait, what?'", "Merch from a collab that sells out on irony"],
+      "Write image memes in formats people already use, and TikTok photo slideshows (3-8 slides, one line each) that tell a tiny relatable story or list. Lo-fi on purpose. Cashy posts them and they get seeded to meme pages.",
+    examples: ["A slideshow ranking excuses for being online at 4am", "A known meme template with a degen caption"],
   },
   {
-    id: "parody-product",
-    name: "Parody product or drop",
-    tagline: "A ridiculous thing that exists only to be talked about.",
+    id: "shitposts",
+    name: "Shitposts and replies",
+    tagline: "X posts and replies in the account's voice.",
     prompt:
-      "Invent a product, drop, merch item or fake launch that is ridiculous, limited and instantly memeable, the way MSCHF or Liquid Death would. The product is the joke and Cashy's name is on it.",
-    examples: ["Merch people buy as a meme", "A fake product announcement people want to be real"],
+      "Write X posts and reply-guy plays for Cashy's account: deadpan one-liners, fake-serious announcements of nothing, obviously fake screenshots, and the reply you'd drop under the day's biggest streamer, crypto or sports post. The account's personality is the product.",
+    examples: ["A deadpan one-liner that becomes a quote-tweet template", "The reply under a viral post that steals the thread"],
   },
   {
-    id: "troll",
-    name: "Troll the timeline",
-    tagline: "Cheeky public bait that people pick sides on.",
+    id: "series",
+    name: "A recurring bit",
+    tagline: "A fixed format people come back for.",
     prompt:
-      "Invent a public troll of a rival, an industry norm, a platform or a cultural moment that people will screenshot and pick sides on. Cheeky, never defamatory: no false claims about anyone, no implied endorsements. Ryanair's self-roasting and Burger King's Whopper Detour are the tone.",
-    examples: ["A post rivals can't reply to without losing", "Bait that the comments finish for you"],
+      "Invent a recurring bit Cashy can post on a schedule for weeks: a 'Day N of…' series, a weekly ranking, a recurring character or a fixed template the audience starts to expect and quote. Write the first three episodes.",
+    examples: ["'Day 1 of…' with a running joke", "A weekly 'worst decision of the week' ranking"],
   },
   {
-    id: "internet-object",
-    name: "Internet-native object",
-    tagline: "A bot, filter, game, site or coin people play with and share.",
+    id: "clips",
+    name: "Clips and edits",
+    tagline: "Recut and caption what's already funny.",
     prompt:
-      "Invent something people use and share online: a bot, an AI toy, a filter, a browser game, a ridiculous website, a generator, an Easter egg or a culture coin moment. It must be fun with no casino involvement at all, and carry Cashy's name everywhere it travels.",
-    examples: ["A toy that goes viral on its own", "Something people send to friends to mess with them"],
+      "Find content in clips and edits: captioned stream moments, remixed old meme videos with Cashy on them (the way Stake put its logo in legacy memes), game clips with a degen caption, edits on trending sounds. The source material is already funny; the caption makes it relatable. Never imply a real person endorses Cashy.",
+    examples: ["An old meme video recut with a Cashy watermark", "A stream clip with one perfect line of text on top"],
   },
   {
-    id: "buy-something",
-    name: "Buy something ridiculous",
-    tagline: "Naming rights, absurd sponsorships, objects the internet cares about.",
+    id: "tiny-builds",
+    name: "Tiny builds",
+    tagline: "Vibe-coded sites, toys and bots that do one dumb thing.",
     prompt:
-      "Invent a purchase or sponsorship whose absurdity is the headline: naming rights to something nobody would name, sponsoring something tiny or strange, buying an object, domain or piece of internet history. The deal itself is the content.",
-    examples: ["A sponsorship nobody saw coming", "Buying something the internet already argues about"],
-  },
-  {
-    id: "creator-chaos",
-    name: "Creator chaos",
-    tagline: "A streamer or creator deal so strange the deal is the content.",
-    prompt:
-      "Invent a creator, streamer or athlete deal with a twist so strange that the deal itself goes viral: odd clauses, odd payments, odd conditions. Shuffle paying a streamer not to post and Kick's mega-signings are the benchmark. Never imply a real person has agreed: frame them as the target of an offer.",
-    examples: ["A clause that becomes the headline", "An offer someone has to respond to publicly"],
+      "Invent a tiny thing Cashy can vibe-code in a day or two that people play with and share: a one-joke website, a generator, a calculator, a filter, a Discord or Telegram bot, a browser game. It must be fun with no gambling involved and carry Cashy's name in the corner. Look at what people are building and sharing right now (the builds below) and find the version our audience would send to friends. Say exactly what happens when you open it and what people screenshot.",
+    examples: ["A website that does one stupid thing perfectly", "A generator people screenshot and post"],
   },
   {
     id: "calendar",
-    name: "Calendar ambush",
-    tagline: "Own a moment everyone can see coming.",
+    name: "Big moment, prepared",
+    tagline: "Content ready for a moment everyone can see coming.",
     prompt:
-      "Take one of the upcoming moments provided (GTA 6, big fights, launches, crypto events) and invent the stunt Cashy should have ready on the day so its name rides the moment. React to it, don't pretend to be an official partner, and avoid trademarks in the creative.",
-    examples: ["A launch-day stunt prepared weeks ahead", "An ambush that works whoever wins"],
+      "Take one of the upcoming moments provided (GTA 6, holidays, big fights, launches) and write the posts, memes, videos or tiny build Cashy has ready on the day. Simple content, prepared ahead, posted in the first hour. React to the moment; never pretend to be an official partner, and avoid trademarks in the creative.",
+    examples: ["The launch-day post set, written weeks ahead", "A meme that works whatever happens"],
   },
   {
     id: "blank-page",
     name: "Blank page",
-    tagline: "No starting point. Just shares and impressions.",
-    prompt:
-      "No lens. Invent the most shared thing a crypto casino brand could do in the next 30 days for under $50k. Pure attention.",
-    examples: ["Anything that passes the five tests"],
+    tagline: "No starting point. Just views.",
+    prompt: "No lens. Write the 10 pieces of content most likely to get Cashy's account views and sends this week, for almost no money.",
+    examples: ["Anything that passes the tests"],
   },
 ];
 

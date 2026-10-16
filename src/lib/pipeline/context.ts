@@ -1,5 +1,5 @@
 import { BRANDS, CAMPAIGN_HISTORY } from "@/lib/brand/brands";
-import { ATTENTION_PLAYBOOK, QUALITY_BAR, REFERENCE_STUNTS, STUNTS } from "@/lib/brand/quality-bar";
+import { CONTENT_FORMATS, HUMOUR_GUIDE, QUALITY_BAR, REFERENCE_CONTENT, STUNTS } from "@/lib/brand/quality-bar";
 import type { BrandId, Citation, Signal, Trend } from "@/lib/domain/types";
 
 /**
@@ -11,7 +11,7 @@ export function brandVoiceContext(brandId: BrandId): string {
   const b = BRANDS[brandId];
   return `
 <brand name="${b.name}">
-Who we are: a crypto casino brand that wants to be the most talked-about name on crypto Twitter, Kick, TikTok and meme pages. Cashy is the brand behind the stunt, never the subject of it.
+Who we are: a crypto casino brand that wants to be the most talked-about name on crypto Twitter, Kick, TikTok and meme pages. Cashy is the account posting the joke, never the subject of it.
 Voice:
 ${b.voice.map((v) => `- ${v}`).join("\n")}
 Banned phrases: ${b.bannedPhrases.join(", ")}
@@ -45,7 +45,7 @@ ${CAMPAIGN_HISTORY.filter((h) => h.brandId === brandId)
 export function qualityBarContext(): string {
   return `
 <quality_bar>
-What a great idea has:
+What a great idea is:
 ${QUALITY_BAR.traits.map((t) => `- ${t}`).join("\n")}
 
 Banned. Never produce these:
@@ -54,22 +54,33 @@ ${QUALITY_BAR.banned.map((t) => `- ${t}`).join("\n")}
 The five tests:
 ${QUALITY_BAR.tests.map((t) => `- ${t.name}: ${t.question}`).join("\n")}
 
-Edge levels: safe, spicy, wild. Lean spicy and wild. Controversy, PR heat and offended competitors are features. Only the red lines are hard stops.
+Edge levels: safe, spicy, wild. The edge comes from the joke, not from the size of the stunt. Rude, dark and offensive humour is allowed; only the red lines are hard stops.
 
 Red lines (the only hard stops):
 ${QUALITY_BAR.redLines.map((t) => `- ${t}`).join("\n")}
 </quality_bar>
 
-<attention_playbook>
-How things actually spread. Every idea must use at least one of these:
-${ATTENTION_PLAYBOOK.map((m) => `- [${m.id}] ${m.name}: ${m.how}`).join("\n")}
-</attention_playbook>
+<content_formats>
+Every idea is exactly one of these:
+${CONTENT_FORMATS.map((m) => `- [${m.id}] ${m.name}: ${m.how}`).join("\n")}
+</content_formats>
 
-<reference_stunts>
-The benchmark, in and outside gambling. Find a new twist of the same kind; never copy these.
-${STUNTS.map((s) => `- ${s.brand}: ${s.what} Why: ${s.whyItWorked}`).join("\n")}
-${REFERENCE_STUNTS.map((s) => `- ${s.brand}: ${s.what} Why: ${s.why}`).join("\n")}
-</reference_stunts>`.trim();
+<humour>
+How the audience is funny:
+${HUMOUR_GUIDE.registers.map((t) => `- ${t}`).join("\n")}
+
+The register, in examples (tone only; don't reuse them):
+${HUMOUR_GUIDE.sounds_like.map((t) => `- "${t}"`).join("\n")}
+
+Cringe. Any of these kills an idea:
+${HUMOUR_GUIDE.cringe.map((t) => `- ${t}`).join("\n")}
+</humour>
+
+<reference_content>
+Simple content that got views. Same spirit, never copied:
+${STUNTS.filter((s) => s.kind === "meme hijack").map((s) => `- ${s.brand}: ${s.what} Why: ${s.whyItWorked}`).join("\n")}
+${REFERENCE_CONTENT.map((s) => `- ${s.who}: ${s.what} Why: ${s.why}`).join("\n")}
+</reference_content>`.trim();
 }
 
 export const ACCURACY_RULES = `

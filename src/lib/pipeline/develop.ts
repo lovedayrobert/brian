@@ -198,7 +198,9 @@ function buildContext(pkg: Package, ideas: Idea[], trends: Trend[], signals: Sig
   // Sources already validated into earlier sections may be cited again downstream.
   for (const k of SECTION_ORDER) collectUrls(pkg.sections[k].content, ev.allowed);
   const launchDate = pkg.launchDate;
-  const ideaText = `<idea>\nName: ${idea.name}\nOne-liner: ${idea.oneLiner}\nMechanism: ${idea.mechanism}\nBorrowed attention: ${idea.borrowedAttention}\nPress headline: ${idea.headline}\nEdge: ${idea.edge}. Likely backlash: ${idea.backlash}\n</idea>`;
+  const ideaText = idea.engine === 3
+    ? `<idea>\nName: ${idea.name}\nFormat: ${idea.attentionMechanic} on ${idea.platform}\nOne-liner: ${idea.oneLiner}\nHook: ${idea.hook}\nThe content:\n${idea.script}\nWhy it gets views: ${idea.whyViews}\nSeries: ${idea.series ?? "one-off"}\nMake it: ${idea.effort}\nEdge: ${idea.edge}. Likely backlash: ${idea.backlash}\nThis is a simple piece of native content. Keep everything you write at that scale and in that voice: no campaign-speak, no stunts, no polish it doesn't need.\n</idea>`
+    : `<idea>\nName: ${idea.name}\nOne-liner: ${idea.oneLiner}\nMechanism: ${idea.mechanism}\nBorrowed attention: ${idea.borrowedAttention}\nPress headline: ${idea.headline}\nEdge: ${idea.edge}. Likely backlash: ${idea.backlash}\n</idea>`;
   return {
     idea,
     trend,

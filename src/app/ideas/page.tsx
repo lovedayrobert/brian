@@ -29,11 +29,11 @@ export default async function Ideas({ searchParams }: { searchParams: Promise<{ 
   const { origin, edge, engine } = await searchParams;
   const db = await load();
   const showOld = engine === "all";
-  const oldCount = db.ideas.filter((i) => i.engine !== 2 && !i.sample).length;
+  const oldCount = db.ideas.filter((i) => i.engine !== 3 && !i.sample).length;
 
   const visible = db.ideas.filter(
     (i) =>
-      (showOld || i.engine === 2 || i.sample) &&
+      (showOld || i.engine === 3 || i.sample) &&
       (!edge || i.edge === edge) &&
       (!origin || (i.sample ? origin === "sample" : (i.origin ?? (i.trendId ? "trend" : "moment")) === origin)),
   );
@@ -109,7 +109,7 @@ export default async function Ideas({ searchParams }: { searchParams: Promise<{ 
         ))}
         {oldCount > 0 && (
           <Link href={qs({ engine: showOld ? undefined : "all" })} className="ml-auto text-[12.5px] text-accent-ink hover:underline">
-            {showOld ? "Hide earlier engine" : `Show earlier engine (${oldCount})`}
+            {showOld ? "Hide earlier engines" : `Show earlier engines (${oldCount})`}
           </Link>
         )}
       </div>
