@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { Flame, Search, Sparkles, Zap } from "lucide-react";
 import Link from "next/link";
 import { ActionButton } from "@/components/action-button";
+import { SweepButton } from "@/components/sweep-button";
 import { RapidPanel } from "@/components/rapid-panel";
 import { CoinBadge, TrenchesList } from "@/components/trenches";
 import { categoryLabel } from "@/components/trend-card";
@@ -34,9 +35,7 @@ export default async function Live({ searchParams }: { searchParams: Promise<{ c
         title="What's breaking"
         subtitle="Culture, creator drama, crypto scandals and search spikes from the last 48 hours, ranked by how likely people are to talk about them. Regulation and trade news sit under Industry. Tap React for three takes in under a minute."
         actions={
-          <ActionButton endpoint="/api/sweep" pending="Sweeping…" variant="secondary">
-            Refresh
-          </ActionButton>
+          <SweepButton label="Refresh" pending="Sweeping…" />
         }
       />
 

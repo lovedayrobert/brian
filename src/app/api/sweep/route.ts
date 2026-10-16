@@ -1,15 +1,16 @@
-import { runSweep } from "@/lib/pipeline/sweep";
-import { fail, requireUser } from "../_util";
+import { startSweep, sweepStatus } from "@/lib/sweep-job";
+import { requireUser } from "../_util";
 
-export const maxDuration = 300;
-
+/** Start a sweep in the background; returns straight away. */
 export async function POST(req: Request) {
   const denied = await requireUser(req);
   if (denied) return denied;
-  try {
-    const run = await runSweep(() => {});
-    return Response.json(run);
-  } catch (e) {
-    return fail(e, 500);
-  }
+  return Response.json(startSweep(), { status: 202 });
+}
+
+/** Whether a sweep is running, so any page can pick up its progress. */
+export async function GET(req: Request) {
+  const denied = await requireUser(req);
+  if (denied) return denied;
+  return Response.json(sweepStatus());
 }

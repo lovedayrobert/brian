@@ -1,6 +1,7 @@
-import { ArrowRight, CalendarClock, Flame, Lightbulb, Radar, RefreshCw, Sparkles } from "lucide-react";
+import { ArrowRight, CalendarClock, Flame, Lightbulb, Radar, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { ActionButton } from "@/components/action-button";
+import { SweepButton } from "@/components/sweep-button";
 import { IdeaCard } from "@/components/idea-card";
 import { AiBanner } from "@/components/ai-banner";
 import { categoryLabel, TrendCard } from "@/components/trend-card";
@@ -23,9 +24,7 @@ export default async function Today() {
   const sweep = db.sweeps[0];
 
   const sweepButton = (
-    <ActionButton endpoint="/api/sweep" pending="Sweeping sources…" icon={<RefreshCw className="h-3.5 w-3.5" />} variant="secondary">
-      Run sweep
-    </ActionButton>
+    <SweepButton label="Run sweep" pending="Sweeping sources…" />
   );
 
   if (!sweep) {

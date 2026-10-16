@@ -69,7 +69,7 @@ Defined in `src/lib/domain/types.ts`, mirrored in `supabase/migrations/0001_init
 
 ## Request flows
 
-**Sweep** (`POST /api/sweep` or `npm run sweep`)
+**Sweep** (`POST /api/sweep` starts one in the background and `GET /api/sweep` reports progress; or `npm run sweep`)
 
 ```
 ready adapters ──► signals ──► enrich (search spikes + Wikipedia curves)
