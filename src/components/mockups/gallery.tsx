@@ -67,7 +67,7 @@ export function MockupGallery({
   return (
     <div>
       <div className="mb-5 flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-        {ASSETS.map((a) => (
+        {ASSETS.filter((a) => (a.key !== "landing" || !!c.landing.headline) && (a.key !== "storyboard" || creative.video.storyboard.length > 0)).map((a) => (
           <button
             key={a.key}
             onClick={() => setActive(a.key)}

@@ -169,6 +169,13 @@ export interface Idea {
   sample?: boolean;
   /** Imported for a blind review: kept off lists so scores stay hidden. */
   reviewOnly?: boolean;
+  /**
+   * reactive: rides a story or trend, live within 24 hours, dead in 24-48.
+   * evergreen: a simple, durable brand play nobody in our space has done.
+   */
+  horizon?: Horizon;
+  effort?: string;
+  shelfLife?: string;
   /** What the idea came from, kept with the idea so it travels with it */
   sourceContext?: SourceContext;
   lens?: string;
@@ -220,7 +227,7 @@ export type SectionKey =
   | "risk"
   | "handover";
 
-export type SectionStatus = "pending" | "running" | "done" | "error";
+export type SectionStatus = "pending" | "running" | "done" | "error" | "skipped";
 
 export interface PackageSection<T = unknown> {
   key: SectionKey;
@@ -247,6 +254,8 @@ export interface Package {
   version: number;
   sample?: boolean;
   reviewOnly?: boolean;
+  /** full: the 11-section campaign package. quick: copy, visuals and risk for a reactive idea. */
+  kind?: "full" | "quick";
   /** Target launch, set once from the trend's lifecycle so every section plans to the same day. */
   launchDate: string;
   sections: Record<SectionKey, PackageSection>;
@@ -290,3 +299,5 @@ export interface SourceContext {
   summary?: string;
   links?: { title: string; url: string; outlet?: string }[];
 }
+
+export type Horizon = "reactive" | "evergreen";

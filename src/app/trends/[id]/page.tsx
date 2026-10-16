@@ -30,16 +30,28 @@ export default async function TrendDetail({ params }: { params: Promise<{ id: st
         title={t.title}
         subtitle={t.whyItMatters ?? (t.summary ? t.summary.slice(0, 280) + (t.summary.length > 280 ? "…" : "") : undefined)}
         actions={
-          <ActionButton
-            endpoint="/api/ideas"
-            body={{ trendId: t.id }}
-            pending="Inventing and critiquing… (about a minute)"
-            icon={<Wand2 className="h-3.5 w-3.5" />}
-            disabled={!ai || blocked}
-            disabledReason={blocked ? "Red line: Brian won't generate ideas from this." : !ai ? "Needs the AI key." : undefined}
-          >
-            Find ideas
-          </ActionButton>
+          <>
+            <ActionButton
+              endpoint="/api/ideas"
+              body={{ trendId: t.id, horizon: "reactive" }}
+              variant="secondary"
+              pending="Inventing quick reactions… (about 3 min)"
+              icon={<Wand2 className="h-3.5 w-3.5" />}
+              disabled={!ai || blocked}
+              disabledReason={blocked ? "Red line: Brian won't generate ideas from this." : !ai ? "Needs the AI key." : undefined}
+            >
+              Quick reactions
+            </ActionButton>
+            <ActionButton
+              endpoint="/api/ideas"
+              body={{ trendId: t.id, horizon: "evergreen" }}
+              pending="Inventing big ideas… (about 4 min)"
+              icon={<Wand2 className="h-3.5 w-3.5" />}
+              disabled={!ai || blocked}
+            >
+              Big ideas
+            </ActionButton>
+          </>
         }
       />
 

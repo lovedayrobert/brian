@@ -4,6 +4,8 @@ import type { BrandId, Claim, Citation, Idea, Moment, Signal, Trend } from "@/li
 import { ATTENTION_PLAYBOOK, QUALITY_BAR } from "@/lib/brand/quality-bar";
 import { totalScore } from "@/lib/scores";
 import { sourceContextFor } from "@/lib/source-context";
+import { REACTIVE_LENSES } from "@/lib/horizon";
+import type { Horizon } from "@/lib/domain/types";
 import { lensById } from "@/lib/brand/lenses";
 import { newId, repo } from "@/lib/store";
 import { memoryForRun } from "@/lib/memory";
@@ -24,6 +26,8 @@ const InventorOut = z.object({
       whoAmplifies: z.string().describe("Who passes it on unpaid: which meme pages, creators, communities or press"),
       cashyRole: z.string().describe("How Cashy rides along subtly but unmistakably (logo, name, signature, Easter egg). Never a sales message."),
       headline: z.string().describe("The headline gaming, culture, crypto or mainstream press would write"),
+      effort: z.string().describe("What it takes to make, in a few words (e.g. '1 designer, 3 hours', 'a landing page and a bot')"),
+      shelfLife: z.string().describe("How long it keeps working (e.g. '24 hours', 'months')"),
       edge: EdgeEnum,
       backlash: z.string().describe("Who will be annoyed or offended, and how it plays out"),
       keyVisualPrompt: z.string().describe("A one-paragraph art direction for the key visual. No real people's faces."),
@@ -67,12 +71,26 @@ export interface IdeaRunResult {
 }
 
 /** Inventor → Critic → Red Lines → Prior Art for one trend or moment. */
+const HORIZON_BRIEF: Record<Horizon, string> = {
+  reactive:
+    "These are QUICK REACTIONS to a moment that will be over in 24-48 hours. Each must be something Cashy's social team can have live today: a post, a meme, a reply, a quick edit, a one-day micro-stunt. Under about $2k, no builds, no partnerships to negotiate, nothing that takes days to produce. Small and sharp beats big. Never a full campaign.",
+  evergreen:
+    "These are BIG IDEAS: simple, smart, innovative plays worth a full campaign. Either durable brand plays that keep Cashy's name out there for months, or ideas built around a big global moment people anticipate for weeks (a major launch like GTA 6, a World Cup, a holiday), planned ahead and launched on the day. Simple to explain, simple to run, and they keep spreading. They must be things no crypto casino or gambling brand (Stake, Shuffle, Rollbit, Roobet, BC.Game, Duel, Rainbet and the rest) has done.",
+};
+
+const HORIZON_TEST: Record<Horizon, { id: string; name: string; question: string }> = {
+  reactive: { id: "speed", name: "Speed test", question: "Can the social team have it live within 24 hours for under about $2k, while the moment is still hot?" },
+  evergreen: { id: "staying-power", name: "Staying-power test", question: "Is it big enough for a full campaign and built to last (months, or the whole run-up to a big moment), and has no competitor in crypto gambling done it?" },
+};
+
 export async function generateIdeas(opts: {
   brandId: BrandId;
   trendId?: string;
   momentId?: string;
   lens?: string;
   steer?: string;
+  /** Override: ask for quick reactions or big ideas from the same trend or moment */
+  horizon?: Horizon;
 }): Promise<IdeaRunResult> {
   const db = await repo.read();
   const { text: sourceText, allowed, subject, trend, moment } = opts.lens
@@ -83,12 +101,16 @@ export async function generateIdeas(opts: {
     throw new Error(`Blocked by the red-line filter: ${trend?.sensitivityReason ?? moment?.sensitivityReason ?? "sensitive topic"}`);
   }
 
+  // Breaking stories default to quick reactions, calendar moments to big ideas; either can be overridden.
+  const horizon: Horizon =
+    opts.horizon ?? (opts.lens ? (REACTIVE_LENSES.has(opts.lens) ? "reactive" : "evergreen") : moment?.kind === "calendar" ? "evergreen" : "reactive");
   const memory = await memoryForRun(opts.brandId, `inventing ideas for ${subject}`);
   const system = [
     memory,
     "You are the Inventor at Brian, Cashy's marketing brain. Your only job is attention: ideas that get Cashy in front of huge numbers of people in ways they share, screenshot and argue about. Think like Liquid Death, MSCHF, Duolingo's social team and the best crypto shitposters, not like a casino marketer. Nobody cares about a casino's strengths, so never make an idea about Cashy's product, payouts, terms, fairness, transparency or the Justice Fund. Cashy is the brand behind the stunt, never its subject.",
     brandVoiceContext(opts.brandId),
     qualityBarContext(),
+    `<horizon>\n${HORIZON_BRIEF[horizon]}\n</horizon>`,
     ACCURACY_RULES,
   ].join("\n\n");
 
@@ -116,7 +138,8 @@ Generate 10 candidate ideas that ride this. Use at least 6 different attention m
       "You are the Critic at Brian. You judge ideas the way a meme page editor and a viral marketer would: would this actually get shared? You are deliberately harsh and most ideas die with you. Automatic kills: anything that is really about Cashy's product or strengths (payouts, terms, fairness, transparency, the Justice Fund), anything that is mainly a page of data, and anything a viewer would scroll past.",
       brandVoiceContext(opts.brandId),
       qualityBarContext(),
-      `Run all five tests for every candidate using these ids: ${QUALITY_BAR.tests.map((t) => t.id).join(", ")}. Score from 1 to 10, each with a one-line reason: shareability (would people repost it unprompted?), reach (how far it can travel: who amplifies it), novelty (has anyone seen this before?), attribution (will people say Cashy's name when they share it?), cost (10 = nearly free). Pass at most three.`,
+      `<horizon>\n${HORIZON_BRIEF[horizon]}\n</horizon>`,
+      `Run all six tests for every candidate using these ids: ${[...QUALITY_BAR.tests, HORIZON_TEST[horizon]].map((t) => t.id).join(", ")}. The sixth is the ${HORIZON_TEST[horizon].name}: ${HORIZON_TEST[horizon].question} Fail it and the idea dies. Score from 1 to 10, each with a one-line reason: shareability (would people repost it unprompted?), reach (how far it can travel: who amplifies it), novelty (has anyone seen this before?), attribution (will people say Cashy's name when they share it?), cost (10 = nearly free). Pass at most three.`,
     ].join("\n\n"),
     prompt: `${sourceText}\n\n<candidates>\n${candidates.map((c, i) => `${i}. ${c.name}: ${c.oneLiner}\nWhat happens: ${c.mechanism}\nMechanic: ${c.attentionMechanic}. Share moment: ${c.shareMoment}\nWho amplifies: ${c.whoAmplifies}\nCashy's name: ${c.cashyRole}\nEdge: ${c.edge}`).join("\n\n")}\n</candidates>`,
   });
@@ -140,6 +163,9 @@ Generate 10 candidate ideas that ride this. Use at least 6 different attention m
       mechanism: c.mechanism,
       borrowedAttention: c.borrowedAttention,
       engine: 2,
+      horizon,
+      effort: c.effort,
+      shelfLife: c.shelfLife,
       attentionMechanic: c.attentionMechanic,
       shareMoment: c.shareMoment,
       whoAmplifies: c.whoAmplifies,
@@ -156,7 +182,7 @@ Generate 10 candidate ideas that ride this. Use at least 6 different attention m
         critic: {
           verdict: passed ? "pass" : "kill",
           tests: (r?.tests ?? []).map((t) => ({
-            name: QUALITY_BAR.tests.find((q) => q.id === t.id)?.name ?? t.id,
+            name: [...QUALITY_BAR.tests, HORIZON_TEST[horizon]].find((q) => q.id === t.id)?.name ?? t.id,
             pass: t.pass,
             note: t.note,
           })),
@@ -218,7 +244,7 @@ async function checkPriorArt(idea: Idea): Promise<Idea["screening"]["priorArt"]>
     const r = await research({
       agent: "priorArt",
       subject: idea.name,
-      system: "You are Prior Art at Brian. You check whether any casino, crypto brand or major brand has already run a stunt with the same twist. Be specific: brand, date, link.",
+      system: "You are Prior Art at Brian. You check whether any casino, crypto brand or major brand has already run a stunt with the same twist, and look hardest at crypto gambling competitors (Stake, Shuffle, Rollbit, Roobet, BC.Game, Duel, Rainbet). Be specific: brand, date, link.",
       prompt: `Has anyone done this or something with the same twist?\n\n${idea.name}: ${idea.oneLiner}\nMechanism: ${idea.mechanism}\n\nSearch the web. Report what you find with links and dates, or say clearly that you found nothing close.`,
       maxSearches: 4,
     });

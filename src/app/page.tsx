@@ -136,7 +136,7 @@ export default async function Today() {
                 soon.map((m) => {
                   const d = daysUntil(m.date);
                   return (
-                    <a key={m.id} href={m.sourceUrl} target="_blank" rel="noreferrer" className="flex items-center gap-4 px-4 py-3 transition hover:bg-surface-2">
+                    <div key={m.id} className="flex items-center gap-4 px-4 py-3">
                       <div className="w-12 shrink-0 text-center">
                         <div className="display tabular text-[22px] leading-none">{d}</div>
                         <div className="mt-0.5 text-[10.5px] text-ink-3">{d === 1 ? "day" : "days"}</div>
@@ -147,8 +147,13 @@ export default async function Today() {
                           {shortDate(m.date)} · {categoryLabel(m.category)}
                           {m.dateNote ? " · date to confirm" : ""}
                         </div>
+                        <div className="mt-1.5">
+                          <ActionButton endpoint="/api/ideas" body={{ momentId: m.id, horizon: "evergreen" }} size="sm" variant="ghost" pending="Inventing big ideas…" disabled={!ai} disabledReason={!ai ? "Needs the AI key" : undefined}>
+                            Big ideas
+                          </ActionButton>
+                        </div>
                       </div>
-                    </a>
+                    </div>
                   );
                 })
               ) : (

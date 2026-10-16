@@ -7,6 +7,8 @@ import { lensById } from "@/lib/brand/lenses";
 import type { Idea } from "@/lib/domain/types";
 import { keyVisualFor, load } from "@/lib/queries";
 import { totalScore } from "@/lib/scores";
+import { HORIZON_COPY, horizonFor } from "@/lib/horizon";
+import type { Horizon } from "@/lib/domain/types";
 
 export const metadata = { title: "Ideas" };
 
@@ -14,6 +16,7 @@ type Origin = "lab" | "trend" | "moment";
 
 interface Group {
   key: string;
+  horizon: Horizon;
   origin: Origin | "sample";
   label: string;
   href?: string;
@@ -58,7 +61,9 @@ export default async function Ideas({ searchParams }: { searchParams: Promise<{ 
       label = m?.title ?? "A moment no longer on Live";
       href = m ? `/live#${m.id}` : undefined;
     }
-    const g = groups.get(key) ?? { key, origin: o, label, href, latest: i.createdAt, cards: [], killed: [] };
+    const horizon = horizonFor(i);
+    key = `${horizon}:${key}`;
+    const g = groups.get(key) ?? { key, horizon, origin: o, label, href, latest: i.createdAt, cards: [], killed: [] };
     if (i.createdAt > g.latest) g.latest = i.createdAt;
     (i.status === "killed" ? g.killed : g.cards).push(i);
     groups.set(key, g);
@@ -112,8 +117,23 @@ export default async function Ideas({ searchParams }: { searchParams: Promise<{ 
       {list.length === 0 ? (
         <EmptyState icon={<Lightbulb className="h-5 w-5" />} title="No ideas here yet" body="Run a Lab lens, or open a trend or breaking moment and ask Brian for ideas." />
       ) : (
-        <div className="space-y-12">
-          {list.map((g) => {
+        <div className="space-y-16">
+          {(["reactive", "evergreen"] as const).map((hz) => {
+            const hzGroups = list.filter((g) => g.horizon === hz);
+            if (!hzGroups.length) return null;
+            return (
+              <div key={hz}>
+                <div className={`mb-6 rounded-[18px] p-5 ${hz === "reactive" ? "bg-warn-soft" : "bg-accent-soft"}`}>
+                  <div className="flex flex-wrap items-baseline gap-x-3">
+                    <h2 className="text-[22px] font-semibold tracking-tight">{HORIZON_COPY[hz].name}</h2>
+                    <span className="text-[13px] text-ink-2">
+                      {hzGroups.reduce((n, g) => n + g.cards.length, 0)} cards
+                    </span>
+                  </div>
+                  <p className="mt-1 max-w-[720px] text-[13.5px] leading-relaxed text-ink-2">{HORIZON_COPY[hz].blurb}</p>
+                </div>
+                <div className="space-y-12">
+          {hzGroups.map((g) => {
             const Icon = icon[g.origin];
             return (
               <section key={g.key}>
@@ -165,6 +185,10 @@ export default async function Ideas({ searchParams }: { searchParams: Promise<{ 
                   </details>
                 )}
               </section>
+            );
+          })}
+                </div>
+              </div>
             );
           })}
         </div>

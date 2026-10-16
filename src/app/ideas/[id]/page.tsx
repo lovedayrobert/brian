@@ -10,6 +10,7 @@ import { modelReady } from "@/lib/adapters/model";
 import { relativeTime } from "@/lib/format";
 import { keyVisualFor, load } from "@/lib/queries";
 import { scoreSet } from "@/lib/scores";
+import { horizonFor } from "@/lib/horizon";
 import { ATTENTION_PLAYBOOK } from "@/lib/brand/quality-bar";
 
 export default async function IdeaDetail({ params }: { params: Promise<{ id: string }> }) {
@@ -54,7 +55,13 @@ export default async function IdeaDetail({ params }: { params: Promise<{ id: str
               disabled={!modelReady()}
               disabledReason={!modelReady() ? "Needs the AI key." : undefined}
             >
-              {idea.status === "killed" ? "Overrule and develop" : "Develop"}
+              {horizonFor(idea) === "reactive"
+                ? idea.status === "killed"
+                  ? "Overrule: make quick pack"
+                  : "Make quick pack"
+                : idea.status === "killed"
+                  ? "Overrule and develop"
+                  : "Develop full campaign"}
             </ActionButton>
           )
         }

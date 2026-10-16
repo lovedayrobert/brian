@@ -44,7 +44,7 @@ export function PackageView({
   const [pkg, setPkg] = useState(initial);
   const busy = Object.values(pkg.sections).some((s) => s.status === "running" || s.status === "pending");
   const anyError = Object.values(pkg.sections).some((s) => s.status === "error");
-  const done = Object.values(pkg.sections).filter((s) => s.status === "done").length;
+  const done = sections.filter((s) => pkg.sections[s.key].status === "done").length;
 
   useEffect(() => {
     if (!busy) return;

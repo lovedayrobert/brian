@@ -17,7 +17,8 @@ export default async function PackagePage({ params }: { params: Promise<{ id: st
   if (!pkg) notFound();
   const idea = db.ideas.find((i) => i.id === pkg.ideaId);
   if (!idea) notFound();
-  const sections = SECTION_ORDER.map((k) => ({
+  // A Quick Pack only shows the sections it actually has.
+  const sections = SECTION_ORDER.filter((k) => pkg.sections[k].status !== "skipped").map((k) => ({
     key: k,
     title: SECTION_META[k].title,
     agent: SECTION_META[k].agent ? AGENTS[SECTION_META[k].agent!].label : null,
@@ -34,6 +35,7 @@ export default async function PackagePage({ params }: { params: Promise<{ id: st
         eyebrow={
           <span className="inline-flex items-center gap-2">
             {!pkg.reviewOnly && <EdgeBadge edge={idea.edge} />}
+            {pkg.kind === "quick" && <Pill tone="warn">Quick Pack · goes live today</Pill>}
             <Pill className="capitalize">{pkg.status.replace("_", " ")}</Pill>
             <span>Launch target {new Date(pkg.launchDate).toLocaleDateString("en-GB", { day: "numeric", month: "long" })}</span>
           </span>

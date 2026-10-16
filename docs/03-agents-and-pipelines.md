@@ -41,6 +41,19 @@ Built in `src/lib/pipeline/context.ts` and `src/lib/memory.ts`:
 - **Edge levels**: safe, spicy, wild. Brian leans spicy and wild.
 - Ideas from the original USP-led engine are kept (`engine: 1`) but hidden by default.
 
+### Two kinds of idea
+
+| | Quick reactions | Big ideas |
+|---|---|---|
+| What | Ride a story or spike while it's hot | Durable brand plays, or ideas built around big moments people anticipate for weeks (GTA 6, a World Cup, holidays) |
+| Shelf life | 24–48 hours | Months, or the whole run-up to the moment |
+| Must be | Live the same day, under about $2k, no builds | Simple, original, and not done by any crypto gambling competitor |
+| Extra Critic test | Speed test | Staying-power test |
+| Develop | Quick Pack: post-ready copy, native visuals, risk check | Full 11-section campaign package |
+| Default source | Breaking stories, trend spikes, the *Hijack what's happening* lens | Calendar moments and every other Lab lens |
+
+Trends and calendar moments offer both: "Quick reactions" or "Big ideas". Each idea records its horizon, effort and shelf life.
+
 ### Red lines: the only hard stops
 
 Illegal targeting (taking bets or pushing sign-ups where it's illegal), minors, hate speech and slurs, exploiting real tragedies, fake quotes, fake endorsements or defamation of real people, fraud or scams or data misuse, and targeting people showing signs of gambling harm. Red Lines defaults to pass: offensive, crude or dark humour, shock, taboo, roasting rivals and public figures, harmless pranks, and stunts that physically happen in markets where we don't take players all pass, with the consequence and the market for legal to check written out.

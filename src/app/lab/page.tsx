@@ -4,6 +4,7 @@ import { LabRunner } from "@/components/lab-runner";
 import { PageHeader, SectionTitle } from "@/components/ui";
 import { modelReady } from "@/lib/adapters/model";
 import { LENSES } from "@/lib/brand/lenses";
+import { HORIZON_COPY, REACTIVE_LENSES } from "@/lib/horizon";
 import { cards, keyVisualFor, load } from "@/lib/queries";
 
 export const metadata = { title: "Opportunity Lab" };
@@ -26,8 +27,14 @@ export default async function Lab() {
         subtitle="Trends tell you what everyone is looking at. The Lab invents ways to get Cashy in front of people that nobody has tried: stunts, collabs, parody drops, trolls, internet toys and deals so strange the deal is the story. Every lens is about shares and impressions, never about our product. Every idea faces the same Critic, red lines and prior-art check."
       />
 
+      {(["evergreen", "reactive"] as const).map((hz) => (
+      <section key={hz} className="mb-8">
+        <div className="mb-3">
+          <h2 className="text-[17px] font-semibold tracking-tight">{HORIZON_COPY[hz].name}</h2>
+          <p className="text-[13px] text-ink-2">{HORIZON_COPY[hz].blurb}</p>
+        </div>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {LENSES.map((l) => {
+        {LENSES.filter((l) => (hz === "reactive") === REACTIVE_LENSES.has(l.id)).map((l) => {
           const n = labIdeas.filter((i) => i.lens === l.id).length;
           return (
             <div key={l.id} className="flex flex-col rounded-[18px] bg-surface p-5 shadow-card">
@@ -48,6 +55,8 @@ export default async function Lab() {
           );
         })}
       </div>
+      </section>
+      ))}
 
       <p className="mt-4 text-[12.5px] leading-relaxed text-ink-3">
         &ldquo;Without being restricted&rdquo; means finding channels and formats where a casino is allowed, or where nobody has looked yet. Ideas that only work by disguising gambling promotion to get past platform rules are flagged by Red Lines, because they lose accounts.

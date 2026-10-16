@@ -3,6 +3,7 @@ import type { Idea } from "@/lib/domain/types";
 import { EdgeBadge, Pill } from "./ui";
 import { KeyVisual } from "./mockups/key-visual";
 import { scoreSet } from "@/lib/scores";
+import { HORIZON_COPY, horizonFor } from "@/lib/horizon";
 
 export function IdeaCard({ idea, keyVisualUrl }: { idea: Idea; keyVisualUrl?: string | null }) {
   return (
@@ -13,16 +14,23 @@ export function IdeaCard({ idea, keyVisualUrl }: { idea: Idea; keyVisualUrl?: st
       <div className="relative aspect-[16/9] overflow-hidden">
         <KeyVisual line={idea.name} imageUrl={keyVisualUrl} className="h-full w-full" compact />
         <div className="absolute right-3 top-3 flex flex-wrap justify-end gap-1.5 pl-24">
+          <Pill tone={horizonFor(idea) === "reactive" ? "warn" : "accent"}>{HORIZON_COPY[horizonFor(idea)].badge}</Pill>
           <EdgeBadge edge={idea.edge} />
           {idea.status === "developing" && <Pill tone="accent">Developing</Pill>}
           {idea.status === "developed" && <Pill tone="good">Package ready</Pill>}
-          {idea.origin === "lab" && <Pill tone="accent">Original</Pill>}
           {idea.sample && <Pill tone="warn">Sample</Pill>}
         </div>
       </div>
       <div className="flex flex-1 flex-col p-5">
         <h3 className="text-[17px] font-semibold leading-snug tracking-tight">{idea.name}</h3>
         <p className="mt-1.5 text-[14px] leading-relaxed text-ink-2">{idea.oneLiner}</p>
+        {(idea.effort || idea.shelfLife) && (
+          <p className="mt-2 text-[12px] text-ink-3">
+            {idea.effort && <>Takes: {idea.effort}</>}
+            {idea.effort && idea.shelfLife && " · "}
+            {idea.shelfLife && <>Lasts: {idea.shelfLife}</>}
+          </p>
+        )}
         <div className="mt-4 rounded-[12px] bg-surface-2 px-3.5 py-3">
           <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-ink-3">The headline</div>
           <div className="mt-1 font-serif text-[15px] italic leading-snug">“{idea.headline}”</div>

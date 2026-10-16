@@ -9,6 +9,7 @@ import { computeAllScenarios, compareToBaseline, type FunnelKey } from "@/lib/en
 import { newId, repo } from "@/lib/store";
 import { learnFromBehaviour, memoryForRun } from "@/lib/memory";
 import { checkSteeringRedLines, ensureRedLinesPass } from "./ideas";
+import { horizonFor } from "@/lib/horizon";
 import { ACCURACY_RULES, brandContext, qualityBarContext, trendEvidence } from "./context";
 import * as S from "./package-schemas";
 
@@ -46,6 +47,9 @@ export const SECTION_META: Record<SectionKey, { title: string; agent: AgentName 
   handover: { title: "Linear handover", agent: "producer", deps: ["production", "creative"] },
 };
 
+/** A reactive idea is dead in 24-48 hours: it gets copy, native visuals and a risk check, not a campaign. */
+export const QUICK_SECTIONS: SectionKey[] = ["creative", "mockups", "risk"];
+
 /** Run stages; sections within a stage run in parallel. */
 const STAGES: SectionKey[][] = [
   ["insight"],
@@ -77,8 +81,11 @@ export async function startPackage(ideaId: string): Promise<Package> {
     brandId: idea.brandId,
     status: "draft",
     version: 1,
-    launchDate: new Date(Date.now() + lead * 86_400_000).toISOString().slice(0, 10),
-    sections: Object.fromEntries(SECTION_ORDER.map((k) => [k, { key: k, status: "pending" }])) as Package["sections"],
+    kind: horizonFor(idea) === "reactive" ? "quick" : "full",
+    launchDate: new Date(Date.now() + (horizonFor(idea) === "reactive" ? 0 : lead) * 86_400_000).toISOString().slice(0, 10),
+    sections: Object.fromEntries(
+      SECTION_ORDER.map((k) => [k, { key: k, status: horizonFor(idea) === "reactive" && !QUICK_SECTIONS.includes(k) ? "skipped" : "pending" }]),
+    ) as Package["sections"],
     steering: [],
     createdAt: now,
     updatedAt: now,
@@ -100,7 +107,7 @@ export async function runPackage(packageId: string, only?: SectionKey[]): Promis
   await repo.update((d) => {
     const p = d.packages.find((x) => x.id === packageId);
     if (!p) return;
-    const allDone = SECTION_ORDER.every((k) => p.sections[k].status === "done");
+    const allDone = SECTION_ORDER.every((k) => p.sections[k].status === "done" || p.sections[k].status === "skipped");
     const idea = d.ideas.find((i) => i.id === p.ideaId);
     if (idea && allDone) idea.status = "developed";
   });
@@ -117,7 +124,7 @@ export async function steerPackage(packageId: string, instruction: string, from:
     if (!p) throw new Error("Package not found");
     p.steering.push({ at: new Date().toISOString(), instruction: `[${SECTION_META[from].title}] ${instruction}` });
     p.version += 1;
-    for (const k of affected) p.sections[k] = { ...p.sections[k], status: "pending" };
+    for (const k of affected) if (p.sections[k].status !== "skipped") p.sections[k] = { ...p.sections[k], status: "pending" };
   });
   const db = await repo.read();
   const pkg = db.packages.find((p) => p.id === packageId);
@@ -155,8 +162,8 @@ async function runSection(packageId: string, key: SectionKey): Promise<void> {
   const db = await repo.read();
   const pkg = db.packages.find((p) => p.id === packageId);
   if (!pkg) return;
-  if (pkg.sections[key].status === "done") return;
-  const blocked = SECTION_META[key].deps.find((d) => pkg.sections[d].status !== "done");
+  if (pkg.sections[key].status === "done" || pkg.sections[key].status === "skipped") return;
+  const blocked = SECTION_META[key].deps.find((d) => pkg.sections[d].status !== "done" && pkg.sections[d].status !== "skipped");
   if (blocked) {
     await setSection(packageId, key, { status: "error", error: `Waiting on ${SECTION_META[blocked].title}, which did not finish.` });
     return;
@@ -250,13 +257,24 @@ const GENERATORS: Record<SectionKey, (ctx: Ctx, pkg: Package) => Promise<unknown
     gen(ctx, "strategist", "Strategist", S.StrategySchema,
       "Write the strategy. The objective is attention: shares, impressions, mentions and people knowing it was Cashy; conversion follows reach. Give the one metric that matters, KPIs with targets and kill thresholds, audience segments (grounded in the evidence, never invented personas; if evidence is thin, say so), positioning, core idea and a message house where the key message is what people will say when they share it, not a product claim.",
       ["insight"]),
-  async creative(ctx) {
+  async creative(ctx, pkg) {
     // Generated in three parts: the full schema is over the API's structured-output size limit.
+    const quick = pkg.kind === "quick";
     const rules = "Every asset exists to be shared, not to sell features: no payout speed, wagering, win caps, fairness or Justice Fund messaging in social posts. Cashy's name should be unmissable. Every player-facing piece carries 18+ and a responsible gambling line where the format allows. Write in the brand voice. Never use banned phrases. Write only the final words that get posted: no production notes, stage directions, posting instructions or [bracketed] notes inside copy; links may appear as [link].";
     const core = await gen(ctx, "creativeDirector", "Creative Director", S.CreativeCoreSchema,
-      `Write the creative core: concept, rationale and the key visual system (with a 2 to 6 word hero line). Include the interactive mechanic only if the idea has one; otherwise null. ${rules}`,
+      `Write the creative core: concept, rationale and the key visual system (with a 2 to 6 word hero line). ${quick ? "This is a quick reaction that goes live today: keep it tight, no mechanic (null)." : "Include the interactive mechanic only if the idea has one; otherwise null."} ${rules}`,
       ["strategy", "insight"]);
     const brief = `<creative_core>\n${JSON.stringify(core)}\n</creative_core>`;
+    if (quick) {
+      const social = await gen(ctx, "creativeDirector", "Creative Director", S.CreativeSocialSchema,
+        `${brief}\nThis goes live today and is dead in 48 hours. Write the post-ready copy: X (post, a short thread only if it adds something, reply bait), Instagram (caption, carousel only if it helps, a 3-frame story), TikTok (hook, 10-20s script with timings, caption), Telegram and Discord. ${rules}`,
+        []);
+      return {
+        ...core,
+        copy: { ...social, landing: { eyebrow: "", headline: "", subhead: "", cta: "", sections: [], faq: [] }, variants: [] },
+        video: { script: "", storyboard: [] },
+      } satisfies S.Creative;
+    }
     const [social, webVideo] = await Promise.all([
       gen(ctx, "creativeDirector", "Creative Director", S.CreativeSocialSchema,
         `${brief}\nWrite the social copy deck from this creative core: X (post, 3-post thread, reply bait), Instagram (feed caption, 5-slide carousel, 3-frame story), TikTok (hook, 20-40s script with timings, caption), Telegram and Discord. ${rules}`,
@@ -277,7 +295,7 @@ const GENERATORS: Record<SectionKey, (ctx: Ctx, pkg: Package) => Promise<unknown
     const fresh = (await repo.read()).packages.find((p) => p.id === pkg.id) ?? pkg;
     const creative = fresh.sections.creative.content as S.Creative;
     const plan = await gen(ctx, "artDirector", "Art Director", S.VisualPlanSchema,
-      `Design the visual for every asset: ${["x", "ig", "carousel", "story", "tiktok", "landing", "telegram", "discord"].join(", ")}. One visual per asset, each in the format that is most native to that channel and funniest for this idea. Use at least 5 different formats across the 8 assets; never one look stamped everywhere. The visual has to be cool and shareable on its own; Cashy's presence is subtle (the templates add a small wordmark). Never put product claims on visuals. Headline, lines and caption are the exact words that appear on the visual: never put production notes or instructions there (those go in artDirection).
+      `Design the visual for every asset: ${(pkg.kind === "quick" ? ["x", "ig", "story", "tiktok", "telegram", "discord"] : ["x", "ig", "carousel", "story", "tiktok", "landing", "telegram", "discord"]).join(", ")}. One visual per asset, each in the format that is most native to that channel and funniest for this idea. Use at least 4 different formats across the assets; never one look stamped everywhere. The visual has to be cool and shareable on its own; Cashy's presence is subtle (the templates add a small wordmark). Never put product claims on visuals. Headline, lines and caption are the exact words that appear on the visual: never put production notes or instructions there (those go in artDirection).
 
 Formats available:
 ${FORMATS.map((f) => `- ${f.id} (${f.kind === "image" ? "generated image" : "exact layout"}): ${f.use}`).join("\n")}
