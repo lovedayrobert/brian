@@ -3,14 +3,21 @@ import { inLaunchWindow } from "@/lib/engine/lifecycle";
 import { totalScore } from "@/lib/pipeline/ideas";
 import { repo, type DB } from "@/lib/store";
 
+/** Ideas from engines 1 and 2 (USP-led, then stunts) are retired: kept in the data file, never shown. */
+export const isRetired = (i: Pick<Idea, "engine">) => i.engine !== 3;
+
 /**
- * Everything most screens read. Items imported for a blind review are left out
- * unless a screen asks for them (the review page and the package pages).
+ * Everything most screens read. Retired ideas, and packages built from them,
+ * are always left out. Items imported for a blind review are left out unless a
+ * screen asks for them (the review page and the package pages).
  */
-export async function load(opts: { includeReviewOnly?: boolean } = {}): Promise<DB> {
+export async function load(opts: { includeReviewOnly?: boolean; includeRetired?: boolean } = {}): Promise<DB> {
   const db = await repo.read();
-  if (opts.includeReviewOnly) return db;
-  return { ...db, ideas: db.ideas.filter((i) => !i.reviewOnly), packages: db.packages.filter((p) => !p.reviewOnly) };
+  const ideas = opts.includeRetired ? db.ideas : db.ideas.filter((i) => !isRetired(i));
+  const ids = new Set(ideas.map((i) => i.id));
+  const packages = db.packages.filter((p) => ids.has(p.ideaId));
+  if (opts.includeReviewOnly) return { ...db, ideas, packages };
+  return { ...db, ideas: ideas.filter((i) => !i.reviewOnly), packages: packages.filter((p) => !p.reviewOnly) };
 }
 
 /** Trends worth acting on now: rising or emerging, relevant, and not blocked. */

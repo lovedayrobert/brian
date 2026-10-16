@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { RateButtons } from "@/components/blind-card";
 import { Card, EdgeBadge, PageHeader, Pill } from "@/components/ui";
 import { totalScore } from "@/lib/pipeline/ideas";
-import { load } from "@/lib/queries";
+import { isRetired, load } from "@/lib/queries";
 import { tally } from "@/lib/review";
 import { sourceContextFor } from "@/lib/source-context";
 import { SourceLink } from "@/components/ui";
@@ -14,9 +14,20 @@ export const metadata = { title: "Blind review" };
 
 export default async function Review({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const db = await load({ includeReviewOnly: true });
+  const db = await load({ includeReviewOnly: true, includeRetired: true });
   const set = db.reviews.find((r) => r.id === id);
   if (!set) notFound();
+  const setIdeas = set.ideaIds.map((i) => db.ideas.find((x) => x.id === i));
+  if (setIdeas.length && setIdeas.every((i) => !i || isRetired(i))) {
+    return (
+      <>
+        <PageHeader title="This review set has been withdrawn" />
+        <Card className="max-w-[640px] p-6 text-[14.5px] leading-relaxed text-ink-2">
+          These cards came from an earlier version of Brian&rsquo;s idea engine and have been replaced. A new set from the current engine is on its way.
+        </Card>
+      </>
+    );
+  }
   const t = tally(set);
   const ideas = set.ideaIds.map((i) => db.ideas.find((x) => x.id === i)).filter((x): x is NonNullable<typeof x> => !!x);
   // Brian's own ranking, revealed only after every card is rated, to compare against the reviewer.

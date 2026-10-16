@@ -25,15 +25,12 @@ interface Group {
   killed: Idea[];
 }
 
-export default async function Ideas({ searchParams }: { searchParams: Promise<{ origin?: string; edge?: string; engine?: string }> }) {
-  const { origin, edge, engine } = await searchParams;
+export default async function Ideas({ searchParams }: { searchParams: Promise<{ origin?: string; edge?: string }> }) {
+  const { origin, edge } = await searchParams;
   const db = await load();
-  const showOld = engine === "all";
-  const oldCount = db.ideas.filter((i) => i.engine !== 3 && !i.sample).length;
 
   const visible = db.ideas.filter(
     (i) =>
-      (showOld || i.engine === 3 || i.sample) &&
       (!edge || i.edge === edge) &&
       (!origin || (i.sample ? origin === "sample" : (i.origin ?? (i.trendId ? "trend" : "moment")) === origin)),
   );
@@ -73,7 +70,7 @@ export default async function Ideas({ searchParams }: { searchParams: Promise<{ 
 
   const qs = (patch: Record<string, string | undefined>) => {
     const p = new URLSearchParams();
-    for (const [k, v] of Object.entries({ origin, edge, engine, ...patch })) if (v) p.set(k, v);
+    for (const [k, v] of Object.entries({ origin, edge, ...patch })) if (v) p.set(k, v);
     const s = p.toString();
     return `/ideas${s ? `?${s}` : ""}`;
   };
@@ -107,11 +104,6 @@ export default async function Ideas({ searchParams }: { searchParams: Promise<{ 
             {e ? e[0].toUpperCase() + e.slice(1) : "Any edge"}
           </Chip>
         ))}
-        {oldCount > 0 && (
-          <Link href={qs({ engine: showOld ? undefined : "all" })} className="ml-auto text-[12.5px] text-accent-ink hover:underline">
-            {showOld ? "Hide earlier engines" : `Show earlier engines (${oldCount})`}
-          </Link>
-        )}
       </div>
 
       {list.length === 0 ? (
