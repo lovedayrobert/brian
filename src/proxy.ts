@@ -6,7 +6,7 @@ import { authMode, SESSION_COOKIE, verifySession } from "@/lib/auth";
  * check again (src/app/api/_util.ts), so a proxy misconfiguration can't open
  * the API. The ingest endpoint uses its own bearer token instead.
  */
-const PUBLIC = ["/login", "/api/auth/login", "/api/ingest"];
+const PUBLIC = ["/login", "/api/auth/login", "/api/ingest", "/api/health"];
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;

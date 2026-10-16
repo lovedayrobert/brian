@@ -47,7 +47,7 @@ curl -X POST https://<brian-host>/api/ingest \
 
 **2. Drop files (simplest for batches)**
 
-Put `.jsonl` files in `data/inbox/` on the Brian server. The next sweep imports them and moves them to `data/inbox/processed/`.
+Put `.jsonl` files in the `inbox` folder inside Brian's data directory (`.data/inbox/` locally, or `$BRIAN_DATA_DIR/inbox/` on a server). The next sweep imports them and moves them to `inbox/processed/`.
 
 ## What Brian does with it
 

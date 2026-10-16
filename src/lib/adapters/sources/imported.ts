@@ -1,5 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { inboxDir } from "@/lib/paths";
 import { mergeImported, parseIngest, toSignal } from "@/lib/ingest";
 import { repo } from "@/lib/store";
 import type { Signal } from "@/lib/domain/types";
@@ -10,7 +11,7 @@ import type { SourceAdapter } from "./types";
  *  - pushed to POST /api/ingest (stored as they arrive)
  *  - files dropped in data/inbox/*.jsonl (picked up on the next sweep, then moved to data/inbox/processed)
  */
-const INBOX = path.join(process.cwd(), "data", "inbox");
+const INBOX = inboxDir();
 
 export const imported: SourceAdapter = {
   id: "imported",

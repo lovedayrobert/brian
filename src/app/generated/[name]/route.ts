@@ -1,12 +1,13 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { mediaDir } from "@/lib/paths";
 
 /**
  * Serves generated images and video from .data/generated. Files in /public are
  * only served if they existed at build time, so runtime output lives here.
  * Covered by the login proxy like every other route.
  */
-const DIR = path.join(process.cwd(), ".data", "generated");
+const DIR = mediaDir();
 const TYPES: Record<string, string> = { ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp", ".mp4": "video/mp4" };
 
 export async function GET(_req: Request, { params }: { params: Promise<{ name: string }> }) {

@@ -1,5 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { dataDir } from "@/lib/paths";
 import type { AgentRun, Idea, Moment, Package, Signal, SweepRun, Trend } from "@/lib/domain/types";
 import type { RapidResponse } from "@/lib/pipeline/rapid";
 import type { BacktestResult } from "@/lib/engine/backtest";
@@ -109,7 +110,7 @@ const globalForRepo = globalThis as unknown as { brianRepo?: Repository };
 
 export const repo: Repository =
   globalForRepo.brianRepo ??
-  (globalForRepo.brianRepo = new FileRepository(path.join(process.cwd(), ".data", "brian.json")));
+  (globalForRepo.brianRepo = new FileRepository(path.join(dataDir(), "brian.json")));
 
 export function newId(prefix: string): string {
   return `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;

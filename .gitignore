@@ -53,3 +53,6 @@ data/inbox/
 # review hand-off files
 brian-review-*.json.gz
 brian-review-results-*.json
+
+# deployment secrets
+.deploy-credentials.txt

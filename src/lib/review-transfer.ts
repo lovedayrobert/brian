@@ -2,6 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { gunzipSync, gzipSync } from "node:zlib";
 import type { Idea, Package } from "@/lib/domain/types";
+import { mediaDir } from "@/lib/paths";
 import { recordFeedback } from "@/lib/memory";
 import type { ReviewSet } from "@/lib/review";
 import { repo } from "@/lib/store";
@@ -15,7 +16,7 @@ import { repo } from "@/lib/store";
  * and Mockups lists so the reviewer doesn't see scores before rating. The data
  * is still in the file, so on someone else's machine blindness is on trust.
  */
-const MEDIA_DIR = () => path.join(process.cwd(), ".data", "generated");
+const MEDIA_DIR = mediaDir;
 
 export interface ReviewBundle {
   format: "brian-review-v1";
@@ -75,7 +76,11 @@ export function parseBundle(buf: Buffer): ReviewBundle {
 }
 
 export async function importReview(file: string): Promise<ReviewSet> {
-  const bundle = parseBundle(await fs.readFile(file));
+  return importReviewBuffer(await fs.readFile(file));
+}
+
+export async function importReviewBuffer(buf: Buffer): Promise<ReviewSet> {
+  const bundle = parseBundle(buf);
   await fs.mkdir(MEDIA_DIR(), { recursive: true });
   for (const [name, b64] of Object.entries(bundle.media)) {
     if (!/^[\w.-]+$/.test(name)) continue; // never write outside the media folder

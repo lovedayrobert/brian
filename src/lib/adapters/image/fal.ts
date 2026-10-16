@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { chargeExternal } from "@/lib/adapters/model";
+import { mediaDir } from "@/lib/paths";
 
 /**
  * fal.ai: one key for image and video models. Model ids and per-call prices
@@ -36,7 +37,7 @@ async function falFetch<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 async function save(url: string, name: string): Promise<string> {
-  const dir = path.join(process.cwd(), ".data", "generated");
+  const dir = mediaDir();
   await fs.mkdir(dir, { recursive: true });
   const res = await fetch(url, { signal: AbortSignal.timeout(120_000) });
   if (!res.ok) throw new Error(`Couldn't download generated file (${res.status})`);
