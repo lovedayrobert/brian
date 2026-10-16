@@ -11,7 +11,7 @@ export const metadata = { title: "Blind review" };
 
 export default async function Review({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const db = await load();
+  const db = await load({ includeReviewOnly: true });
   const set = db.reviews.find((r) => r.id === id);
   if (!set) notFound();
   const t = tally(set);

@@ -49,7 +49,7 @@ This folder is the full documentation. Start here, then read in order:
 | Coverage and cost planner | Working |
 | Ideas, Lab, Develop | Run end to end against the API: idea batches about $1 and 4–5 minutes each, a full package about $2.40 and 10 minutes |
 | Rapid Response, Memory consolidation | Built; not yet exercised against the API |
-| Visuals | Art Director gives every asset its own format; code formats render now, image formats and storyboard frames need `FAL_KEY` |
+| Visuals | Art Director gives every asset its own format; images, storyboard frames and teaser clips via fal.ai, tested end to end |
 | Mockups | Working (code-built visuals; generated key visuals with `OPENAI_API_KEY`) |
 | Linear push | Built; needs `LINEAR_API_KEY` and `LINEAR_TEAM_ID` |
 | Paid sources (X, Reddit, TikTok, Kick, on-chain analytics) | Slots and catalogue ready; adapters added once budget is approved |
@@ -546,6 +546,15 @@ Since 7 October 2026, Max and Team plans include monthly API credits that cover 
 
 `npm run eval` produces the agreed blind test: a fresh sweep on free sources only, every card Brian produces in order until 20 (nothing removed), packages for Brian's own top 2 cards, then a frozen review shuffled once. The reviewer rates at `/review/:id`; scores, labels and packages stay hidden until every card is rated; the pass mark (3 of 20) is fixed in advance. Every verdict also feeds Memory.
 
+## Sending a blind review to someone running their own Brian
+
+1. Owner: `npm run review -- export` writes `brian-review-<id>.json.gz` (the frozen cards, packages and every generated image). Send the file.
+2. Reviewer: `npm install`, then `npm run review -- import <file>`, then `npm run dev` and open the `/review/<id>` link it prints. No API keys are needed to rate.
+3. Reviewer: when done, `npm run review -- results` writes `brian-review-results-<id>.json`. Send it back.
+4. Owner: `npm run review -- import-ratings <file>`. Verdicts appear on the review page and feed Memory; importing twice doesn't double count.
+
+Imported items are kept off Ideas, Today, Packages and Mockups so scores stay hidden until everything is rated. The scores are still inside the file, so on someone else's machine the blindness relies on trust.
+
 ## Scripts
 
 | Command | What it does |
@@ -555,6 +564,7 @@ Since 7 October 2026, Max and Team plans include monthly API credits that cover 
 | `npm run backtest` | Lifecycle backtest; caches series in `.data/backtest-series.json` |
 | `npm run demo` / `npm run demo -- --remove` | Load or remove the sample package |
 | `npm run eval` | Generate the blind review set (needs the AI key) |
+| `npm run review -- export/import/results/import-ratings` | Move a blind review between Brian installs |
 | `npm test` | Unit tests (69) |
 | `npm run typecheck` / `npm run lint` | Types and lint |
 | `scripts/rebuild.mts` | Rebuild trends and moments from stored signals without refetching (ranking tuning) |

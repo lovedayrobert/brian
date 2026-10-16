@@ -12,7 +12,7 @@ import { load } from "@/lib/queries";
 
 export default async function PackagePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const db = await load();
+  const db = await load({ includeReviewOnly: true });
   const pkg = db.packages.find((p) => p.id === id);
   if (!pkg) notFound();
   const idea = db.ideas.find((i) => i.id === pkg.ideaId);
@@ -25,13 +25,15 @@ export default async function PackagePage({ params }: { params: Promise<{ id: st
 
   return (
     <>
-      <Link href={`/ideas/${idea.id}`} className="mb-5 inline-flex items-center gap-1 text-[13px] text-ink-2 hover:text-ink">
-        <ArrowLeft className="h-3.5 w-3.5" /> Idea
-      </Link>
+      {!pkg.reviewOnly && (
+        <Link href={`/ideas/${idea.id}`} className="mb-5 inline-flex items-center gap-1 text-[13px] text-ink-2 hover:text-ink">
+          <ArrowLeft className="h-3.5 w-3.5" /> Idea
+        </Link>
+      )}
       <PageHeader
         eyebrow={
           <span className="inline-flex items-center gap-2">
-            <EdgeBadge edge={idea.edge} />
+            {!pkg.reviewOnly && <EdgeBadge edge={idea.edge} />}
             <Pill className="capitalize">{pkg.status.replace("_", " ")}</Pill>
             <span>Launch target {new Date(pkg.launchDate).toLocaleDateString("en-GB", { day: "numeric", month: "long" })}</span>
           </span>

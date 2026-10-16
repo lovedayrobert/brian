@@ -49,3 +49,7 @@ next-env.d.ts
 
 # imported feed files
 data/inbox/
+
+# review hand-off files
+brian-review-*.json.gz
+brian-review-results-*.json

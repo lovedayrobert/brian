@@ -167,6 +167,8 @@ export interface Idea {
   origin?: "trend" | "moment" | "lab";
   /** Hand-written sample to show the format. Never presented as Brian's output. */
   sample?: boolean;
+  /** Imported for a blind review: kept off lists so scores stay hidden. */
+  reviewOnly?: boolean;
   lens?: string;
   name: string;
   oneLiner: string;
@@ -242,6 +244,7 @@ export interface Package {
   status: PackageStatus;
   version: number;
   sample?: boolean;
+  reviewOnly?: boolean;
   /** Target launch, set once from the trend's lifecycle so every section plans to the same day. */
   launchDate: string;
   sections: Record<SectionKey, PackageSection>;

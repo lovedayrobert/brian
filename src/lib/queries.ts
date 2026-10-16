@@ -3,8 +3,14 @@ import { inLaunchWindow } from "@/lib/engine/lifecycle";
 import { totalScore } from "@/lib/pipeline/ideas";
 import { repo, type DB } from "@/lib/store";
 
-export async function load(): Promise<DB> {
-  return repo.read();
+/**
+ * Everything most screens read. Items imported for a blind review are left out
+ * unless a screen asks for them (the review page and the package pages).
+ */
+export async function load(opts: { includeReviewOnly?: boolean } = {}): Promise<DB> {
+  const db = await repo.read();
+  if (opts.includeReviewOnly) return db;
+  return { ...db, ideas: db.ideas.filter((i) => !i.reviewOnly), packages: db.packages.filter((p) => !p.reviewOnly) };
 }
 
 /** Trends worth acting on now: rising or emerging, relevant, and not blocked. */

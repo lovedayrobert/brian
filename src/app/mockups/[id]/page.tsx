@@ -13,7 +13,7 @@ import { load } from "@/lib/queries";
 
 export default async function MockupsFor({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const db = await load();
+  const db = await load({ includeReviewOnly: true });
   const pkg = db.packages.find((p) => p.id === id);
   if (!pkg) notFound();
   const idea = db.ideas.find((i) => i.id === pkg.ideaId);

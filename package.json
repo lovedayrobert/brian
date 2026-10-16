@@ -13,7 +13,8 @@
     "backtest": "tsx --tsconfig tsconfig.json scripts/backtest.mts",
     "demo": "tsx --tsconfig tsconfig.json scripts/demo.mts",
     "eval": "tsx --tsconfig tsconfig.json scripts/eval.mts",
-    "smoke": "tsx --tsconfig tsconfig.json scripts/smoke-ai.mts"
+    "smoke": "tsx --tsconfig tsconfig.json scripts/smoke-ai.mts",
+    "review": "tsx --tsconfig tsconfig.json scripts/review.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.134.0",
