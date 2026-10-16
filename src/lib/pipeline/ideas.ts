@@ -3,6 +3,7 @@ import { callStructured, research } from "@/lib/adapters/model";
 import type { BrandId, Claim, Citation, Idea, Moment, Signal, Trend } from "@/lib/domain/types";
 import { ATTENTION_PLAYBOOK, QUALITY_BAR } from "@/lib/brand/quality-bar";
 import { totalScore } from "@/lib/scores";
+import { sourceContextFor } from "@/lib/source-context";
 import { lensById } from "@/lib/brand/lenses";
 import { newId, repo } from "@/lib/store";
 import { memoryForRun } from "@/lib/memory";
@@ -190,6 +191,8 @@ Generate 10 candidate ideas that ride this. Use at least 6 different attention m
     i.screening.critic.reasons.unshift("Passed the Critic but ranked below the top three.");
   }
 
+  // Keep the source with each idea so it can be shown wherever the idea travels.
+  for (const i of ideas) i.sourceContext = sourceContextFor(i, db);
   await repo.update((d) => {
     d.ideas = [...ideas, ...d.ideas];
   });

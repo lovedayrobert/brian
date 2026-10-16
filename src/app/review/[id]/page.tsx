@@ -6,6 +6,9 @@ import { Card, EdgeBadge, PageHeader, Pill } from "@/components/ui";
 import { totalScore } from "@/lib/pipeline/ideas";
 import { load } from "@/lib/queries";
 import { tally } from "@/lib/review";
+import { sourceContextFor } from "@/lib/source-context";
+import { SourceLink } from "@/components/ui";
+import { FlaskConical, Newspaper, TrendingUp } from "lucide-react";
 
 export const metadata = { title: "Blind review" };
 
@@ -59,8 +62,38 @@ export default async function Review({ params }: { params: Promise<{ id: string 
       <div className="grid gap-4 md:grid-cols-2">
         {ideas.map((idea, n) => {
           const [mechanism] = idea.mechanism.split("\n\nWhy it's ours: ");
+          const src = sourceContextFor(idea, db);
+          const SrcIcon = src?.kind === "lab" ? FlaskConical : src?.kind === "trend" ? TrendingUp : Newspaper;
+          const links = [...(src?.links ?? []), ...idea.evidence.flatMap((c) => c.citations.map((x) => ({ title: x.title, url: x.url, outlet: x.publisher })))]
+            .filter((l, i, all) => all.findIndex((y) => y.url === l.url) === i && l.url !== src?.url)
+            .slice(0, 4);
           return (
             <Card key={idea.id} className="flex flex-col p-5">
+              {src && (
+                <div className="mb-4 rounded-[12px] bg-surface-2 p-3.5">
+                  <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-ink-3">
+                    <SrcIcon className="h-3.5 w-3.5" />
+                    {src.kind === "lab" ? "Original idea from the Lab" : src.kind === "trend" ? "Sparked by a trend" : "Sparked by a story"}
+                  </div>
+                  <div className="mt-1 text-[14px] font-semibold leading-snug">
+                    {src.url ? (
+                      <a href={src.url} target="_blank" rel="noreferrer" className="hover:text-accent-ink hover:underline">
+                        {src.title}
+                      </a>
+                    ) : (
+                      src.title
+                    )}
+                  </div>
+                  {src.summary && <p className="mt-1 line-clamp-3 text-[12.5px] leading-snug text-ink-2">{src.summary}</p>}
+                  {links.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+                      {links.map((l) => (
+                        <SourceLink key={l.url} url={l.url} label={l.outlet || undefined} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="mb-2 flex items-center gap-2 text-[12px] text-ink-3">
                 <span className="tabular">Card {n + 1}</span>
                 {t.complete && (
@@ -75,7 +108,28 @@ export default async function Review({ params }: { params: Promise<{ id: string 
               <p className="mt-1 text-[14px] leading-relaxed">{idea.oneLiner}</p>
               <p className="mt-3 text-[13.5px] leading-relaxed text-ink-2">{mechanism}</p>
               <div className="mt-3 rounded-[12px] bg-surface-2 px-3.5 py-2.5 font-serif text-[14px] italic">&ldquo;{idea.headline}&rdquo;</div>
-              <p className="mt-3 text-[12.5px] text-ink-3">Likely backlash: {idea.backlash}</p>
+              <dl className="mt-3 space-y-1.5 text-[12.5px] leading-snug">
+                <div>
+                  <dt className="inline font-medium text-ink-2">Rides on: </dt>
+                  <dd className="inline text-ink-2">{idea.borrowedAttention}</dd>
+                </div>
+                {idea.shareMoment && (
+                  <div>
+                    <dt className="inline font-medium text-ink-2">What people share: </dt>
+                    <dd className="inline text-ink-2">{idea.shareMoment}</dd>
+                  </div>
+                )}
+                {idea.cashyRole && (
+                  <div>
+                    <dt className="inline font-medium text-ink-2">Where Cashy is: </dt>
+                    <dd className="inline text-ink-2">{idea.cashyRole}</dd>
+                  </div>
+                )}
+                <div>
+                  <dt className="inline font-medium text-ink-3">Likely backlash: </dt>
+                  <dd className="inline text-ink-3">{idea.backlash}</dd>
+                </div>
+              </dl>
               <div className="mt-auto">
                 <RateButtons reviewId={set.id} itemId={idea.id} current={set.ratings[idea.id]} />
               </div>

@@ -169,6 +169,8 @@ export interface Idea {
   sample?: boolean;
   /** Imported for a blind review: kept off lists so scores stay hidden. */
   reviewOnly?: boolean;
+  /** What the idea came from, kept with the idea so it travels with it */
+  sourceContext?: SourceContext;
   lens?: string;
   name: string;
   oneLiner: string;
@@ -279,4 +281,12 @@ export interface CoinRef {
   symbol: string;
   url: string;
   volume6h: number;
+}
+
+export interface SourceContext {
+  kind: "trend" | "moment" | "lab";
+  title: string;
+  url?: string;
+  summary?: string;
+  links?: { title: string; url: string; outlet?: string }[];
 }

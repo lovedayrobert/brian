@@ -4,6 +4,7 @@ import { gunzipSync, gzipSync } from "node:zlib";
 import type { Idea, Package } from "@/lib/domain/types";
 import { mediaDir } from "@/lib/paths";
 import { recordFeedback } from "@/lib/memory";
+import { sourceContextFor } from "@/lib/source-context";
 import type { ReviewSet } from "@/lib/review";
 import { repo } from "@/lib/store";
 
@@ -53,7 +54,8 @@ export async function exportReview(reviewId: string, outFile: string): Promise<{
   const review = db.reviews.find((r) => r.id === reviewId);
   if (!review) throw new Error(`No review ${reviewId}`);
   const ideaIds = new Set([...review.ideaIds, ...review.packageIds.map((pid) => db.packages.find((p) => p.id === pid)?.ideaId ?? "")]);
-  const ideas = db.ideas.filter((i) => ideaIds.has(i.id));
+  // Bake each card's source into the bundle: the reviewer's Brian won't have the trends or stories.
+  const ideas = db.ideas.filter((i) => ideaIds.has(i.id)).map((i) => ({ ...i, sourceContext: sourceContextFor(i, db) }));
   const packages = db.packages.filter((p) => review.packageIds.includes(p.id));
   const media: Record<string, string> = {};
   for (const name of mediaNames(packages)) {
@@ -91,7 +93,10 @@ export async function importReviewBuffer(buf: Buffer): Promise<ReviewSet> {
     const pids = new Set(bundle.packages.map((p) => p.id));
     d.ideas = [...bundle.ideas.map((i) => ({ ...i, reviewOnly: true })), ...d.ideas.filter((i) => !ids.has(i.id))];
     d.packages = [...bundle.packages.map((p) => ({ ...p, reviewOnly: true })), ...d.packages.filter((p) => !pids.has(p.id))];
-    d.reviews = [bundle.review, ...d.reviews.filter((r) => r.id !== bundle.review.id)];
+    // Re-importing an updated bundle keeps any verdicts already given.
+    const existing = d.reviews.find((r) => r.id === bundle.review.id);
+    const review = { ...bundle.review, ratings: { ...bundle.review.ratings, ...(existing?.ratings ?? {}) } };
+    d.reviews = [review, ...d.reviews.filter((r) => r.id !== bundle.review.id)];
   });
   return bundle.review;
 }
