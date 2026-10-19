@@ -55,6 +55,7 @@ type Key = Exclude<keyof Filters, "q" | "needsSocial">;
 
 export function FilterBar({ data, filters, setFilters }: { data: CalendarData; filters: Filters; setFilters: (f: Filters | ((f: Filters) => Filters)) => void }) {
   const [open, setOpen] = useState<Key | "menu" | null>(null);
+  const [find, setFind] = useState("");
   const all = useMemo(() => [...data.tasks, ...data.unscheduled], [data.tasks, data.unscheduled]);
   const options: Record<Key, { label: string; values: { value: string; name: string; color?: string }[] }> = useMemo(() => {
     const uniq = (xs: { value: string; name: string; color?: string }[]) => [...new Map(xs.map((x) => [x.value, x])).values()].sort((a, b) => a.name.localeCompare(b.name));
@@ -91,7 +92,12 @@ export function FilterBar({ data, filters, setFilters }: { data: CalendarData; f
             <div className="absolute left-0 top-10 z-40 flex rounded-[16px] bg-surface shadow-raised">
               <div className="w-[180px] border-r border-line p-1.5">
                 {(Object.keys(options) as Key[]).map((k) => (
-                  <button key={k} onClick={() => setOpen(k)} className={clsx("flex w-full items-center justify-between rounded-[10px] px-2.5 py-1.5 text-left text-[13px]", open === k ? "bg-surface-3" : "hover:bg-surface-2")}>
+                  <button
+                    key={k}
+                    onClick={() => {
+                      setOpen(k);
+                      setFind("");
+                    }} className={clsx("flex w-full items-center justify-between rounded-[10px] px-2.5 py-1.5 text-left text-[13px]", open === k ? "bg-surface-3" : "hover:bg-surface-2")}>
                     {options[k].label}
                     {(filters[k] as string[]).length > 0 && <span className="text-[11px] text-ink-3">{(filters[k] as string[]).length}</span>}
                   </button>
@@ -105,9 +111,22 @@ export function FilterBar({ data, filters, setFilters }: { data: CalendarData; f
                 </button>
               </div>
               {open !== "menu" && (
-                <div className="max-h-[360px] w-[240px] overflow-auto p-1.5">
+                <div className="max-h-[380px] w-[260px] overflow-auto p-1.5">
+                  {options[open].values.length > 8 && (
+                    <input
+                      autoFocus
+                      value={find}
+                      onChange={(e) => setFind(e.target.value)}
+                      placeholder={`Find a ${options[open].label.toLowerCase()}…`}
+                      className="mb-1 h-8 w-full rounded-[10px] bg-surface-3 px-2.5 text-[12.5px] outline-none placeholder:text-ink-3"
+                    />
+                  )}
                   {options[open].values.length === 0 && <p className="p-2.5 text-[12.5px] text-ink-3">Nothing to filter by yet.</p>}
-                  {options[open].values.map((o) => {
+                  {[...options[open].values]
+                    .filter((o) => !find || o.name.toLowerCase().includes(find.toLowerCase()))
+                    .sort((a, b) => Number((filters[open] as string[]).includes(b.value)) - Number((filters[open] as string[]).includes(a.value)))
+                    .slice(0, 150)
+                    .map((o) => {
                     const on = (filters[open] as string[]).includes(o.value);
                     return (
                       <button key={o.value} onClick={() => toggle(open, o.value)} className="flex w-full items-center gap-2 rounded-[10px] px-2.5 py-1.5 text-left text-[13px] hover:bg-surface-2">

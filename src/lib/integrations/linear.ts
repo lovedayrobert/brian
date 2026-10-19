@@ -37,20 +37,29 @@ export async function linearMeta(force = false): Promise<LinearMeta> {
   if (!force && metaCache && Date.now() - metaCache.at < 10 * 60_000) return metaCache.meta;
   const d = await gql<{
     teams: { nodes: { id: string; key: string; name: string; color: string | null; states: { nodes: LinearMeta["teams"][number]["states"] } }[] };
-    issueLabels: { nodes: { id: string; name: string; color: string; team: { id: string } | null }[] };
     projects: { nodes: { id: string; name: string; color: string; teams: { nodes: { id: string }[] } }[] };
     users: { nodes: { id: string; name: string; displayName: string; avatarUrl: string | null; active: boolean }[] };
   }>(`query {
     teams(first: 50) { nodes { id key name color states { nodes { id name type color position } } } }
-    issueLabels(first: 250) { nodes { id name color team { id } } }
     projects(first: 100) { nodes { id name color teams { nodes { id } } } }
     users(first: 150) { nodes { id name displayName avatarUrl active } }
   }`);
+  // Big workspaces have hundreds of labels, so they're read page by page.
+  const labels: { id: string; name: string; color: string; team: { id: string } | null }[] = [];
+  let after: string | null = null;
+  do {
+    const page: { issueLabels: { nodes: typeof labels; pageInfo: { hasNextPage: boolean; endCursor: string } } } = await gql(
+      `query($after: String) { issueLabels(first: 250, after: $after) { nodes { id name color team { id } } pageInfo { hasNextPage endCursor } } }`,
+      { after },
+    );
+    labels.push(...page.issueLabels.nodes);
+    after = page.issueLabels.pageInfo.hasNextPage ? page.issueLabels.pageInfo.endCursor : null;
+  } while (after && labels.length < 2000);
   const want = (process.env.LINEAR_TEAM ?? "").toLowerCase();
   const teams = d.teams.nodes.map((t) => ({ id: t.id, key: t.key, name: t.name, color: t.color ?? undefined, states: [...t.states.nodes].sort((a, b) => a.position - b.position) }));
   const meta: LinearMeta = {
     teams,
-    labels: d.issueLabels.nodes.map((l) => ({ id: l.id, name: l.name, color: l.color, teamId: l.team?.id ?? null })),
+    labels: labels.map((l) => ({ id: l.id, name: l.name, color: l.color, teamId: l.team?.id ?? null })),
     projects: d.projects.nodes.map((p) => ({ id: p.id, name: p.name, color: p.color, teamIds: p.teams.nodes.map((t) => t.id) })),
     users: d.users.nodes.filter((u) => u.active).map(({ id, name, displayName, avatarUrl }) => ({ id, name, displayName, avatarUrl })),
     defaultTeamId: teams.find((t) => t.key.toLowerCase() === want || t.id === process.env.LINEAR_TEAM || t.name.toLowerCase() === want)?.id ?? teams[0]?.id ?? null,
@@ -83,7 +92,7 @@ const ISSUE_FIELDS = `id identifier title description url dueDate priority estim
   project { id name color } labels { nodes { id name color } }
   parent { id identifier title } children(first: 20) { nodes { id identifier title state { type } } }`;
 
-async function paged(filter: Record<string, unknown>, max = 750): Promise<LinearIssue[]> {
+async function paged(filter: Record<string, unknown>, max = 2000): Promise<LinearIssue[]> {
   const out: LinearIssue[] = [];
   let after: string | null = null;
   do {
@@ -104,7 +113,7 @@ export function issuesInRange(from: string, to: string): Promise<LinearIssue[]> 
 
 /** Open issues with no due date, for the unscheduled tray. */
 export function unscheduledIssues(): Promise<LinearIssue[]> {
-  return paged({ dueDate: { null: true }, state: { type: { nin: ["completed", "canceled"] } } }, 300);
+  return paged({ dueDate: { null: true }, state: { type: { nin: ["completed", "canceled"] } } }, 450);
 }
 
 export interface IssueInput {
