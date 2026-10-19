@@ -15,6 +15,7 @@ export interface Price {
 }
 
 export const PRICES: Record<string, Price> = {
+  "claude-fable-5-1": { input: 10, output: 50 },
   "claude-opus-5-5": { input: 4, output: 20 },
   "claude-sonnet-5-5": { input: 2, output: 10 },
   "claude-haiku-5-5": { input: 0.1, output: 0.5 },

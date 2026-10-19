@@ -1,8 +1,11 @@
 import * as z from "zod/v4";
-import { callStructured, research } from "@/lib/adapters/model";
+import { callChecker, callStructured, checkerReady, qualityMax, research, SpendCapError } from "@/lib/adapters/model";
 import type { BrandId, Claim, Citation, Idea, Moment, Signal, Trend } from "@/lib/domain/types";
 import { AUDIENCE_PANEL, EMOTIONS, MOVES, QUALITY_BAR } from "@/lib/brand/quality-bar";
 import { pulseContext } from "./pulse";
+import { specialDayById } from "@/lib/calendar/days";
+import { swipeContext, swipeLine } from "@/lib/swipe";
+import type { DB } from "@/lib/store";
 import { totalScore } from "@/lib/scores";
 import { sourceContextFor } from "@/lib/source-context";
 import { REACTIVE_LENSES } from "@/lib/horizon";
@@ -59,6 +62,26 @@ const CriticOut = z.object({
   ),
 });
 
+const PlanOut = z.object({
+  angles: z
+    .array(
+      z.object({
+        feeling: z.enum(EMOTIONS.map((e) => e.id) as [string, ...string[]]),
+        target: z.string().describe("Who or what the feeling is aimed at, named"),
+        move: z.enum(MOVES.map((m) => m.id) as [string, ...string[]]),
+        why: z.string().describe("Why this angle could produce something people share, in one line"),
+      }),
+    )
+    .describe("Four distinct angles, strongest first"),
+  avoid: z.array(z.string()).describe("Obvious ideas every brand will have here, to steer away from"),
+});
+
+const PlanCheckOut = z.object({ notes: z.string(), angles: PlanOut.shape.angles, avoid: z.array(z.string()) });
+
+const SecondOpinionOut = z.object({
+  verdicts: z.array(z.object({ index: z.number(), pass: z.boolean(), reason: z.string().describe("One line, blunt") })),
+});
+
 const RedLinesOut = z.object({
   pass: z.boolean(),
   issues: z.array(z.string()).describe("Red-line breaches only. Empty if none."),
@@ -97,11 +120,18 @@ export async function generateIdeas(opts: {
   steer?: string;
   /** Override: ask for quick reactions or big ideas from the same trend or moment */
   horizon?: Horizon;
+  /** A special day from the marketing calendar */
+  dayId?: string;
+  /** Start from the team's own half-idea or a swiped post ("they did this, could we do something like it?") */
+  spark?: { text: string; swipeId?: string };
 }): Promise<IdeaRunResult> {
   const db = await repo.read();
-  const { text: sourceText, allowed, subject, trend, moment } = opts.lens
-    ? labContext(db.moments, db.signals, opts.lens, opts.steer)
-    : subjectContext(db.trends, db.moments, db.signals, opts);
+  if (opts.spark) opts = { ...opts, lens: "spark" };
+  const { text: sourceText, allowed, subject, trend, moment } = opts.spark
+    ? sparkContext(db, opts.spark)
+    : opts.lens
+      ? labContext(db.moments, db.signals, opts.lens, opts.steer)
+      : subjectContext(db.trends, opts.dayId ? [...db.moments, dayMoment(opts.dayId)] : db.moments, db.signals, opts.dayId ? { momentId: opts.dayId } : opts);
 
   const pulse = pulseContext(db.pulses);
   if ((trend?.sensitivity ?? moment?.sensitivity) === "blocked") {
@@ -117,9 +147,38 @@ export async function generateIdeas(opts: {
     "You are the Inventor at Brian. You think like the person at Shuffle who had the idea of paying Jack Doherty to stop posting, the person at Duel who put the host in that costume, and the person at Stake who put the logo on every viral video. You don't make content and you don't run campaigns. You find ONE act Cashy can do in the real world that aims a feeling the audience already has (hate, outrage, wtf, schadenfreude, tribalism, disgust, love) at full strength, so they share it to say something about themselves. Start from the feeling, never from the brand: who do they hate right now, what would make them say 'they actually did that', where would a casino be absurd. Every idea is one sentence a 20-year-old would retell. Nobody cares about a casino's strengths, so Cashy's product is never the point. If it sounds like an ad agency, an AI, a TikTok series or a marketing plan, throw it away.",
     brandVoiceContext(opts.brandId),
     qualityBarContext(),
+    swipeContext(db.swipes),
     `<horizon>\n${HORIZON_BRIEF[horizon]}\n</horizon>`,
     ACCURACY_RULES,
   ].join("\n\n");
+
+  // Max quality (Marko's setup): a stronger model picks the angles first, the Inventor writes to them.
+  let plan = "";
+  if (qualityMax()) {
+    const p = await callStructured({
+      agent: "planner",
+      subject,
+      schema: PlanOut,
+      system: [memory, "You are the Planner at Brian. Before anyone writes ideas, you decide where to look: the four most promising angles (a feeling, who it's aimed at, and the kind of act), and the obvious ideas to avoid. Think like the people behind Shuffle muting Jack Doherty and Stake's logo on every viral video: novel, never generic.", qualityBarContext()].join("\n\n"),
+      prompt: `${pulse}\n${sourceText}\n\nPick the four angles and list the obvious ideas to avoid.`,
+    });
+    // Marko's setup: a second model (GPT-6 Astra) checks the plan before anyone writes.
+    if (checkerReady()) {
+      try {
+        const c = await callChecker({
+          subject: `plan check: ${subject}`,
+          schema: PlanCheckOut,
+          system: ["You check another model's plan for a crypto casino's marketing ideas. Be blunt. Kill generic angles, keep novel ones, and replace weak angles with better ones. The goal is one real act people share because of a feeling they already have (hate, outrage, wtf, schadenfreude, tribal, love). Nothing about the casino's product.", qualityBarContext()].join("\n\n"),
+          prompt: `${pulse}\n${sourceText}\n\n<plan>\n${JSON.stringify(p)}\n</plan>\n\nCheck the plan. Return the improved four angles and the obvious ideas to avoid.`,
+        });
+        p.angles = c.angles.length ? c.angles : p.angles;
+        p.avoid = [...new Set([...p.avoid, ...c.avoid])];
+      } catch (e) {
+        if (e instanceof SpendCapError) throw e; // otherwise carry on with the unchecked plan
+      }
+    }
+    plan = `<plan note="Write the 10 acts across these angles, at least two per angle.">\n${p.angles.map((a, i) => `${i + 1}. ${a.feeling} aimed at ${a.target}, as ${a.move}: ${a.why}`).join("\n")}\nAvoid (too obvious): ${p.avoid.join("; ")}\n</plan>`;
+  }
 
   const inv = await callStructured({
     agent: "inventor",
@@ -129,10 +188,12 @@ export async function generateIdeas(opts: {
     prompt: opts.lens
       ? `${pulse}
 ${sourceText}
+${plan}
 
 Find 10 acts through this lens. Read the pulse first: aim at feelings people have right now, at the people and things they're actually reacting to. Each act is one sentence, real, raw and a first. Write the line people type when they share it. Nothing from the banned list: no posts, series, POVs, skits or campaigns. Cite evidence URLs where you use a fact; use null where you are reasoning.`
       : `${pulse}
 ${sourceText}
+${plan}
 
 Find 10 acts Cashy could do on this. First work out what people actually feel about it (hate, outrage, wtf, schadenfreude, tribal, love) and who or what that feeling is aimed at; then find the act that points it. Use at least 4 different kinds of move across the 10. Each act is one sentence, real, raw and a first. Write the line people type when they share it. Nothing from the banned list: no posts, series, POVs, skits or campaigns. Ground every factual statement in the evidence above and cite its URL; use null where you are reasoning rather than citing.`,
   });
@@ -215,6 +276,33 @@ Find 10 acts Cashy could do on this. First work out what people actually feel ab
       createdAt: now,
     };
   });
+
+  // Max quality: GPT-6 Astra gives an independent verdict on what the panel passed. Both must agree.
+  if (qualityMax() && checkerReady()) {
+    const passed = ideas.map((i, n) => ({ i, n })).filter(({ i }) => i.status === "candidate");
+    if (passed.length) {
+      try {
+        const second = await callChecker({
+          subject: `second opinion: ${subject}`,
+          schema: SecondOpinionOut,
+          system: ["You are a second, independent judge of marketing ideas for a crypto casino. Would real people share this act because of how it makes them feel, and is it a genuine first? Pass only ideas you'd bet on. Be harsh.", qualityBarContext()].join("\n\n"),
+          prompt: `${pulse}\n<ideas>\n${passed.map(({ i, n }) => `${n}. ${i.name}\nShared as: "${i.shareMoment}"\nHow: ${i.howItWorks}`).join("\n\n")}\n</ideas>\n\nGive a verdict for each, using its number as index.`,
+        });
+        for (const v of second.verdicts) {
+          const idea = ideas[v.index];
+          if (!idea || idea.status !== "candidate") continue;
+          idea.screening.critic.tests.push({ name: "Second opinion (GPT-6 Astra)", pass: v.pass, note: v.reason });
+          if (!v.pass) {
+            idea.status = "killed";
+            idea.screening.critic.verdict = "kill";
+            idea.screening.critic.reasons.unshift(`Second opinion (GPT-6 Astra): ${v.reason}`);
+          }
+        }
+      } catch (e) {
+        if (e instanceof SpendCapError) throw e;
+      }
+    }
+  }
 
   const survivors = ideas
     .filter((i) => i.status === "candidate")
@@ -330,6 +418,7 @@ export { totalScore };
 
 /** Context for an original idea: the lens, plus the evidence that lens needs. */
 function labContext(moments: Moment[], signals: Signal[], lensId: string, steer?: string) {
+  if (lensId === "spark") lensId = "blank-page";
   const lens = lensById(lensId);
   if (!lens) throw new Error("Unknown lens");
   const pick = (xs: Signal[], n: number) => xs.slice(0, n);
@@ -367,6 +456,29 @@ ${calendar.slice(0, 8).map((m) => `- ${m.date.slice(0, 10)} ${m.title} ${m.sourc
 ${evidence.length ? `Evidence (cite these URLs only):\n${evidence.map((s) => `- [${s.author ?? s.sourceId}] ${s.title} ${s.url}${s.metric ? ` (${s.metric.value.toLocaleString("en-US")} ${s.metric.label.toLowerCase()})` : ""}${s.narrative ? ` (coin: ${s.narrative.reference})` : ""}${s.sourceId === "builds" && s.summary ? `\n  ${s.summary.slice(0, 200)}` : ""}`).join("\n")}` : ""}
 </context>`;
   return { text, allowed, subject: `Lab: ${lens.name}`, trend: undefined, moment: undefined };
+}
+
+/** Context for a spark: the team's starting point, plus what's happening for awareness. */
+function sparkContext(db: DB, spark: { text: string; swipeId?: string }) {
+  const swipe = spark.swipeId ? db.swipes?.find((s) => s.id === spark.swipeId) : undefined;
+  const base = labContext(db.moments, db.signals, "blank-page");
+  const text = `<spark note="The team's own starting point. Develop it: push it further, find 10 versions Cashy could actually do, never copy the original.">
+${spark.text.trim() ? `The team says: ${spark.text.trim()}` : "The team wants something in the spirit of this:"}
+${swipe ? `Reference post:\n${swipeLine(swipe)}\n${swipe.url}` : ""}
+</spark>
+${base.text.replace(/<lens[^]*?<\/lens>\n/, "")}`;
+  return {
+    ...base,
+    text,
+    allowed: swipe ? [...base.allowed, { url: swipe.url, title: swipe.title, publisher: swipe.platform, retrievedAt: swipe.addedAt }] : base.allowed,
+    subject: `Spark: ${(spark.text.trim() || swipe?.title || "").slice(0, 60)}`,
+  };
+}
+
+function dayMoment(dayId: string): Moment {
+  const day = specialDayById(dayId);
+  if (!day) throw new Error("That day isn't in the calendar.");
+  return { id: day.id, kind: "calendar", title: `${day.title} (${day.date})`, date: `${day.date}T00:00:00Z`, category: "culture", description: day.why, sensitivity: "clear", dateNote: day.check };
 }
 
 export class RedLineError extends Error {}

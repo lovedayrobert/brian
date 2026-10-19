@@ -21,8 +21,10 @@ export function ActionButton({
   disabledReason,
   className,
   icon,
+  method = "POST",
 }: {
   endpoint: string;
+  method?: "POST" | "DELETE";
   body?: unknown;
   children: React.ReactNode;
   pending?: string;
@@ -45,7 +47,7 @@ export function ActionButton({
     setError(null);
     try {
       const res = await fetch(endpoint, {
-        method: "POST",
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body ?? {}),
       });

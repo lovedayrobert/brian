@@ -1,7 +1,8 @@
 import { FlaskConical } from "lucide-react";
 import { IdeaCard } from "@/components/idea-card";
 import { LabRunner } from "@/components/lab-runner";
-import { PageHeader, SectionTitle } from "@/components/ui";
+import { Card, PageHeader, SectionTitle } from "@/components/ui";
+import { SparkBox } from "@/components/swipe-form";
 import { modelReady } from "@/lib/adapters/model";
 import { LENSES } from "@/lib/brand/lenses";
 import { HORIZON_COPY, REACTIVE_LENSES } from "@/lib/horizon";
@@ -24,8 +25,16 @@ export default async function Lab() {
           </span>
         }
         title="Ideas that don't start with a trend"
-        subtitle="Trends tell you what everyone is looking at. The Lab invents ways to get Cashy in front of people that nobody has tried: stunts, collabs, parody drops, trolls, internet toys and deals so strange the deal is the story. Every lens is about shares and impressions, never about our product. Every idea faces the same Critic, red lines and prior-art check."
+        subtitle="Start from your own spark, or pick a kind of act. Every idea is one real thing Cashy does, aimed at a feeling the audience already has (read on the Pulse), and faces the audience panel and Red Lines."
       />
+
+      <Card className="mb-10 p-5">
+        <div className="mb-1 text-[17px] font-semibold tracking-tight">Start from a spark</div>
+        <p className="mb-3 max-w-[720px] text-[13px] text-ink-2">
+          Brian does best when you point it somewhere. Write a half-idea, a direction, or &ldquo;they did this, could we do something like it?&rdquo;. To riff on a specific post, add it to the Swipe file first.
+        </p>
+        <SparkBox disabled={!ai} />
+      </Card>
 
       {(["evergreen", "reactive"] as const).map((hz) => (
       <section key={hz} className="mb-8">

@@ -6,14 +6,14 @@ import { authMode, SESSION_COOKIE, verifySession } from "@/lib/auth";
  * check again (src/app/api/_util.ts), so a proxy misconfiguration can't open
  * the API. The ingest endpoint uses its own bearer token instead.
  */
-const PUBLIC = ["/login", "/api/auth/login", "/api/ingest", "/api/health"];
+const PUBLIC = ["/login", "/api/auth/login", "/api/auth/google", "/api/ingest", "/api/health"];
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const mode = authMode();
 
   if (mode === "misconfigured") {
-    return new NextResponse("Brian is locked: set BRIAN_USERS and BRIAN_SESSION_SECRET (32+ characters) to enable login.", { status: 503 });
+    return new NextResponse("Brian is locked: set BRIAN_SESSION_SECRET (32+ characters) and either GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET or BRIAN_USERS to enable login.", { status: 503 });
   }
 
   // Cross-site POSTs are refused outright (CSRF), whatever the auth mode.

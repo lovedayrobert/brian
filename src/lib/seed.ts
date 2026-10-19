@@ -17,7 +17,7 @@ export function applySeed(): Promise<void> {
 }
 
 async function merge() {
-  let seed: { ideas?: Idea[]; memories?: DB["memories"]; retireMemoryPrefixes?: string[] };
+  let seed: { ideas?: Idea[]; memories?: DB["memories"]; retireMemoryPrefixes?: string[]; swipes?: DB["swipes"] };
   try {
     seed = JSON.parse(await fs.readFile(path.join(process.cwd(), "seed", "brian-seed.json"), "utf8"));
   } catch {
@@ -29,11 +29,15 @@ async function merge() {
   const ideas = (seed.ideas ?? []).filter((i) => !haveIdeas.has(i.id));
   const memories = (seed.memories ?? []).filter((m) => !haveMem.has(m.text));
   const retire = (m: DB["memories"][number]) => (seed.retireMemoryPrefixes ?? []).some((p) => m.text.startsWith(p));
-  if (!ideas.length && !memories.length && !db.memories.some(retire)) return;
+  const haveSwipes = new Set((db.swipes ?? []).map((s) => s.url));
+  const swipes = (seed.swipes ?? []).filter((s) => !haveSwipes.has(s.url));
+  if (!ideas.length && !memories.length && !swipes.length && !db.memories.some(retire)) return;
   await repo.update((d) => {
     const ids = new Set(d.ideas.map((i) => i.id));
     const texts = new Set(d.memories.map((m) => m.text));
     d.ideas = [...ideas.filter((i) => !ids.has(i.id)), ...d.ideas];
     d.memories = [...memories.filter((m) => !texts.has(m.text)), ...d.memories.filter((m) => !retire(m))];
+    const urls = new Set((d.swipes ?? []).map((s) => s.url));
+    d.swipes = [...swipes.filter((s) => !urls.has(s.url)), ...(d.swipes ?? [])];
   });
 }

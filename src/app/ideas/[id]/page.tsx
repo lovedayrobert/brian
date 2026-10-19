@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, Layers, X } from "lucide-react";
+import { ArrowLeft, CalendarPlus, Check, Layers, X } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActionButton } from "@/components/action-button";
@@ -39,6 +39,13 @@ export default async function IdeaDetail({ params }: { params: Promise<{ id: str
         title={idea.name}
         subtitle={idea.oneLiner !== idea.name ? idea.oneLiner : undefined}
         actions={
+          <div className="flex flex-wrap items-center gap-2">
+            {!(idea.screening.redLines && !idea.screening.redLines.pass) && (
+              <Link href={`/calendar?new=1&ideaId=${idea.id}`} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-surface px-4 text-[13.5px] font-medium shadow-card hover:shadow-raised">
+                <CalendarPlus className="h-3.5 w-3.5" /> Add to calendar
+              </Link>
+            )}
+            {
           idea.screening.redLines && !idea.screening.redLines.pass ? (
             <span className="inline-flex h-9 items-center rounded-full bg-bad-soft px-4 text-[13px] font-medium text-bad">Blocked by Red Lines</span>
           ) : pkg ? (
@@ -64,6 +71,8 @@ export default async function IdeaDetail({ params }: { params: Promise<{ id: str
                   : "Develop full campaign"}
             </ActionButton>
           )
+            }
+          </div>
         }
       />
 

@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { dataDir } from "@/lib/paths";
-import type { AgentRun, Idea, Moment, Package, Pulse, Signal, SweepRun, Trend } from "@/lib/domain/types";
+import type { AgentRun, CalendarItem, Idea, Moment, Package, Pulse, Signal, Swipe, SweepRun, Trend } from "@/lib/domain/types";
 import type { RapidResponse } from "@/lib/pipeline/rapid";
 import type { BacktestResult } from "@/lib/engine/backtest";
 import type { Feedback, Memory, MemoryEvent } from "@/lib/memory";
@@ -37,9 +37,17 @@ export interface DB {
   reviews: ReviewSet[];
   /** Latest Pulse readings, newest first */
   pulses: Pulse[];
+  /** The team swipe file */
+  swipes: Swipe[];
+  /** The marketing calendar: team items, CRM sheet rows and Linear issues */
+  calendar: CalendarItem[];
+  /** Brian-only fields for Linear issues (channel, idea link), keyed by issue id */
+  calendarMeta: Record<string, { channel?: CalendarItem["channel"]; kind?: CalendarItem["type"]; ideaId?: string; specialDayId?: string }>;
+  /** Last read of the CRM sheet */
+  crmSync: { at: string; ok: boolean; rows: number; skipped: number; error?: string } | null;
 }
 
-const EMPTY: DB = { signals: [], trends: [], moments: [], ideas: [], packages: [], agentRuns: [], sweeps: [], rapid: [], memories: [], memoryEvents: [], feedback: [], spendLedger: {}, imported: [], reviews: [], pulses: [] };
+const EMPTY: DB = { signals: [], trends: [], moments: [], ideas: [], packages: [], agentRuns: [], sweeps: [], rapid: [], memories: [], memoryEvents: [], feedback: [], spendLedger: {}, imported: [], reviews: [], pulses: [], swipes: [], calendar: [], calendarMeta: {}, crmSync: null };
 
 const LOCK_STALE_MS = 30_000;
 const LOCK_WAIT_MS = 20_000;

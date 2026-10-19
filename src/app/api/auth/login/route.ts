@@ -1,10 +1,11 @@
-import { authMode, checkPassword, createSession, parseUsers, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/auth";
+import { authMode, checkPassword, passwordsEnabled, createSession, parseUsers, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/auth";
 
 // Slow down password guessing: 5 attempts a minute per address.
 const attempts = new Map<string, number[]>();
 
 export async function POST(req: Request) {
   if (authMode() !== "on") return Response.json({ error: "Login isn't configured on this server." }, { status: 400 });
+  if (!passwordsEnabled()) return Response.json({ error: "Sign in with your BitStarz Google account." }, { status: 400 });
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "local";
   const now = Date.now();
   const recent = (attempts.get(ip) ?? []).filter((t) => now - t < 60_000);

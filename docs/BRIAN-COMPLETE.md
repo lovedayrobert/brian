@@ -686,3 +686,95 @@ Put `.jsonl` files in the `inbox` folder inside Brian's data directory (`.data/i
 - Send what you're permitted to share under each platform's terms
 - Don't include personal data Brian doesn't need (private messages, phone numbers, emails). Public posts, public channels and aggregate counts are what it uses
 - Prefer one record per post or message; Brian does the clustering
+
+
+---
+
+# 8. Team tool: calendar, Linear, CRM sheet, Google sign-in, model setup
+
+Everything below is built and switched on by setting variables in Railway (or `.env.local` locally). Nothing needs code changes.
+
+## Marketing calendar (`/calendar`)
+
+- **Views:** month, week, agenda, board (by status). Keyboard: `t` today, `←/→` move, `c` new task, `/` search, `m w a b` views, `u` tasks with no date, `Esc` closes.
+- **Tasks:** create from any day (double-click, the `+`, or *New task*), with every field: title, description, due date, status, team, assignee, priority, project, estimate, labels, channel and type. Drag a card to another day to reschedule it; drag on the board to change status; drag from the *No due date* tray to schedule it.
+- **Filters:** team, project, label, status, assignee, channel, source (Linear, Brian, CRM sheet), special-day type, and *CRM needing social*. Filters and display settings are remembered per person.
+- **Special days** are filled in automatically: holidays, crypto anniversaries (Bitcoin Pizza Day, Genesis Block, whitepaper day…), internet and gaming days, Black Friday, Friday the 13ths, Super Bowl, Kentucky Derby, GTA 6. Add more in `src/lib/calendar/days.ts`.
+- **Brian inside the calendar:** open any day for *Post ideas* (three ideas, about $0.10), *A bigger move* (the full engine, about $0.75) or *Plan it myself*. Every idea has *Add as task*, which opens the editor filled in. On any idea page, *Add to calendar* does the same.
+
+## Linear
+
+| Variable | What |
+|---|---|
+| `LINEAR_API_KEY` | Linear → Settings → Security & access → Personal API keys. Brian acts as the person whose key it is. |
+| `LINEAR_TEAM` | Default team for new tasks, by key, e.g. `SMCA` |
+
+With the key set, every task created or edited in the calendar is a real Linear issue, and Linear issues with a due date (all teams, filterable) show in the calendar. Archive in Brian archives in Linear. Brian keeps only what Linear has no field for: the channel and the idea or special day a task came from. Without the key, tasks are saved in Brian with the same fields.
+
+## CRM calendar (Google Sheet)
+
+Brian reads the sheet every 30 minutes and never writes to it. CRM rows show in orange; rows marked as needing social are outlined and have their own filter.
+
+**Private sheet (recommended):**
+1. In Google Cloud, create a service account (no roles needed) and a JSON key for it.
+2. Share the CRM sheet with the service account's email, *Viewer* only.
+3. Set `GOOGLE_SERVICE_ACCOUNT_JSON` (the whole JSON), `CRM_SHEET_ID` (the long id in the sheet's URL) and, if the calendar isn't the first tab, `CRM_SHEET_TAB` (e.g. `CRM Calendar!A:Z`).
+
+**Simple (only for non-sensitive sheets):** `CRM_SHEET_CSV_URL`, a *File → Share → Publish to web → CSV* link. Anyone with that link can read the sheet.
+
+Columns are found by header (Date, Campaign/Title, Channel, Owner, Status, a column with "social" in its name, Notes). If the headers are different, set `CRM_SHEET_COLUMNS`, e.g. `date=Send date,title=Campaign name,social=Social needed`. Dates are read day-first (`03/11/2026` = 3 November) unless `CRM_SHEET_DATE_ORDER=MDY`.
+
+## Google sign-in (BitStarz accounts only)
+
+1. Google Cloud console → APIs & Services → Credentials → *Create OAuth client ID* → Web application. Set the consent screen to *Internal* (Workspace) so only BitStarz accounts can even see it.
+2. Authorised redirect URI: `https://brian-production.up.railway.app/api/auth/google/callback` (and `http://localhost:3000/api/auth/google/callback` for local).
+3. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `BRIAN_PUBLIC_URL=https://brian-production.up.railway.app`.
+4. Optional: `BRIAN_ALLOWED_DOMAINS` (default `bitstarz.com`; comma-separate several).
+
+Only verified Google accounts whose email **and** Workspace domain are on the list get in, so personal Gmail is refused. Once Google is set, passwords stop working unless `BRIAN_ALLOW_PASSWORDS=1`.
+
+## Model setup (Marko's suggestion)
+
+| Mode | Plans | Writes | Checks | Cost per idea run |
+|---|---|---|---|---|
+| Default | (Opus thinks it through) | Opus 5.5 | Opus 5.5 panel | ~$0.75 |
+| `BRIAN_QUALITY=max` | Fable 5.1, checked by GPT-6 Astra | Opus 5.5 | Fable 5.1 panel, then a GPT-6 Astra second opinion; both must pass | ~$1.50–2 |
+
+- GPT-6 Astra needs `OPENAI_API_KEY`. `BRIAN_CHECKER_MODEL` overrides the model name (default `gpt-6-astra`); `OPENAI_PRICE_IN` / `OPENAI_PRICE_OUT` set its price for the spend cap (default $10 / $50 per million tokens).
+- Any single agent can be pointed at another model with `BRIAN_MODEL_<AGENT>`, e.g. `BRIAN_MODEL_CRITIC=claude-fable-5-1`.
+- Every model, including GPT, counts against the same hard spend cap.
+
+## Swipe file (`/swipe`)
+
+Paste any post the team finds clever and say why. Brian reads the latest 15 every time it invents, to learn the team's taste. *Riff on this* starts ideas from one. The Lab's *Start from a spark* takes a half-idea or "they did this, could we do something like it?".
+
+
+---
+
+# 9. Roadmap: making Brian the marketing team's daily tool
+
+Built so far: discovery (Live, Pulse, Trends), idea engine 4 with the audience panel, the swipe file and sparks, campaign packages with visuals, the marketing calendar on Linear, the CRM sheet, Google sign-in.
+
+## Next, in rough order of value
+
+1. **Daily brief in Slack.** Each morning: the room in three lines (from the Pulse), today's and tomorrow's special days with one idea each, what's due, and what's overdue in Linear. One click to open the day in Brian.
+2. **Approval flow.** Draft → review → approved → scheduled, with who approved what. Comments on tasks synced to Linear comments. Legal or compliance sign-off as a step for anything flagged by Red Lines.
+3. **Content library on each task.** Upload or generate the asset (image, video, copy variants) on the task itself, with versions. Brian's mockups attach automatically when an idea becomes a task.
+4. **Publishing hand-off.** Export a scheduled post to the scheduler the team uses (Buffer, Hootsuite, Typefully for X) with copy and asset, without Brian ever posting by itself.
+5. **Results back on the calendar.** After a post goes out, pull its views, likes and reposts (X, TikTok, YouTube) onto the task, and feed what worked into Brian's Memory so ideas get better.
+6. **Campaign timelines.** Group tasks into a campaign (a Linear project) and see it as a timeline with phases and dependencies; Brian's packages become a campaign in one click.
+7. **Competitor watch on the calendar.** When Stake, Shuffle, Rollbit and co. run something, it appears as a marker on the day it happened, with a link, so the team sees the landscape next to its own plan.
+8. **Capacity view.** Who has what this week, by person and channel; warns when a day is overloaded or a channel has gone quiet.
+9. **Recurring slots.** "Every Friday: degen meme", "first Monday: CRM newsletter", created as Linear issues automatically.
+10. **Brief generator.** From any task: a one-page brief for a designer, editor or creator (goal, hook, references from the swipe file, deliverables, deadline), sent to Linear or Slack.
+11. **Creator CRM.** Streamers, clippers and meme pages the team works with: rates, contact, past results, and which ideas suit them.
+12. **Swipe file from anywhere.** A browser button and a Slack shortcut to drop a link into the swipe file without opening Brian.
+13. **Market and timezone awareness.** Mark which markets each task targets, show local posting times, and flag when a special day isn't relevant in a market.
+14. **Spend and budget per campaign.** Track paid amounts (creators, ads, production) against the plan, next to AI spend.
+
+## Housekeeping
+
+- Run on Marko's Max or Team plan credits (an API key from that Console organisation) instead of a personal key.
+- Rotate the API keys pasted in chat earlier.
+- Move from the JSON file to Postgres (schema already in `supabase/migrations/`) once more than a handful of people use Brian daily.
+

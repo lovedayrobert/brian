@@ -338,3 +338,48 @@ export interface Pulse {
   items: PulseItem[];
   signalCount: number;
 }
+
+/** A post the team finds clever. Teaches Brian the team's taste; never copied. */
+export interface Swipe {
+  id: string;
+  url: string;
+  title: string;
+  author?: string;
+  platform: string;
+  metrics?: Record<string, number>;
+  /** Why the team likes it, in their words */
+  why: string;
+  addedBy: string;
+  addedAt: string;
+}
+
+/** Anything the marketing team plans: a post, a CRM send, a campaign, a stunt. */
+export type CalendarChannel = "X" | "TikTok" | "Instagram" | "YouTube" | "Kick" | "Telegram" | "Discord" | "Email" | "Push" | "SMS" | "Website" | "IRL" | "Other";
+export type CalendarStatus = "idea" | "planned" | "in-progress" | "scheduled" | "live" | "done";
+
+export interface CalendarItem {
+  id: string;
+  title: string;
+  date: string; // YYYY-MM-DD
+  endDate?: string;
+  time?: string; // HH:MM, optional
+  channel: CalendarChannel;
+  type: "social" | "crm" | "campaign" | "stunt" | "other";
+  status: CalendarStatus;
+  owner?: string;
+  notes?: string;
+  /** 0 none, 1 urgent, 2 high, 3 medium, 4 low (Linear's scale) */
+  priority?: number;
+  labels?: string[];
+  project?: string;
+  ideaId?: string;
+  specialDayId?: string;
+  /** Where it came from: made in Brian, the CRM sheet, or Linear */
+  source: "brian" | "crm-sheet" | "linear";
+  /** Set once synced to Linear */
+  linear?: { id: string; identifier: string; url: string; state?: string; syncedAt: string };
+  /** CRM rows the sheet marks as needing social support */
+  needsSocial?: boolean;
+  createdBy?: string;
+  updatedAt: string;
+}

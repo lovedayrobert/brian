@@ -1,6 +1,7 @@
 import * as z from "zod/v4";
 import { callStructured } from "@/lib/adapters/model";
-import type { BrandId } from "@/lib/domain/types";
+import type { BrandId, Moment } from "@/lib/domain/types";
+import type { SpecialDay } from "@/lib/calendar/days";
 import { newId, repo } from "@/lib/store";
 import { memoryForRun } from "@/lib/memory";
 import { ACCURACY_RULES, brandVoiceContext, qualityBarContext } from "./context";
@@ -40,6 +41,8 @@ export type RapidAssets = z.infer<typeof AssetsOut>;
 export interface RapidResponse {
   id: string;
   momentId: string;
+  /** For calendar days, which aren't in the swept moments: the moment as it was */
+  moment?: Moment;
   brandId: BrandId;
   takes: Takes;
   chosen: number | null;
@@ -88,7 +91,7 @@ export async function buildRapidAssets(rapidId: string, takeIndex: number): Prom
   const db = await repo.read();
   const rr = db.rapid.find((r) => r.id === rapidId);
   if (!rr) throw new Error("Rapid response not found");
-  const m = db.moments.find((x) => x.id === rr.momentId);
+  const m = db.moments.find((x) => x.id === rr.momentId) ?? rr.moment;
   const take = rr.takes[takeIndex];
   if (!take) throw new Error("That take doesn't exist.");
   // Enforced here, not just hidden in the UI.
@@ -109,4 +112,29 @@ export async function buildRapidAssets(rapidId: string, takeIndex: number): Prom
     }
   });
   return { ...rr, chosen: takeIndex, assets };
+}
+
+/** Post ideas for a calendar day (Bitcoin Pizza Day, Halloween…): three takes, one cheap call. */
+export async function ideasForDay(day: SpecialDay, brandId: BrandId, steer?: string): Promise<RapidResponse> {
+  const moment: Moment = {
+    id: day.id,
+    kind: "calendar",
+    title: day.title,
+    date: `${day.date}T00:00:00Z`,
+    category: "culture",
+    description: day.why,
+    sensitivity: "clear",
+  };
+  const out = await callStructured({
+    agent: "rapidResponse",
+    subject: `${day.title} (${day.date})`,
+    schema: TakesOut,
+    system: system(brandId, await memoryForRun(brandId, `posts for ${day.title}`)),
+    prompt: `<day date="${day.date}">\n${day.title}\n${day.why}${day.check ? `\nDate note: ${day.check}` : ""}\n</day>\n${steer ? `<steer>${steer}</steer>\n` : ""}\nGive exactly three ideas for what Cashy does on this day. Each is a post or a small real act the social team can make, specific to this day, not a generic greeting. Never "Happy ${day.title}!" energy.`,
+  });
+  const rr: RapidResponse = { id: newId("rr"), momentId: day.id, moment, brandId, takes: out.takes.slice(0, 3), chosen: null, assets: null, createdAt: new Date().toISOString() };
+  await repo.update((d) => {
+    d.rapid = [rr, ...(d.rapid ?? [])];
+  });
+  return rr;
 }

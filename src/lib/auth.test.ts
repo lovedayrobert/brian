@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { authMode, checkPassword, cookieValue, createSession, parseUsers, safeEqual, verifySession } from "./auth";
+import { authMode, checkGoogleClaims, checkPassword, cookieValue, createSession, parseUsers, passwordsEnabled, safeEqual, verifySession } from "./auth";
 
 const SECRET = "x".repeat(40);
 
@@ -53,5 +53,29 @@ describe("sessions", () => {
   it("reads the cookie header", () => {
     expect(cookieValue("a=1; brian_session=abc.def; b=2", "brian_session")).toBe("abc.def");
     expect(cookieValue(null, "brian_session")).toBeUndefined();
+  });
+});
+
+
+describe("Google sign-in", () => {
+  const base = { iss: "https://accounts.google.com", aud: "cid", exp: 2_000_000_000, nonce: "n1", email: "Rob@BitStarz.com", email_verified: true, hd: "bitstarz.com" };
+  const o = { clientId: "cid", nonce: "n1", domains: ["bitstarz.com"], now: 1_900_000_000_000 };
+  it("lets in a verified account on an allowed domain", () => {
+    expect(checkGoogleClaims(base, o)).toEqual({ ok: true, email: "rob@bitstarz.com" });
+  });
+  it("refuses personal Gmail, other domains, wrong audience, nonce or expiry", () => {
+    expect(checkGoogleClaims({ ...base, email: "rob@gmail.com", hd: undefined }, o)).toEqual({ ok: false, reason: "domain" });
+    expect(checkGoogleClaims({ ...base, email: "x@evil.com", hd: "evil.com" }, o)).toEqual({ ok: false, reason: "domain" });
+    expect(checkGoogleClaims({ ...base, hd: undefined }, o)).toEqual({ ok: false, reason: "domain" });
+    expect(checkGoogleClaims({ ...base, aud: "other" }, o)).toEqual({ ok: false, reason: "audience" });
+    expect(checkGoogleClaims({ ...base, nonce: "n2" }, o)).toEqual({ ok: false, reason: "nonce" });
+    expect(checkGoogleClaims({ ...base, exp: 1_000 }, o)).toEqual({ ok: false, reason: "expired" });
+    expect(checkGoogleClaims({ ...base, email_verified: false }, o)).toEqual({ ok: false, reason: "unverified" });
+  });
+  it("switches passwords off once Google is set up, unless asked", () => {
+    const env = { BRIAN_USERS: "a:b", GOOGLE_CLIENT_ID: "x", GOOGLE_CLIENT_SECRET: "y", BRIAN_SESSION_SECRET: "s".repeat(32) };
+    expect(passwordsEnabled(env)).toBe(false);
+    expect(passwordsEnabled({ ...env, BRIAN_ALLOW_PASSWORDS: "1" })).toBe(true);
+    expect(authMode({ GOOGLE_CLIENT_ID: "x", GOOGLE_CLIENT_SECRET: "y", BRIAN_SESSION_SECRET: "s".repeat(32), NODE_ENV: "production" })).toBe("on");
   });
 });

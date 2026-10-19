@@ -1,6 +1,10 @@
 /**
- * Login. Users and passwords come from BRIAN_USERS ("name:password,name2:password2");
- * sessions are HMAC-signed cookies (BRIAN_SESSION_SECRET). Web Crypto only, so
+ * Login. Two ways in:
+ *  - Google (the team's way): GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET, and only
+ *    verified accounts on BRIAN_ALLOWED_DOMAINS (default bitstarz.com) get in.
+ *    Once Google is set up, passwords are switched off unless BRIAN_ALLOW_PASSWORDS=1.
+ *  - Passwords from BRIAN_USERS ("name:password,name2:password2").
+ * Sessions are HMAC-signed cookies (BRIAN_SESSION_SECRET). Web Crypto only, so
  * the same code runs in the proxy and in route handlers.
  *
  * Secure by default: in production, if login isn't configured, every request
@@ -16,8 +20,22 @@ export interface Session {
 
 export type AuthMode = "on" | "off-dev" | "misconfigured";
 
-export function authMode(env: Record<string, string | undefined> = process.env): AuthMode {
-  const configured = !!env.BRIAN_USERS?.trim() && (env.BRIAN_SESSION_SECRET?.length ?? 0) >= 32;
+type Env = Record<string, string | undefined>;
+
+export function googleConfigured(env: Env = process.env): boolean {
+  return !!env.GOOGLE_CLIENT_ID && !!env.GOOGLE_CLIENT_SECRET;
+}
+
+export function passwordsEnabled(env: Env = process.env): boolean {
+  return !!env.BRIAN_USERS?.trim() && (!googleConfigured(env) || env.BRIAN_ALLOW_PASSWORDS === "1");
+}
+
+export function allowedDomains(env: Env = process.env): string[] {
+  return (env.BRIAN_ALLOWED_DOMAINS || "bitstarz.com").split(",").map((d) => d.trim().toLowerCase()).filter(Boolean);
+}
+
+export function authMode(env: Env = process.env): AuthMode {
+  const configured = (passwordsEnabled(env) || googleConfigured(env)) && (env.BRIAN_SESSION_SECRET?.length ?? 0) >= 32;
   if (configured) return "on";
   return env.NODE_ENV === "production" ? "misconfigured" : "off-dev";
 }
@@ -79,6 +97,52 @@ export async function verifySession(token: string | undefined, secret: string, n
   }
 }
 
+/** Sign any short value (used for the Google sign-in state cookie). */
+export async function signValue(value: string, secret: string): Promise<string> {
+  const payload = b64url(enc.encode(value));
+  return `${payload}.${await hmac(secret, payload)}`;
+}
+
+export async function readSigned(token: string | undefined, secret: string): Promise<string | null> {
+  if (!token) return null;
+  const [payload, sig] = token.split(".");
+  if (!payload || !sig || !safeEqual(sig, await hmac(secret, payload))) return null;
+  try {
+    return new TextDecoder().decode(Uint8Array.from(fromB64url(payload), (c) => c.charCodeAt(0)));
+  } catch {
+    return null;
+  }
+}
+
+export interface GoogleClaims {
+  iss?: string;
+  aud?: string;
+  exp?: number;
+  nonce?: string;
+  email?: string;
+  email_verified?: boolean;
+  hd?: string;
+}
+
+/**
+ * Who Google says this is, and whether they're allowed in. The ID token came
+ * straight from Google's token endpoint over TLS, so its claims are checked
+ * rather than its signature (Google's documented approach for this flow).
+ */
+export function checkGoogleClaims(c: GoogleClaims, o: { clientId: string; nonce: string; domains: string[]; now?: number }): { ok: true; email: string } | { ok: false; reason: string } {
+  const now = (o.now ?? Date.now()) / 1000;
+  if (c.iss !== "https://accounts.google.com" && c.iss !== "accounts.google.com") return { ok: false, reason: "issuer" };
+  if (c.aud !== o.clientId) return { ok: false, reason: "audience" };
+  if (!c.exp || c.exp < now) return { ok: false, reason: "expired" };
+  if (!c.nonce || !safeEqual(c.nonce, o.nonce)) return { ok: false, reason: "nonce" };
+  const email = c.email?.toLowerCase();
+  if (!email || c.email_verified !== true) return { ok: false, reason: "unverified" };
+  const domain = email.split("@")[1];
+  // Both the email's domain and Google's hosted-domain claim must be on the list, so personal Gmail can't get in.
+  if (!o.domains.includes(domain) || !c.hd || !o.domains.includes(c.hd.toLowerCase())) return { ok: false, reason: "domain" };
+  return { ok: true, email };
+}
+
 export function checkPassword(users: Map<string, string>, name: string, password: string): boolean {
   const expected = users.get(name.trim().toLowerCase());
   // Compare against a dummy when the user doesn't exist, so timing doesn't reveal valid names.
@@ -104,3 +168,12 @@ export async function userFromRequest(req: Request): Promise<string | null> {
 }
 
 export const SESSION_MAX_AGE = SESSION_DAYS * 86_400;
+
+/** The address Google sends people back to: BRIAN_PUBLIC_URL, or the request's own host behind the proxy. */
+export function publicOrigin(req: Request): string {
+  if (process.env.BRIAN_PUBLIC_URL) return process.env.BRIAN_PUBLIC_URL.replace(/\/$/, "");
+  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
+  const proto = req.headers.get("x-forwarded-proto") ?? (host?.startsWith("localhost") ? "http" : "https");
+  return host ? `${proto}://${host}` : new URL(req.url).origin;
+}
+

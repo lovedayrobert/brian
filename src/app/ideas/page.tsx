@@ -4,6 +4,7 @@ import Link from "next/link";
 import { IdeaCard } from "@/components/idea-card";
 import { EdgeBadge, EmptyState, PageHeader, Pill } from "@/components/ui";
 import { lensById } from "@/lib/brand/lenses";
+import { specialDayById } from "@/lib/calendar/days";
 import type { Idea } from "@/lib/domain/types";
 import { keyVisualFor, load } from "@/lib/queries";
 import { totalScore } from "@/lib/scores";
@@ -45,13 +46,18 @@ export default async function Ideas({ searchParams }: { searchParams: Promise<{ 
     } else if (o === "lab") {
       const lens = lensById(i.lens ?? "");
       key = `lab:${i.lens}`;
-      label = lens ? lens.name : `${i.lens ?? "Lab"} (earlier lens)`;
+      label = lens ? lens.name : i.lens === "spark" ? "Sparks: started from the team's own idea" : `${i.lens ?? "Lab"} (earlier lens)`;
       href = "/lab";
     } else if (o === "trend") {
       const t = db.trends.find((x) => x.id === i.trendId);
       key = `trend:${i.trendId}`;
       label = t?.title ?? "A trend no longer tracked";
       href = t ? `/trends/${t.id}` : undefined;
+    } else if (i.momentId?.startsWith("day_")) {
+      const day = specialDayById(i.momentId);
+      key = `moment:${i.momentId}`;
+      label = day ? `${day.title}, ${day.date}` : "A calendar day";
+      href = day ? `/calendar?d=${day.date}` : "/calendar";
     } else {
       const m = db.moments.find((x) => x.id === i.momentId);
       key = `moment:${i.momentId}`;

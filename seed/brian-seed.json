@@ -32,5 +32,24 @@
  "retireMemoryPrefixes": [
   "Aim for 10,000% attention",
   "Simple content beats big campaigns"
+ ],
+ "swipes": [
+  {
+   "id": "swipe_mvewo2vdsfihz",
+   "url": "https://x.com/itsHunterTV/status/2110739181836333321",
+   "title": "Asking for directions in LA using GTA 5 map",
+   "author": "@itsHunterTV",
+   "platform": "X",
+   "metrics": {
+    "views": 312959,
+    "likes": 9624,
+    "reposts": 369,
+    "replies": 34,
+    "bookmarks": 1536
+   },
+   "why": "So simple yet effective: one real act (asking strangers for directions in LA with the GTA 5 map), real reactions, zero cost, riding GTA 6 hype.",
+   "addedBy": "rob",
+   "addedAt": "2026-10-19T07:01:00.169Z"
+  }
  ]
 }

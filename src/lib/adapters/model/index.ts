@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
-import type * as z from "zod/v4";
+import * as z from "zod/v4";
 import type { AgentRun, Citation } from "@/lib/domain/types";
 import { newId, repo } from "@/lib/store";
 import { capsFromEnv, checkBudget, FALLBACK_WORST, PRICES, spendFromRuns, WEB_SEARCH_USD, worstCaseCost } from "@/lib/engine/spend";
@@ -13,6 +13,8 @@ import { capsFromEnv, checkBudget, FALLBACK_WORST, PRICES, spendFromRuns, WEB_SE
 export type AgentName =
   | "cartographer"
   | "pulse"
+  | "planner"
+  | "checker"
   | "analyst"
   | "inventor"
   | "critic"
@@ -29,6 +31,8 @@ type Effort = "low" | "medium" | "high" | "xhigh" | "max";
 
 export const AGENTS: Record<AgentName, { model: string; effort: Effort; label: string; job: string }> = {
   cartographer: { model: "claude-haiku-5-5", effort: "low", label: "Cartographer", job: "Scores relevance and clusters signals" },
+  checker: { model: "gpt-6-astra", effort: "high", label: "Checker (GPT-6 Astra)", job: "Max quality only: a second model checks the plan and the panel's picks" },
+  planner: { model: "claude-opus-5-5", effort: "high", label: "Planner", job: "Max quality only: picks the angles before the Inventor writes" },
   pulse: { model: "claude-sonnet-5-5", effort: "medium", label: "Pulse", job: "Reads what the audience is consuming and the emotion driving it" },
   analyst: { model: "claude-sonnet-5-5", effort: "medium", label: "Analyst", job: "Why a trend is spreading and who drives it" },
   inventor: { model: "claude-opus-5-5", effort: "high", label: "Inventor", job: "Finds the one act Cashy can do to a feeling the audience already has" },
@@ -42,6 +46,24 @@ export const AGENTS: Record<AgentName, { model: string; effort: Effort; label: s
   rapidResponse: { model: "claude-opus-5-5", effort: "medium", label: "Rapid Response", job: "Three reactive takes within minutes" },
   artDirector: { model: "claude-opus-5-5", effort: "medium", label: "Art Director", job: "Picks a native format for every asset; commissions images and video" },
 };
+
+/**
+ * Quality tier (Marko's setup). BRIAN_QUALITY=max: Fable 5.1 plans the angles
+ * and runs the audience panel, Opus 5.5 writes. About twice the cost per run,
+ * so the default stays on Opus and Sonnet. BRIAN_MODEL_<AGENT> (e.g.
+ * BRIAN_MODEL_CRITIC=claude-fable-5-1) overrides a single agent either way.
+ */
+const MAX_TIER: Partial<Record<AgentName, string>> = { planner: "claude-fable-5-1", critic: "claude-fable-5-1" };
+
+export function qualityMax(): boolean {
+  return process.env.BRIAN_QUALITY === "max";
+}
+
+export function agentConfig(agent: AgentName) {
+  const base = AGENTS[agent];
+  const override = process.env[`BRIAN_MODEL_${agent.replace(/[A-Z]/g, (c) => `_${c}`).toUpperCase()}`];
+  return { ...base, model: override || (qualityMax() && MAX_TIER[agent]) || base.model };
+}
 
 export class SpendCapError extends Error {}
 
@@ -86,7 +108,8 @@ function getClient(): Anthropic {
 
 // Claude Haiku 5.5 has no server-side refusal fallback; the others route a
 // declined request to Anthropic's recommended fallback model automatically.
-const supportsFallback = (model: string) => !model.includes("haiku");
+// Fable is left out until its fallback support is confirmed: an unsupported beta would fail the call.
+const supportsFallback = (model: string) => !model.includes("haiku") && !model.includes("fable");
 
 export async function callStructured<S extends z.ZodType>(opts: {
   agent: AgentName;
@@ -96,7 +119,7 @@ export async function callStructured<S extends z.ZodType>(opts: {
   subject?: string;
   maxTokens?: number;
 }): Promise<z.infer<S>> {
-  const cfg = AGENTS[opts.agent];
+  const cfg = agentConfig(opts.agent);
   const started = Date.now();
   const run: AgentRun = {
     id: newId("run"),
@@ -177,7 +200,7 @@ export async function research(opts: {
   maxSearches?: number;
   subject?: string;
 }): Promise<{ notes: string; sources: Citation[] }> {
-  const cfg = AGENTS[opts.agent];
+  const cfg = agentConfig(opts.agent);
   const started = Date.now();
   const run: AgentRun = {
     id: newId("run"), agent: opts.agent, model: cfg.model, startedAt: new Date(started).toISOString(),
@@ -269,6 +292,79 @@ export async function chargeExternal<T>(
     // A failed generation may still have been billed; charge it to stay under the cap.
     run.costUsd = e instanceof SpendCapError ? 0 : opts.costUsd;
     throw e;
+  } finally {
+    run.durationMs = Date.now() - started;
+    await repo.update((db) => {
+      db.agentRuns = [run, ...db.agentRuns].slice(0, 2000);
+      const day = run.startedAt.slice(0, 10);
+      db.spendLedger = { ...(db.spendLedger ?? {}), [day]: Math.round(((db.spendLedger?.[day] ?? 0) + run.costUsd) * 10000) / 10000 };
+    });
+    reservations.delete(run.id);
+  }
+}
+
+/**
+ * The second opinion (Marko's setup): GPT-6 Astra checks the Planner's
+ * angles and the panel's picks. Needs OPENAI_API_KEY; BRIAN_CHECKER_MODEL can
+ * name another OpenAI model (default gpt-6-astra). Prices for the cap come
+ * from OPENAI_PRICE_IN / OPENAI_PRICE_OUT (USD per million tokens),
+ * defaulting to Astra's listed $10/$50. Same hard cap, same run log.
+ */
+export function checkerReady(): boolean {
+  return !!process.env.OPENAI_API_KEY;
+}
+
+export const checkerModel = () => process.env.BRIAN_CHECKER_MODEL || "gpt-6-astra";
+
+export async function callChecker<S extends z.ZodType>(opts: { system: string; prompt: string; schema: S; subject?: string; maxTokens?: number }): Promise<z.infer<S>> {
+  const model = checkerModel();
+  const price = { input: Number(process.env.OPENAI_PRICE_IN) || 10, output: Number(process.env.OPENAI_PRICE_OUT) || 50 };
+  const maxTokens = opts.maxTokens ?? 16000;
+  const started = Date.now();
+  const run: AgentRun = {
+    id: newId("run"), agent: "checker", model, startedAt: new Date(started).toISOString(),
+    durationMs: 0, inputTokens: 0, outputTokens: 0, costUsd: 0, ok: false, subject: opts.subject,
+  };
+  try {
+    const estimate = (((opts.system.length + opts.prompt.length) / 3 + 1000) * price.input + maxTokens * price.output) / 1e6;
+    await reserve(run.id, estimate);
+    const { $schema: _drop, ...schema } = z.toJSONSchema(opts.schema) as Record<string, unknown>;
+    void _drop;
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+      body: JSON.stringify({
+        model,
+        max_completion_tokens: maxTokens,
+        messages: [
+          { role: "system", content: opts.system },
+          { role: "user", content: opts.prompt },
+        ],
+        response_format: { type: "json_schema", json_schema: { name: "output", strict: true, schema } },
+      }),
+      signal: AbortSignal.timeout(300_000),
+    });
+    const j = (await res.json()) as {
+      choices?: { message: { content: string | null; refusal?: string | null }; finish_reason: string }[];
+      usage?: { prompt_tokens: number; completion_tokens: number };
+      error?: { message: string };
+    };
+    if (j.usage) {
+      run.inputTokens = j.usage.prompt_tokens;
+      run.outputTokens = j.usage.completion_tokens;
+      run.costUsd = Math.round(((run.inputTokens * price.input + run.outputTokens * price.output) / 1e6) * 10000) / 10000;
+    }
+    if (!res.ok) throw new Error(`OpenAI ${res.status}: ${j.error?.message ?? "error"}`);
+    const msg = j.choices?.[0];
+    if (msg?.message.refusal) throw new Error(`The checker declined: ${msg.message.refusal}`);
+    if (msg?.finish_reason === "length") throw new Error("Checker output hit the token limit.");
+    const parsed = opts.schema.safeParse(JSON.parse(msg?.message.content ?? "null"));
+    if (!parsed.success) throw new Error("Checker output did not match the expected structure.");
+    run.ok = true;
+    return parsed.data as z.infer<S>;
+  } catch (e) {
+    run.error = (e as Error).message;
+    throw e instanceof SpendCapError ? e : new Error(`Checker (${model}): ${run.error}`);
   } finally {
     run.durationMs = Date.now() - started;
     await repo.update((db) => {

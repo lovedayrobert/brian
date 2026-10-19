@@ -18,7 +18,7 @@ import {
   Settings,
   Swords,
   X,
- HeartPulse } from "lucide-react";
+ HeartPulse, Bookmark, CalendarRange } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -33,12 +33,14 @@ const NAV = [
       { href: "/", label: "Today", icon: CalendarClock },
       { href: "/trends", label: "Trends", icon: Activity },
       { href: "/lab", label: "Lab", icon: FlaskConical },
+      { href: "/swipe", label: "Swipe file", icon: Bookmark },
       { href: "/ideas", label: "Ideas", icon: Lightbulb },
     ],
   },
   {
     group: "Develop",
     items: [
+      { href: "/calendar", label: "Calendar", icon: CalendarRange },
       { href: "/develop", label: "Packages", icon: Layers },
       { href: "/mockups", label: "Mockups", icon: Images },
       { href: "/campaigns", label: "Campaigns", icon: Rocket },
