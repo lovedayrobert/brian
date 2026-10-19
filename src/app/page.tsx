@@ -1,200 +1,204 @@
-import { ArrowRight, CalendarClock, Flame, Lightbulb, Radar, Sparkles } from "lucide-react";
+import clsx from "clsx";
+import { ArrowRight, CalendarRange, Lightbulb, Radar } from "lucide-react";
+import { cookies } from "next/headers";
 import Link from "next/link";
-import { ActionButton } from "@/components/action-button";
-import { SweepButton } from "@/components/sweep-button";
-import { IdeaCard } from "@/components/idea-card";
 import { AiBanner } from "@/components/ai-banner";
-import { categoryLabel, TrendCard } from "@/components/trend-card";
-import { Card, EmptyState, PageHeader, SectionTitle, SensitivityBadge, Stat } from "@/components/ui";
+import { DAY_KIND } from "@/lib/calendar/day-kinds";
+import { IdeaCard } from "@/components/idea-card";
+import { SweepButton } from "@/components/sweep-button";
+import { Card, PageHeader, SectionTitle } from "@/components/ui";
 import { modelReady } from "@/lib/adapters/model";
-import { daysUntil, relativeTime, shortDate } from "@/lib/format";
-import { breaking, cards, keyVisualFor, killed, launchWindow, load, upcoming } from "@/lib/queries";
+import { authMode, firstName, SESSION_COOKIE, verifySession } from "@/lib/auth";
+import { addDays, shortDate, todayDay } from "@/lib/calendar/dates";
+import { getCalendar } from "@/lib/calendar/service";
+import type { Task } from "@/lib/calendar/types";
+import { relativeTime } from "@/lib/format";
+import { breaking, cards, keyVisualFor, load } from "@/lib/queries";
 
-export default async function Today() {
+export const metadata = { title: { absolute: "Brian" } };
+
+/** Home: what to do today. Everything here links into Radar, Ideas or Calendar. */
+export default async function Home() {
   const db = await load();
   const ai = modelReady();
-  const now = new Date();
-  const hour = now.getHours();
+  const today = todayDay();
+  const user = authMode() === "on" ? (await verifySession((await cookies()).get(SESSION_COOKIE)?.value, process.env.BRIAN_SESSION_SECRET!))?.user : null;
+  const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-  const window = launchWindow(db.trends);
-  const newCards = cards(db.ideas).slice(0, 4);
-  const dead = killed(db.ideas).slice(0, 5);
-  const soon = upcoming(db.moments, 6);
-  const news = breaking(db.moments).filter((m) => m.sensitivity !== "blocked" && !m.industry).slice(0, 5);
+
+  // The home team's work: overdue (last two weeks) and the next seven days.
+  const team = process.env.LINEAR_TEAM;
+  const cal = await getCalendar(addDays(today, -14), addDays(today, 6), { teamKey: team, unscheduled: false });
+  const open = cal.tasks.filter((t) => t.status.type !== "completed" && t.status.type !== "canceled" && t.source !== "crm-sheet");
+  const overdue = open.filter((t) => t.date && t.date < today).sort(byDate);
+  const dueSoon = open.filter((t) => t.date && t.date >= today).sort(byDate);
+  const crmSocial = cal.tasks.filter((t) => t.needsSocial && t.date && t.date >= today);
+  const days = (await getCalendar(today, addDays(today, 21), { unscheduled: false })).days;
+  const ideas = cards(db.ideas).slice(0, 3);
+  const pulse = db.pulses?.[0];
+  const news = breaking(db.moments).filter((m) => m.sensitivity !== "blocked" && !m.industry).slice(0, 3);
   const sweep = db.sweeps[0];
 
-  const sweepButton = (
-    <SweepButton label="Run sweep" pending="Sweeping sources…" />
-  );
-
-  if (!sweep) {
-    return (
-      <>
-        <PageHeader eyebrow={now.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })} title={`${greeting}, Rob`} />
-        <EmptyState
-          icon={<Radar className="h-5 w-5" />}
-          title="Brian hasn't looked at the internet yet"
-          body="Run the first sweep to pull live signals from Wikipedia, global news, Polymarket and the iGaming and crypto press. It takes about a minute."
-          action={sweepButton}
-        />
-      </>
-    );
-  }
-
-  const nextBig = soon[0];
   const summary = [
-    window.length ? `${window.length} trend${window.length === 1 ? " is" : "s are"} in the launch window` : "Nothing relevant is in the launch window right now",
-    newCards.length ? `${newCards.length} idea${newCards.length === 1 ? "" : "s"} waiting for you` : null,
-    nextBig ? `${nextBig.title} is ${daysUntil(nextBig.date) <= 1 ? "tomorrow" : `in ${daysUntil(nextBig.date)} days`}` : null,
+    overdue.length ? `${overdue.length} overdue` : null,
+    `${dueSoon.length} task${dueSoon.length === 1 ? "" : "s"} due this week`,
+    days[0] ? `${days[0].title} ${days[0].date === today ? "is today" : `on ${shortDate(days[0].date)}`}` : null,
+    ideas.length ? `${ideas.length} idea${ideas.length === 1 ? "" : "s"} waiting on you` : null,
   ]
     .filter(Boolean)
-    .join(". ");
+    .join(" · ");
 
   return (
     <>
       <PageHeader
-        eyebrow={now.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
-        title={`${greeting}, Rob`}
-        subtitle={`${summary}.`}
-        actions={sweepButton}
+        eyebrow={new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
+        title={`${greeting}, ${firstName(user ?? (authMode() === "off-dev" ? "rob" : null))}`}
+        subtitle={summary}
       />
 
-      {!ai && <AiBanner className="mb-8" />}
+      {!ai && <AiBanner className="mb-6" />}
 
-      <Card className="mb-10 grid grid-cols-2 gap-6 p-5 sm:grid-cols-4 sm:p-6">
-        <Stat label="Trends tracked" value={db.trends.length} hint={`From ${db.signals.length} signals`} />
-        <Stat label="In launch window" value={window.length} hint="Emerging or rising, relevant" />
-        <Stat label="Idea cards" value={cards(db.ideas).length} hint={`${killed(db.ideas).length} killed by the Critic`} />
-        <Stat label="Last sweep" value={<span className="text-[22px]">{relativeTime(sweep.finishedAt)}</span>} hint={`${sweep.sources.filter((s) => s.ok).length} sources answered`} />
-      </Card>
+      <div className="mb-10 grid gap-3 sm:grid-cols-3">
+        <Space href="/radar" icon={Radar} title="Radar" body="What people are watching and feeling right now" cta={pulse ? `Read ${relativeTime(pulse.createdAt)}` : "Read the room"} />
+        <Space href="/ideas/new" icon={Lightbulb} title="Get ideas" body="From a spark, a type of idea, or any day in the calendar" cta="Start" />
+        <Space href="/calendar" icon={CalendarRange} title="Calendar" body={`Your Linear tasks${team ? ` (${team})` : ""}, the CRM sheet and special days`} cta="Open" />
+      </div>
 
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0 space-y-10">
           <section>
-            <SectionTitle action={<Link href="/trends" className="text-[13px] text-accent-ink hover:underline">All trends</Link>}>
-              Entering the launch window
+            <SectionTitle action={<Link href="/calendar?view=agenda" className="text-[13px] text-accent-ink hover:underline">Calendar</Link>}>
+              This week{team ? ` in ${team}` : ""}
             </SectionTitle>
-            {window.length ? (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {window.map((t) => (
-                  <TrendCard key={t.id} trend={t} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState title="Quiet out there" body="No relevant trend is emerging or rising right now. Brian keeps watching." />
-            )}
+            <Card className="divide-y divide-line">
+              {overdue.length > 0 && <TaskGroup label="Overdue" tone="bad" tasks={overdue.slice(0, 6)} />}
+              {dueSoon.length > 0 ? (
+                <TaskGroup label="Due" tasks={dueSoon.slice(0, 10)} today={today} />
+              ) : (
+                <p className="px-5 py-4 text-[13.5px] text-ink-3">Nothing due this week.</p>
+              )}
+              {crmSocial.length > 0 && <TaskGroup label="CRM sends that need social" tone="warn" tasks={crmSocial.slice(0, 5)} />}
+            </Card>
+            {cal.errors.length > 0 && <p className="mt-2 text-[12.5px] text-bad">{cal.errors.join(" · ")}</p>}
           </section>
 
           <section>
-            <SectionTitle action={<Link href="/ideas" className="text-[13px] text-accent-ink hover:underline">All ideas</Link>}>
-              New ideas
-            </SectionTitle>
-            {newCards.length ? (
-              <div className="grid gap-4 sm:grid-cols-2">
-                {newCards.map((i) => (
+            <SectionTitle action={<Link href="/ideas" className="text-[13px] text-accent-ink hover:underline">All ideas</Link>}>Ideas waiting on you</SectionTitle>
+            {ideas.length ? (
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {ideas.map((i) => (
                   <IdeaCard key={i.id} idea={i} keyVisualUrl={keyVisualFor(i.id, db.packages)} />
                 ))}
               </div>
             ) : (
-              <EmptyState
-                icon={<Lightbulb className="h-5 w-5" />}
-                title="No idea cards yet"
-                body={
-                  ai
-                    ? "Open a trend and ask Brian for ideas. The Inventor drafts ten, the Critic kills most of them, and the survivors land here."
-                    : "Ideas need the AI layer. Discovery above is live; add an Anthropic key to start inventing."
-                }
-              />
+              <Card className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+                <p className="text-[13.5px] text-ink-2">No ideas waiting. Point Brian somewhere and it&rsquo;ll come back with ten, and the audience panel keeps the best.</p>
+                <Link href="/ideas/new" className="inline-flex h-9 items-center gap-1.5 rounded-full bg-ink px-4 text-[13.5px] font-medium text-bg hover:opacity-90">
+                  Get ideas <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </Card>
             )}
           </section>
-
-          {dead.length > 0 && (
-            <section>
-              <SectionTitle>Killed, with reasons</SectionTitle>
-              <Card className="divide-y divide-line">
-                {dead.map((i) => (
-                  <Link key={i.id} href={`/ideas/${i.id}`} className="block px-5 py-3.5 transition hover:bg-surface-2">
-                    <div className="text-[14px] font-medium">{i.name}</div>
-                    <div className="mt-0.5 line-clamp-1 text-[13px] text-ink-2">{i.screening.critic.reasons[0]}</div>
-                  </Link>
-                ))}
-              </Card>
-            </section>
-          )}
         </div>
 
         <aside className="space-y-10">
           <section>
-            <SectionTitle>
-              <span className="inline-flex items-center gap-2">
-                <CalendarClock className="h-4 w-4 text-ink-3" /> Coming up
-              </span>
-            </SectionTitle>
-            <Card className="divide-y divide-line">
-              {soon.length ? (
-                soon.map((m) => {
-                  const d = daysUntil(m.date);
-                  return (
-                    <div key={m.id} className="flex items-center gap-4 px-4 py-3">
-                      <div className="w-12 shrink-0 text-center">
-                        <div className="display tabular text-[22px] leading-none">{d}</div>
-                        <div className="mt-0.5 text-[10.5px] text-ink-3">{d === 1 ? "day" : "days"}</div>
-                      </div>
-                      <div className="min-w-0">
-                        <div className="line-clamp-2 text-[13.5px] font-medium leading-snug">{m.title}</div>
-                        <div className="mt-0.5 text-[12px] text-ink-3">
-                          {shortDate(m.date)} · {categoryLabel(m.category)}
-                          {m.dateNote ? " · date to confirm" : ""}
-                        </div>
-                        <div className="mt-1.5">
-                          <ActionButton endpoint="/api/ideas" body={{ momentId: m.id, horizon: "evergreen" }} size="sm" variant="ghost" pending="Inventing big ideas…" disabled={!ai} disabledReason={!ai ? "Needs the AI key" : undefined}>
-                            Big ideas
-                          </ActionButton>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
+            <SectionTitle action={<Link href="/radar" className="text-[13px] text-accent-ink hover:underline">Radar</Link>}>The room</SectionTitle>
+            <Card className="space-y-3 p-5 text-[13.5px] leading-relaxed">
+              {pulse ? (
+                <>
+                  <p className="line-clamp-4">{pulse.mood}</p>
+                  {pulse.villain && (
+                    <p>
+                      <span className="font-medium text-bad">Villain: </span>
+                      {pulse.villain}
+                    </p>
+                  )}
+                  {pulse.mainCharacter && (
+                    <p>
+                      <span className="font-medium text-accent-ink">Main character: </span>
+                      {pulse.mainCharacter}
+                    </p>
+                  )}
+                  <p className="text-[12px] text-ink-3">Read {relativeTime(pulse.createdAt)}</p>
+                </>
               ) : (
-                <div className="px-4 py-6 text-[13px] text-ink-3">No dated moments in the next 90 days.</div>
+                <p className="text-ink-2">
+                  Brian hasn&rsquo;t read the room yet. <Link href="/radar" className="text-accent-ink hover:underline">Open Radar</Link> and press Read the room.
+                </p>
+              )}
+              {news.length > 0 && (
+                <div className="border-t border-line pt-3">
+                  <div className="mb-1.5 text-[11.5px] font-medium uppercase tracking-[0.05em] text-ink-3">Breaking</div>
+                  {news.map((m) => (
+                    <Link key={m.id} href={`/radar/breaking#${m.id}`} className="block py-1 text-[13px] leading-snug hover:text-accent-ink">
+                      {m.title}
+                    </Link>
+                  ))}
+                </div>
               )}
             </Card>
           </section>
 
           <section>
-            <SectionTitle action={<Link href="/live" className="text-[13px] text-accent-ink hover:underline">Live</Link>}>
-              <span className="inline-flex items-center gap-2">
-                <Flame className="h-4 w-4 text-ink-3" /> Breaking
-              </span>
-            </SectionTitle>
+            <SectionTitle action={<Link href="/calendar?view=agenda" className="text-[13px] text-accent-ink hover:underline">All</Link>}>Coming up</SectionTitle>
             <Card className="divide-y divide-line">
-              {news.map((m) => (
-                <Link key={m.id} href={`/live#${m.id}`} className="block px-4 py-3 transition hover:bg-surface-2">
-                  <div className="line-clamp-2 text-[13.5px] font-medium leading-snug">{m.title}</div>
-                  <div className="mt-1 flex items-center gap-2 text-[12px] text-ink-3">
-                    <span>{categoryLabel(m.category)}</span>
-                    <span>·</span>
-                    <span>{m.outlets} outlet{m.outlets === 1 ? "" : "s"}</span>
-                    <span>·</span>
-                    <span>{relativeTime(m.date)}</span>
-                  </div>
-                  {m.sensitivity !== "clear" && (
-                    <div className="mt-1.5">
-                      <SensitivityBadge level={m.sensitivity} reason={m.sensitivityReason} />
-                    </div>
-                  )}
+              {days.slice(0, 7).map((d) => (
+                <Link key={d.id} href={`/calendar?d=${d.date}&open=${d.date}`} className="flex items-center gap-3 px-4 py-2.5 transition hover:bg-surface-2">
+                  <span className={clsx("rounded-full px-2 py-0.5 text-[11px] font-medium", DAY_KIND[d.kind].cls)}>{DAY_KIND[d.kind].icon}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13.5px] font-medium">{d.title}</span>
+                    <span className="block text-[12px] text-ink-3">{d.date === today ? "Today" : shortDate(d.date)} · get ideas</span>
+                  </span>
+                  <ArrowRight className="h-3.5 w-3.5 text-ink-3" />
                 </Link>
               ))}
-              <Link href="/live" className="flex items-center justify-between px-4 py-3 text-[13px] text-accent-ink hover:bg-surface-2">
-                <span className="inline-flex items-center gap-1.5">
-                  <Sparkles className="h-3.5 w-3.5" /> React with Rapid Response
-                </span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
             </Card>
           </section>
+
+          <p className="flex items-center gap-2 text-[12px] text-ink-3">
+            {sweep ? `Radar updated ${relativeTime(sweep.finishedAt)}` : "Radar hasn't run yet"}
+            <SweepButton label="Update" pending="Updating…" />
+          </p>
         </aside>
       </div>
     </>
+  );
+}
+
+const byDate = (a: Task, b: Task) => (a.date ?? "").localeCompare(b.date ?? "") || (a.priority || 9) - (b.priority || 9);
+
+function Space({ href, icon: Icon, title, body, cta }: { href: string; icon: typeof Radar; title: string; body: string; cta: string }) {
+  return (
+    <Link href={href} className="group flex flex-col rounded-[18px] bg-surface p-4 shadow-card transition hover:-translate-y-px hover:shadow-raised">
+      <span className="flex items-center gap-2 text-[15px] font-semibold tracking-tight">
+        <Icon className="h-4 w-4 text-accent" /> {title}
+      </span>
+      <span className="mt-1 flex-1 text-[13px] leading-snug text-ink-2">{body}</span>
+      <span className="mt-3 inline-flex items-center gap-1 text-[12.5px] font-medium text-accent-ink">
+        {cta} <ArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5" />
+      </span>
+    </Link>
+  );
+}
+
+function TaskGroup({ label, tasks, tone, today }: { label: string; tasks: Task[]; tone?: "bad" | "warn"; today?: string }) {
+  return (
+    <div className="px-5 py-3">
+      <div className={clsx("mb-1.5 text-[11.5px] font-medium uppercase tracking-[0.05em]", tone === "bad" ? "text-bad" : tone === "warn" ? "text-[#b4580f]" : "text-ink-3")}>{label}</div>
+      <ul className="space-y-1">
+        {tasks.map((t) => (
+          <li key={t.id}>
+            <Link href={t.url ?? `/calendar?d=${t.date}&open=${t.date}`} target={t.url ? "_blank" : undefined} className="flex items-center gap-3 rounded-[8px] py-1 text-[13.5px] hover:text-accent-ink">
+              <span className="w-[86px] shrink-0 text-[12px] text-ink-3">{t.date === today ? "Today" : t.date ? shortDate(t.date) : ""}</span>
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: t.status.color ?? "#9ca3af" }} title={t.status.name} />
+              <span className="min-w-0 flex-1 truncate">{t.title}</span>
+              {t.identifier && <span className="shrink-0 text-[11.5px] text-ink-3">{t.identifier}</span>}
+              {t.assignee && <span className="hidden shrink-0 text-[12px] text-ink-3 sm:inline">{t.assignee.name.split(" ")[0]}</span>}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

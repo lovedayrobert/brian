@@ -140,7 +140,7 @@ export default async function IdeaDetail({ params }: { params: Promise<{ id: str
                 </div>
               ))}
               {trend && (
-                <Link href={`/trends/${trend.id}`} className="block px-5 py-3.5 text-[13px] text-accent-ink hover:bg-surface-2">
+                <Link href={`/radar/trends/${trend.id}`} className="block px-5 py-3.5 text-[13px] text-accent-ink hover:bg-surface-2">
                   From trend: {trend.title} →
                 </Link>
               )}

@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { RADAR_TABS, SectionTabs } from "@/components/section-tabs";
 import { Activity } from "lucide-react";
 import Link from "next/link";
 import { categoryLabel, TrendCard } from "@/components/trend-card";
@@ -22,14 +23,15 @@ export default async function Trends({ searchParams }: { searchParams: Promise<{
     const merged = { stage, cat, all, ...patch };
     for (const [k, v] of Object.entries(merged)) if (v) p.set(k, v);
     const s = p.toString();
-    return `/trends${s ? `?${s}` : ""}`;
+    return `/radar/trends${s ? `?${s}` : ""}`;
   };
 
   return (
     <>
+      <SectionTabs space="Radar" tabs={RADAR_TABS} active="trends" />
       <PageHeader
         title="Trends"
-        subtitle="Everything Brian is tracking, staged by lifecycle from its daily curve. Search spikes are paired with their 30-day attention curve so you can see whether you're early or late."
+        subtitle="What's growing and what's fading, from search, Wikipedia and news curves, so you can see whether you're early or late."
       />
 
       <div className="mb-3 flex flex-wrap gap-2">

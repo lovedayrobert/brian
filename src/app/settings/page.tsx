@@ -1,7 +1,7 @@
 import clsx from "clsx";
-import Link from "next/link";
 import { CostPlanner } from "@/components/cost-planner";
-import { Card, PageHeader, Pill, SectionTitle, SourceLink } from "@/components/ui";
+import { Card, Pill, SectionTitle, SourceLink } from "@/components/ui";
+import { SETTINGS_TABS, SectionTabs } from "@/components/section-tabs";
 import { AGENTS, modelReady, spendStatus } from "@/lib/adapters/model";
 import { authMode } from "@/lib/auth";
 import { imageReady } from "@/lib/adapters/image";
@@ -15,13 +15,7 @@ import { load, spend } from "@/lib/queries";
 
 export const metadata = { title: "Settings" };
 
-const TABS = [
-  ["coverage", "Coverage & cost"],
-  ["sources", "Sources"],
-  ["brand", "Brand"],
-  ["models", "Models"],
-  ["accuracy", "Accuracy"],
-] as const;
+
 
 export default async function Settings({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const { tab = "coverage" } = await searchParams;
@@ -29,20 +23,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
 
   return (
     <>
-      <PageHeader title="Settings" />
-      <div className="-mx-4 mb-8 flex gap-1 overflow-x-auto px-4 scrollbar-none sm:mx-0 sm:px-0">
-        <div className="flex gap-1 rounded-full bg-surface-3 p-1">
-          {TABS.map(([k, l]) => (
-            <Link
-              key={k}
-              href={`/settings?tab=${k}`}
-              className={clsx("shrink-0 rounded-full px-4 py-1.5 text-[13px] transition", tab === k ? "bg-surface font-medium shadow-card" : "text-ink-2 hover:text-ink")}
-            >
-              {l}
-            </Link>
-          ))}
-        </div>
-      </div>
+      <SectionTabs space="Settings" tabs={SETTINGS_TABS} active={tab} />
 
       {tab === "coverage" && (
         <>

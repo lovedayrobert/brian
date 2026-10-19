@@ -93,7 +93,8 @@ export async function syncCrm(): Promise<NonNullable<DB["crmSync"]>> {
   }
 }
 
-export async function getCalendar(from: string, to: string): Promise<CalendarData> {
+/** Everything between two dates. Home passes a team key and skips the undated tray to stay quick. */
+export async function getCalendar(from: string, to: string, opts: { teamKey?: string; unscheduled?: boolean } = {}): Promise<CalendarData> {
   const errors: string[] = [];
   if (sheetReady()) {
     const last = (await repo.read()).crmSync;
@@ -109,7 +110,7 @@ export async function getCalendar(from: string, to: string): Promise<CalendarDat
   let unscheduled: Task[] = [];
   if (linearReady()) {
     try {
-      const [meta, inRange, noDate] = await Promise.all([linearMeta(), issuesInRange(from, to), unscheduledIssues()]);
+      const [meta, inRange, noDate] = await Promise.all([linearMeta(), issuesInRange(from, to, opts.teamKey), opts.unscheduled === false ? Promise.resolve([]) : unscheduledIssues()]);
       linear = { ...meta, connected: true };
       issues = inRange.map((i) => fromIssue(i, db.calendarMeta ?? {}));
       unscheduled = noDate.map((i) => fromIssue(i, db.calendarMeta ?? {}));

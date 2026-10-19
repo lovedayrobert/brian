@@ -9,7 +9,7 @@ export const metadata = { title: "Calendar" };
 
 const VIEWS: View[] = ["month", "week", "agenda", "board"];
 
-export default async function CalendarPage({ searchParams }: { searchParams: Promise<{ view?: string; d?: string; new?: string; ideaId?: string }> }) {
+export default async function CalendarPage({ searchParams }: { searchParams: Promise<{ view?: string; d?: string; new?: string; ideaId?: string; open?: string }> }) {
   const sp = await searchParams;
   const view: View = VIEWS.includes(sp.view as View) ? (sp.view as View) : "month";
   const anchor = /^\d{4}-\d{2}-\d{2}$/.test(sp.d ?? "") ? sp.d! : todayDay();
@@ -42,5 +42,5 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
       };
   }
 
-  return <CalendarClient initial={data} initialView={view} initialAnchor={anchor} ai={modelReady()} prefill={prefill} />;
+  return <CalendarClient initial={data} initialView={view} initialAnchor={anchor} ai={modelReady()} prefill={prefill} openDay={/^\d{4}-\d{2}-\d{2}$/.test(sp.open ?? "") ? sp.open : undefined} />;
 }

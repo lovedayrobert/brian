@@ -1,4 +1,5 @@
-import { FlaskConical } from "lucide-react";
+
+import { IDEAS_TABS, SectionTabs } from "@/components/section-tabs";
 import { IdeaCard } from "@/components/idea-card";
 import { LabRunner } from "@/components/lab-runner";
 import { Card, PageHeader, SectionTitle } from "@/components/ui";
@@ -8,7 +9,7 @@ import { LENSES } from "@/lib/brand/lenses";
 import { HORIZON_COPY, REACTIVE_LENSES } from "@/lib/horizon";
 import { cards, keyVisualFor, load } from "@/lib/queries";
 
-export const metadata = { title: "Opportunity Lab" };
+export const metadata = { title: "Get ideas" };
 
 export default async function Lab() {
   const db = await load();
@@ -18,20 +19,16 @@ export default async function Lab() {
 
   return (
     <>
+      <SectionTabs space="Ideas" tabs={IDEAS_TABS} active="new" />
       <PageHeader
-        eyebrow={
-          <span className="inline-flex items-center gap-1.5">
-            <FlaskConical className="h-3.5 w-3.5" /> Opportunity Lab
-          </span>
-        }
-        title="Ideas that don't start with a trend"
-        subtitle="Start from your own spark, or pick a kind of act. Every idea is one real thing Cashy does, aimed at a feeling the audience already has (read on the Pulse), and faces the audience panel and Red Lines."
+        title="Get ideas"
+        subtitle="Point Brian somewhere: your own half-idea, or a type of idea below. Each run gives about ten ideas; the audience panel keeps the best three. You can also get ideas for any day from the Calendar."
       />
 
       <Card className="mb-10 p-5">
-        <div className="mb-1 text-[17px] font-semibold tracking-tight">Start from a spark</div>
+        <div className="mb-1 text-[17px] font-semibold tracking-tight">Start from your own idea</div>
         <p className="mb-3 max-w-[720px] text-[13px] text-ink-2">
-          Brian does best when you point it somewhere. Write a half-idea, a direction, or &ldquo;they did this, could we do something like it?&rdquo;. To riff on a specific post, add it to the Swipe file first.
+          Brian does best when you point it somewhere. Write a half-idea, a direction, or &ldquo;they did this, could we do something like it?&rdquo;. To riff on a specific post, add it to Inspiration first.
         </p>
         <SparkBox disabled={!ai} />
       </Card>

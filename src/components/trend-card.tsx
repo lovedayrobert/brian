@@ -23,7 +23,7 @@ export function TrendCard({ trend }: { trend: Trend }) {
   const values = trend.series.map((s) => s.value);
   return (
     <Link
-      href={`/trends/${trend.id}`}
+      href={`/radar/trends/${trend.id}`}
       className="group flex flex-col rounded-[18px] bg-surface p-4 shadow-card transition hover:-translate-y-px hover:shadow-raised"
     >
       <div className="flex items-start justify-between gap-3">

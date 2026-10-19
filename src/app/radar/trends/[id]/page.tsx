@@ -22,7 +22,7 @@ export default async function TrendDetail({ params }: { params: Promise<{ id: st
 
   return (
     <>
-      <Link href="/trends" className="mb-5 inline-flex items-center gap-1 text-[13px] text-ink-2 hover:text-ink">
+      <Link href="/radar/trends" className="mb-5 inline-flex items-center gap-1 text-[13px] text-ink-2 hover:text-ink">
         <ArrowLeft className="h-3.5 w-3.5" /> Trends
       </Link>
       <PageHeader

@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { IDEAS_TABS, SectionTabs } from "@/components/section-tabs";
 import { FlaskConical, Flame, Lightbulb, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { IdeaCard } from "@/components/idea-card";
@@ -11,7 +12,7 @@ import { totalScore } from "@/lib/scores";
 import { HORIZON_COPY, horizonFor } from "@/lib/horizon";
 import type { Horizon } from "@/lib/domain/types";
 
-export const metadata = { title: "Ideas" };
+export const metadata = { title: "Brian's ideas" };
 
 type Origin = "lab" | "trend" | "moment";
 
@@ -47,12 +48,12 @@ export default async function Ideas({ searchParams }: { searchParams: Promise<{ 
       const lens = lensById(i.lens ?? "");
       key = `lab:${i.lens}`;
       label = lens ? lens.name : i.lens === "spark" ? "Sparks: started from the team's own idea" : `${i.lens ?? "Lab"} (earlier lens)`;
-      href = "/lab";
+      href = "/ideas/new";
     } else if (o === "trend") {
       const t = db.trends.find((x) => x.id === i.trendId);
       key = `trend:${i.trendId}`;
       label = t?.title ?? "A trend no longer tracked";
-      href = t ? `/trends/${t.id}` : undefined;
+      href = t ? `/radar/trends/${t.id}` : undefined;
     } else if (i.momentId?.startsWith("day_")) {
       const day = specialDayById(i.momentId);
       key = `moment:${i.momentId}`;
@@ -62,7 +63,7 @@ export default async function Ideas({ searchParams }: { searchParams: Promise<{ 
       const m = db.moments.find((x) => x.id === i.momentId);
       key = `moment:${i.momentId}`;
       label = m?.title ?? "A moment no longer on Live";
-      href = m ? `/live#${m.id}` : undefined;
+      href = m ? `/radar/breaking#${m.id}` : undefined;
     }
     const horizon = horizonFor(i);
     key = `${horizon}:${key}`;
@@ -85,9 +86,10 @@ export default async function Ideas({ searchParams }: { searchParams: Promise<{ 
 
   return (
     <>
+      <SectionTabs space="Ideas" tabs={IDEAS_TABS} active="ideas" />
       <PageHeader
-        title="Ideas"
-        subtitle="Grouped by where each idea came from: a Lab lens, a trend or a breaking moment. Cards survived the Critic, Red Lines and the prior-art check; killed ideas sit under each group with the reasons, so you can overrule the Critic."
+        title="Brian\'s ideas"
+        subtitle="Every idea that survived the audience panel and Red Lines, grouped by where it came from. Killed ideas sit under each group with the reasons, and you can overrule them."
       />
 
       <div className="mb-3 flex flex-wrap gap-2">

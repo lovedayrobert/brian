@@ -1,10 +1,11 @@
 import { Swords } from "lucide-react";
+import { RADAR_TABS, SectionTabs } from "@/components/section-tabs";
 import Link from "next/link";
 import { Card, EmptyState, PageHeader, SourceLink } from "@/components/ui";
 import { relativeTime } from "@/lib/format";
 import { load } from "@/lib/queries";
 
-export const metadata = { title: "Competitors" };
+export const metadata = { title: "Rivals" };
 
 const RIVALS = ["Stake", "Shuffle", "Rollbit", "Roobet", "BC.Game", "Rainbet", "Duel"];
 
@@ -16,9 +17,10 @@ export default async function Competitors() {
     .filter((x) => x.rivals.length);
   return (
     <>
+      <SectionTabs space="Radar" tabs={RADAR_TABS} active="rivals" />
       <PageHeader
-        title="Competitors"
-        subtitle="What rivals are doing, from press coverage today. Their socials, sites and launch tracking arrive with the crawl and X sources in Phase 3."
+        title="Rivals"
+        subtitle="What Stake, Shuffle, Rollbit and the rest are doing, from today's press coverage. Their socials arrive with the X feed."
       />
       <div className="mb-8 flex flex-wrap gap-2">
         {RIVALS.map((r) => (
@@ -44,7 +46,7 @@ export default async function Competitors() {
           ))}
         </Card>
       ) : (
-        <EmptyState icon={<Swords className="h-5 w-5" />} title="No competitor coverage in this sweep" body={<Link href="/live" className="text-accent-ink">See what&rsquo;s breaking</Link>} />
+        <EmptyState icon={<Swords className="h-5 w-5" />} title="No competitor coverage in this sweep" body={<Link href="/radar/breaking" className="text-accent-ink">See what&rsquo;s breaking</Link>} />
       )}
     </>
   );

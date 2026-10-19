@@ -1,4 +1,5 @@
 import { BrainCircuit, BookOpen, Eye, Lightbulb, Pause, Pencil, Sparkles, ThumbsDown, ThumbsUp, Trash2, Wand2 } from "lucide-react";
+import { SETTINGS_TABS, SectionTabs } from "@/components/section-tabs";
 import Link from "next/link";
 import { ActionButton } from "@/components/action-button";
 import { MemoryItem, TeachBox } from "@/components/memory-controls";
@@ -8,7 +9,7 @@ import { relativeTime } from "@/lib/format";
 import type { MemoryEvent, MemoryKind } from "@/lib/memory";
 import { load, memoryWeek } from "@/lib/queries";
 
-export const metadata = { title: "Memory" };
+export const metadata = { title: "What Brian has learned" };
 
 const KIND_TITLE: Record<MemoryKind, { title: string; note: string }> = {
   rule: { title: "Rules", note: "Hard requirements every agent must follow" },
@@ -28,6 +29,7 @@ export default async function MemoryPage({ searchParams }: { searchParams: Promi
 
   return (
     <>
+      <SectionTabs space="Settings" tabs={SETTINGS_TABS} active="memory" />
       <PageHeader
         eyebrow={
           <span className="inline-flex items-center gap-1.5">

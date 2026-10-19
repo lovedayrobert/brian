@@ -107,8 +107,8 @@ async function paged(filter: Record<string, unknown>, max = 2000): Promise<Linea
 }
 
 /** Issues due between two dates (inclusive). Cancelled issues are left out. */
-export function issuesInRange(from: string, to: string): Promise<LinearIssue[]> {
-  return paged({ dueDate: { gte: from, lte: to }, state: { type: { neq: "canceled" } } });
+export function issuesInRange(from: string, to: string, teamKey?: string): Promise<LinearIssue[]> {
+  return paged({ dueDate: { gte: from, lte: to }, state: { type: { neq: "canceled" } }, ...(teamKey ? { team: { key: { eq: teamKey } } } : {}) });
 }
 
 /** Open issues with no due date, for the unscheduled tray. */

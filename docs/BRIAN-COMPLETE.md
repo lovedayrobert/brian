@@ -24,7 +24,7 @@ This folder is the full documentation. Start here, then read in order:
 | Area | What happens |
 |---|---|
 | **Discover** | Sweeps news, search, creator and streaming culture, crypto and industry press several times a day. Groups signals into trends, measures each trend's lifecycle stage from its attention curve, ranks breaking moments by how likely people are to talk about them, and blocks anything involving deaths, disasters, violence or minors. |
-| **Invent** | Two routes. From a trend or breaking moment, or from the **Opportunity Lab**, which invents original ideas through eight lenses (unfair advantages, product as media, rival weak spots, open channels, crypto-native plays, deals, calendar ambush, blank page). Each run drafts ten ideas; a deliberately harsh Critic kills most; survivors pass a legal and safety check and a live web search for prior art. |
+| **Invent** | From a trend, a breaking story, a calendar day, the team's own spark, or a type of idea (aim at the villain, too far, be everywhere, wrong place, deal with a twist, main character, rival raid, laugh at the fall). Each idea is one real act aimed at a feeling the audience already has. Each run drafts ten; a five-person audience panel kills most; survivors pass Red Lines. |
 | **React** | Rapid Response: three reactive takes on a breaking moment in under a minute, then post-ready copy for every channel on approval. Nothing is ever posted automatically. |
 | **Develop** | Eleven-section campaign package: executive summary, insight, strategy, creative, mockups in real platform frames, channel plan, business case, production plan, measurement plan, risk and compliance, Linear handover. Sections generate in dependency order with live progress; plain-English steering regenerates the affected section and everything downstream. |
 | **Learn** | Memory: verdicts, Critic overrules, repeated steering and rules you teach become memories injected into every agent's brief, with a full timeline. |
@@ -694,6 +694,16 @@ Put `.jsonl` files in the `inbox` folder inside Brian's data directory (`.data/i
 
 Everything below is built and switched on by setting variables in Railway (or `.env.local` locally). Nothing needs code changes.
 
+## How the app is organised
+
+Four spaces plus Settings, and nothing else in the sidebar (see the product rule in `CLAUDE.md`):
+
+- **Home**: what to do today: due and overdue tasks, ideas waiting, the room in three lines, special days coming up.
+- **Radar**: what's happening: The room (Pulse), Breaking, Trends, Rivals.
+- **Ideas**: Brian's ideas, Get ideas, Inspiration. Packages and mockups open from their idea.
+- **Calendar**: Linear tasks, the CRM sheet, special days, ideas for any day.
+- **Settings**: coverage and cost, sources, brand, models, what Brian has learned, accuracy, results.
+
 ## Marketing calendar (`/calendar`)
 
 - **Views:** month, week, agenda, board (by status). Keyboard: `t` today, `←/→` move, `c` new task, `/` search, `m w a b` views, `u` tasks with no date, `Esc` closes.
@@ -744,9 +754,9 @@ Only verified Google accounts whose email **and** Workspace domain are on the li
 - Any single agent can be pointed at another model with `BRIAN_MODEL_<AGENT>`, e.g. `BRIAN_MODEL_CRITIC=claude-fable-5-1`.
 - Every model, including GPT, counts against the same hard spend cap.
 
-## Swipe file (`/swipe`)
+## Inspiration (`/ideas/inspiration`)
 
-Paste any post the team finds clever and say why. Brian reads the latest 15 every time it invents, to learn the team's taste. *Riff on this* starts ideas from one. The Lab's *Start from a spark* takes a half-idea or "they did this, could we do something like it?".
+Paste any post the team finds clever and say why. Brian reads the latest 15 every time it invents, to learn the team's taste. *Riff on this* starts ideas from one. *Get ideas → Start from your own idea* takes a half-idea or "they did this, could we do something like it?".
 
 
 ---

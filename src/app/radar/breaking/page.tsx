@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { RADAR_TABS, SectionTabs } from "@/components/section-tabs";
 import { Flame, Search, Sparkles, Zap } from "lucide-react";
 import Link from "next/link";
 import { ActionButton } from "@/components/action-button";
@@ -11,7 +12,7 @@ import { modelReady } from "@/lib/adapters/model";
 import { compact, relativeTime } from "@/lib/format";
 import { breaking, load } from "@/lib/queries";
 
-export const metadata = { title: "Live" };
+export const metadata = { title: "Breaking" };
 
 export default async function Live({ searchParams }: { searchParams: Promise<{ cat?: string }> }) {
   const { cat } = await searchParams;
@@ -26,13 +27,9 @@ export default async function Live({ searchParams }: { searchParams: Promise<{ c
 
   return (
     <>
+      <SectionTabs space="Radar" tabs={RADAR_TABS} active="breaking" />
       <PageHeader
-        eyebrow={
-          <span className="inline-flex items-center gap-1.5">
-            <span className="pulse-dot h-2 w-2 rounded-full bg-bad" /> Live
-          </span>
-        }
-        title="What's breaking"
+        title="Breaking"
         subtitle="Culture, creator drama, crypto scandals and search spikes from the last 48 hours, ranked by how likely people are to talk about them. Regulation and trade news sit under Industry. Tap React for three takes in under a minute."
         actions={
           <SweepButton label="Refresh" pending="Sweeping…" />
@@ -40,21 +37,21 @@ export default async function Live({ searchParams }: { searchParams: Promise<{ c
       />
 
       <div className="-mx-4 mb-6 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-none sm:mx-0 sm:flex-wrap sm:px-0">
-        <Chip href="/live" active={!cat}>
+        <Chip href="/radar/breaking" active={!cat}>
           All <span className="text-ink-3">{all.length}</span>
         </Chip>
         {cats.map((c) => (
-          <Chip key={c} href={`/live?cat=${c}`} active={cat === c}>
+          <Chip key={c} href={`/radar/breaking?cat=${c}`} active={cat === c}>
             {categoryLabel(c)} <span className="text-ink-3">{all.filter((m) => m.category === c).length}</span>
           </Chip>
         ))}
         {industry.length > 0 && (
-          <Chip href="/live?cat=industry" active={cat === "industry"}>
+          <Chip href="/radar/breaking?cat=industry" active={cat === "industry"}>
             Industry news <span className="text-ink-3">{industry.length}</span>
           </Chip>
         )}
         {coins.length > 0 && (
-          <Chip href="/live?cat=trenches" active={cat === "trenches"}>
+          <Chip href="/radar/breaking?cat=trenches" active={cat === "trenches"}>
             Memecoins <span className="text-ink-3">{coins.filter((c) => c.narrative?.kind === "culture").length}</span>
           </Chip>
         )}

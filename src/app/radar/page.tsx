@@ -1,4 +1,5 @@
 import { HeartPulse } from "lucide-react";
+import { RADAR_TABS, SectionTabs } from "@/components/section-tabs";
 import { ActionButton } from "@/components/action-button";
 import { Card, EmptyState, PageHeader, Pill, SourceLink } from "@/components/ui";
 import { modelReady } from "@/lib/adapters/model";
@@ -6,7 +7,7 @@ import { EMOTIONS, emotionName } from "@/lib/brand/quality-bar";
 import { relativeTime } from "@/lib/format";
 import { load } from "@/lib/queries";
 
-export const metadata = { title: "Pulse" };
+export const metadata = { title: "The room" };
 
 const TONE: Record<string, "bad" | "warn" | "accent" | "good" | undefined> = {
   hate: "bad",
@@ -26,8 +27,9 @@ export default async function PulsePage() {
 
   return (
     <>
+      <SectionTabs space="Radar" tabs={RADAR_TABS} active="room" />
       <PageHeader
-        title="Pulse"
+        title="The room"
         subtitle="What the audience is watching, sharing and arguing about right now, and the feeling behind it: who they love to hate, what made them say wtf, whose fall they're enjoying. Brian aims ideas at these feelings."
         actions={
           <ActionButton endpoint="/api/pulse" pending="Reading the room…" variant="secondary" disabled={!ai} disabledReason={!ai ? "Needs the AI key." : undefined}>

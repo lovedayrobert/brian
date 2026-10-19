@@ -36,12 +36,14 @@ export function CalendarApp({
   initialAnchor,
   ai,
   prefill,
+  openDay,
 }: {
   initial: CalendarData;
   initialView: View;
   initialAnchor: string;
   ai: boolean;
   prefill?: DrawerState;
+  openDay?: string;
 }) {
   const [view, setView] = useState<View>(initialView);
   const [anchor, setAnchor] = useState(initialAnchor);
@@ -52,7 +54,7 @@ export function CalendarApp({
   const [filters, setFilters] = useState<Filters>(() => load("brian.cal.filters", EMPTY_FILTERS));
   const [display, setDisplay] = useState<Display>(() => load("brian.cal.display", DEFAULT_DISPLAY));
   const [drawer, setDrawer] = useState<DrawerState | null>(prefill ?? null);
-  const [dayPanel, setDayPanel] = useState<string | null>(null);
+  const [dayPanel, setDayPanel] = useState<string | null>(openDay ?? null);
   const [tray, setTray] = useState(false);
   const [quick, setQuick] = useState<string | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
@@ -103,6 +105,7 @@ export function CalendarApp({
     url.searchParams.set("d", anchor);
     url.searchParams.delete("new");
     url.searchParams.delete("ideaId");
+    url.searchParams.delete("open");
     window.history.replaceState(null, "", url.toString());
   }, [view, anchor]);
 

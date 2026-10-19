@@ -2,6 +2,16 @@
 
 Everything below is built and switched on by setting variables in Railway (or `.env.local` locally). Nothing needs code changes.
 
+## How the app is organised
+
+Four spaces plus Settings, and nothing else in the sidebar (see the product rule in `CLAUDE.md`):
+
+- **Home**: what to do today: due and overdue tasks, ideas waiting, the room in three lines, special days coming up.
+- **Radar**: what's happening: The room (Pulse), Breaking, Trends, Rivals.
+- **Ideas**: Brian's ideas, Get ideas, Inspiration. Packages and mockups open from their idea.
+- **Calendar**: Linear tasks, the CRM sheet, special days, ideas for any day.
+- **Settings**: coverage and cost, sources, brand, models, what Brian has learned, accuracy, results.
+
 ## Marketing calendar (`/calendar`)
 
 - **Views:** month, week, agenda, board (by status). Keyboard: `t` today, `←/→` move, `c` new task, `/` search, `m w a b` views, `u` tasks with no date, `Esc` closes.
@@ -52,6 +62,6 @@ Only verified Google accounts whose email **and** Workspace domain are on the li
 - Any single agent can be pointed at another model with `BRIAN_MODEL_<AGENT>`, e.g. `BRIAN_MODEL_CRITIC=claude-fable-5-1`.
 - Every model, including GPT, counts against the same hard spend cap.
 
-## Swipe file (`/swipe`)
+## Inspiration (`/ideas/inspiration`)
 
-Paste any post the team finds clever and say why. Brian reads the latest 15 every time it invents, to learn the team's taste. *Riff on this* starts ideas from one. The Lab's *Start from a spark* takes a half-idea or "they did this, could we do something like it?".
+Paste any post the team finds clever and say why. Brian reads the latest 15 every time it invents, to learn the team's taste. *Riff on this* starts ideas from one. *Get ideas → Start from your own idea* takes a half-idea or "they did this, could we do something like it?".

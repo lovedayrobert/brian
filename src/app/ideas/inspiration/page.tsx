@@ -1,4 +1,5 @@
 import { Bookmark } from "lucide-react";
+import { IDEAS_TABS, SectionTabs } from "@/components/section-tabs";
 import { ActionButton } from "@/components/action-button";
 import { SparkBox, SwipeForm } from "@/components/swipe-form";
 import { Card, EmptyState, PageHeader, Pill, SourceLink } from "@/components/ui";
@@ -7,7 +8,7 @@ import { STUNTS } from "@/lib/brand/quality-bar";
 import { compact, relativeTime } from "@/lib/format";
 import { load } from "@/lib/queries";
 
-export const metadata = { title: "Swipe file" };
+export const metadata = { title: "Inspiration" };
 
 export default async function SwipePage() {
   const db = await load();
@@ -16,8 +17,9 @@ export default async function SwipePage() {
 
   return (
     <>
+      <SectionTabs space="Ideas" tabs={IDEAS_TABS} active="inspiration" />
       <PageHeader
-        title="Swipe file"
+        title="Inspiration"
         subtitle="Posts the team thinks are clever. Brian reads the most recent 15 every time it invents, to learn your taste and how far outside the box to go. It never copies them. Hit Riff on this to start ideas from one."
       />
 

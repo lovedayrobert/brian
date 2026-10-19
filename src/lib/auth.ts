@@ -177,3 +177,9 @@ export function publicOrigin(req: Request): string {
   return host ? `${proto}://${host}` : new URL(req.url).origin;
 }
 
+
+/** A friendly first name for the signed-in person ("rob.loveday@bitstarz.com" → "Rob"). */
+export function firstName(user: string | null | undefined): string {
+  const base = (user ?? "").split("@")[0].split(/[._-]/)[0];
+  return base && base !== "local" ? base[0].toUpperCase() + base.slice(1) : "there";
+}

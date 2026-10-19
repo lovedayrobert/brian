@@ -1,59 +1,21 @@
 "use client";
 
 import clsx from "clsx";
-import {
-  Activity,
-  BarChart3,
-  Brain,
-  BrainCircuit,
-  CalendarClock,
-  ChevronDown,
-  FlaskConical,
-  Flame,
-  Images,
-  Layers,
-  Lightbulb,
-  Menu,
-  Rocket,
-  Settings,
-  Swords,
-  X,
- HeartPulse, Bookmark, CalendarRange } from "lucide-react";
+import { Brain, CalendarRange, ChevronDown, Home, Lightbulb, Menu, Radar, Settings, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { relativeTime } from "@/lib/format";
 
+/**
+ * The whole app is four spaces. New features go inside one of them (as a tab,
+ * a panel or a section), never as a new item here. See CLAUDE.md.
+ */
 const NAV = [
-  {
-    group: "Discover",
-    items: [
-      { href: "/live", label: "Live", icon: Flame },
-      { href: "/pulse", label: "Pulse", icon: HeartPulse },
-      { href: "/", label: "Today", icon: CalendarClock },
-      { href: "/trends", label: "Trends", icon: Activity },
-      { href: "/lab", label: "Lab", icon: FlaskConical },
-      { href: "/swipe", label: "Swipe file", icon: Bookmark },
-      { href: "/ideas", label: "Ideas", icon: Lightbulb },
-    ],
-  },
-  {
-    group: "Develop",
-    items: [
-      { href: "/calendar", label: "Calendar", icon: CalendarRange },
-      { href: "/develop", label: "Packages", icon: Layers },
-      { href: "/mockups", label: "Mockups", icon: Images },
-      { href: "/campaigns", label: "Campaigns", icon: Rocket },
-    ],
-  },
-  {
-    group: "Track",
-    items: [
-      { href: "/competitors", label: "Competitors", icon: Swords },
-      { href: "/results", label: "Results", icon: BarChart3 },
-      { href: "/memory", label: "Memory", icon: BrainCircuit },
-    ],
-  },
+  { href: "/", label: "Home", hint: "What to do today", icon: Home, also: [] as string[] },
+  { href: "/radar", label: "Radar", hint: "What's happening out there", icon: Radar, also: [] },
+  { href: "/ideas", label: "Ideas", hint: "Get ideas, review Brian's", icon: Lightbulb, also: ["/develop", "/mockups", "/review"] },
+  { href: "/calendar", label: "Calendar", hint: "Plan and track the work", icon: CalendarRange, also: [] },
 ];
 
 export interface ShellStatus {
@@ -74,7 +36,7 @@ export function Shell({ children, status }: { children: React.ReactNode; status:
 
   if (pathname === "/login") return <main className="px-4">{children}</main>;
 
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  const isActive = (href: string, also: string[] = []) => (href === "/" ? pathname === "/" : [href, ...also].some((h) => pathname.startsWith(h)));
 
   const nav = (
     <nav className="flex h-full flex-col">
@@ -91,31 +53,29 @@ export function Shell({ children, status }: { children: React.ReactNode; status:
       <BrandSwitcher />
 
       <div className="mt-4 flex-1 space-y-5 overflow-y-auto scrollbar-none">
-        {NAV.map((g) => (
-          <div key={g.group}>
-            <div className="px-3 pb-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-ink-3">{g.group}</div>
-            <ul className="space-y-0.5">
-              {g.items.map((it) => {
-                const Icon = it.icon;
-                const active = isActive(it.href);
-                return (
-                  <li key={it.href}>
-                    <Link
-                      href={it.href}
-                      className={clsx(
-                        "group flex items-center gap-2.5 rounded-[9px] px-3 py-[7px] text-[13.5px] transition-colors",
-                        active ? "bg-surface text-ink shadow-card font-medium" : "text-ink-2 hover:bg-surface-3/70 hover:text-ink",
-                      )}
-                    >
-                      <Icon className={clsx("h-4 w-4", active ? "text-accent" : "text-ink-3 group-hover:text-ink-2")} strokeWidth={1.9} />
-                      {it.label}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
+        <ul className="space-y-1">
+          {NAV.map((it) => {
+            const Icon = it.icon;
+            const active = isActive(it.href, it.also);
+            return (
+              <li key={it.href}>
+                <Link
+                  href={it.href}
+                  className={clsx(
+                    "group flex items-center gap-3 rounded-[11px] px-3 py-2 transition-colors",
+                    active ? "bg-surface text-ink shadow-card" : "text-ink-2 hover:bg-surface-3/70 hover:text-ink",
+                  )}
+                >
+                  <Icon className={clsx("h-[18px] w-[18px] shrink-0", active ? "text-accent" : "text-ink-3 group-hover:text-ink-2")} strokeWidth={1.9} />
+                  <span className="min-w-0">
+                    <span className={clsx("block text-[14px] leading-tight", active && "font-medium")}>{it.label}</span>
+                    <span className="block truncate text-[11.5px] leading-tight text-ink-3">{it.hint}</span>
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </div>
 
       <div className="space-y-0.5 border-t border-line pt-3">
@@ -123,10 +83,10 @@ export function Shell({ children, status }: { children: React.ReactNode; status:
           href="/settings"
           className={clsx(
             "flex items-center gap-2.5 rounded-[9px] px-3 py-[7px] text-[13.5px] transition-colors",
-            isActive("/settings") ? "bg-surface text-ink shadow-card font-medium" : "text-ink-2 hover:bg-surface-3/70 hover:text-ink",
+            isActive("/settings", ["/memory", "/results"]) ? "bg-surface text-ink shadow-card font-medium" : "text-ink-2 hover:bg-surface-3/70 hover:text-ink",
           )}
         >
-          <Settings className={clsx("h-4 w-4", isActive("/settings") ? "text-accent" : "text-ink-3")} strokeWidth={1.9} />
+          <Settings className={clsx("h-4 w-4", isActive("/settings", ["/memory", "/results"]) ? "text-accent" : "text-ink-3")} strokeWidth={1.9} />
           Settings
         </Link>
         <SystemStatus status={status} />

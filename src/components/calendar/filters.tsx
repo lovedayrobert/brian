@@ -4,6 +4,8 @@ import clsx from "clsx";
 import { Check, Filter, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { DayKind } from "@/lib/calendar/days";
+import { DAY_KIND } from "@/lib/calendar/day-kinds";
+export { DAY_KIND };
 import type { CalendarData } from "@/lib/calendar/service";
 import { CHANNELS, type Task } from "@/lib/calendar/types";
 
@@ -22,15 +24,6 @@ export interface Filters {
 
 export const EMPTY_FILTERS: Filters = { q: "", teams: [], projects: [], labels: [], statuses: [], assignees: [], channels: [], sources: [], needsSocial: false, dayKinds: [] };
 
-export const DAY_KIND: Record<DayKind, { name: string; icon: string; cls: string }> = {
-  holiday: { name: "Holidays", icon: "🎉", cls: "bg-[#fde7ec] text-[#a3244a]" },
-  crypto: { name: "Crypto days", icon: "₿", cls: "bg-[#fff1d6] text-[#94600a]" },
-  internet: { name: "Internet days", icon: "✦", cls: "bg-[#e9e7fd] text-[#4b3fb5]" },
-  gaming: { name: "Gaming", icon: "🎮", cls: "bg-[#e1f3ff] text-[#1767a6]" },
-  sport: { name: "Sport & betting", icon: "🏈", cls: "bg-[#e3f6e9] text-[#1f7a3f]" },
-  shopping: { name: "Shopping days", icon: "🛍", cls: "bg-[#f3e8fd] text-[#7a2fb0]" },
-  cashy: { name: "Cashy dates", icon: "★", cls: "bg-accent-soft text-accent-ink" },
-};
 
 const SOURCE_NAME: Record<Task["source"], string> = { linear: "Linear", brian: "Brian", "crm-sheet": "CRM sheet" };
 const STATUS_NAME: Record<Task["status"]["type"], string> = { backlog: "Backlog / idea", unstarted: "Planned", started: "In progress", completed: "Done", canceled: "Cancelled" };
