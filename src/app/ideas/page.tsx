@@ -1,193 +1,121 @@
 import clsx from "clsx";
-import { IDEAS_TABS, SectionTabs } from "@/components/section-tabs";
-import { FlaskConical, Flame, Lightbulb, TrendingUp } from "lucide-react";
+import { ArrowRight, Lightbulb } from "lucide-react";
 import Link from "next/link";
 import { IdeaCard } from "@/components/idea-card";
-import { EdgeBadge, EmptyState, PageHeader, Pill } from "@/components/ui";
+import { IDEAS_TABS, SectionTabs } from "@/components/section-tabs";
+import { EmptyState, Pill } from "@/components/ui";
 import { lensById } from "@/lib/brand/lenses";
 import { specialDayById } from "@/lib/calendar/days";
 import type { Idea } from "@/lib/domain/types";
+import { relativeTime } from "@/lib/format";
 import { keyVisualFor, load } from "@/lib/queries";
 import { totalScore } from "@/lib/scores";
-import { HORIZON_COPY, horizonFor } from "@/lib/horizon";
-import type { Horizon } from "@/lib/domain/types";
+import type { DB } from "@/lib/store";
 
 export const metadata = { title: "Brian's ideas" };
 
-type Origin = "lab" | "trend" | "moment";
+type View = "review" | "approved" | "killed";
 
-interface Group {
-  key: string;
-  horizon: Horizon;
-  origin: Origin | "sample";
-  label: string;
-  href?: string;
-  latest: string;
-  cards: Idea[];
-  killed: Idea[];
-}
+const VIEWS: { id: View; label: string; empty: string }[] = [
+  { id: "review", label: "To review", empty: "Nothing waiting on you." },
+  { id: "approved", label: "Approved", empty: "Nothing approved yet. Open an idea and add it to the calendar, or develop it into a campaign." },
+  { id: "killed", label: "Killed", empty: "Nothing killed yet." },
+];
 
-export default async function Ideas({ searchParams }: { searchParams: Promise<{ origin?: string; edge?: string }> }) {
-  const { origin, edge } = await searchParams;
+/** Brian's ideas, organised around the decision you make on each: review, approve, or leave killed. */
+export default async function Ideas({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
+  const { view: v } = await searchParams;
+  const view: View = VIEWS.some((x) => x.id === v) ? (v as View) : "review";
   const db = await load();
 
-  const visible = db.ideas.filter(
-    (i) =>
-      (!edge || i.edge === edge) &&
-      (!origin || (i.sample ? origin === "sample" : (i.origin ?? (i.trendId ? "trend" : "moment")) === origin)),
-  );
-
-  const groups = new Map<string, Group>();
-  for (const i of visible) {
-    const o: Group["origin"] = i.sample ? "sample" : (i.origin ?? (i.trendId ? "trend" : "moment"));
-    let key: string, label: string, href: string | undefined;
-    if (o === "sample") {
-      key = "sample";
-      label = "Sample (hand-written to show the format)";
-    } else if (o === "lab") {
-      const lens = lensById(i.lens ?? "");
-      key = `lab:${i.lens}`;
-      label = lens ? lens.name : i.lens === "spark" ? "Sparks: started from the team's own idea" : `${i.lens ?? "Lab"} (earlier lens)`;
-      href = "/ideas/new";
-    } else if (o === "trend") {
-      const t = db.trends.find((x) => x.id === i.trendId);
-      key = `trend:${i.trendId}`;
-      label = t?.title ?? "A trend no longer tracked";
-      href = t ? `/radar/trends/${t.id}` : undefined;
-    } else if (i.momentId?.startsWith("day_")) {
-      const day = specialDayById(i.momentId);
-      key = `moment:${i.momentId}`;
-      label = day ? `${day.title}, ${day.date}` : "A calendar day";
-      href = day ? `/calendar?d=${day.date}` : "/calendar";
-    } else {
-      const m = db.moments.find((x) => x.id === i.momentId);
-      key = `moment:${i.momentId}`;
-      label = m?.title ?? "A moment no longer on Live";
-      href = m ? `/radar/breaking#${m.id}` : undefined;
-    }
-    const horizon = horizonFor(i);
-    key = `${horizon}:${key}`;
-    const g = groups.get(key) ?? { key, horizon, origin: o, label, href, latest: i.createdAt, cards: [], killed: [] };
-    if (i.createdAt > g.latest) g.latest = i.createdAt;
-    (i.status === "killed" ? g.killed : g.cards).push(i);
-    groups.set(key, g);
-  }
-  const list = [...groups.values()].sort((a, b) => (a.origin === "sample" ? 1 : b.origin === "sample" ? -1 : b.latest.localeCompare(a.latest)));
-  for (const g of list) g.cards.sort((a, b) => totalScore(b) - totalScore(a));
-
-  const qs = (patch: Record<string, string | undefined>) => {
-    const p = new URLSearchParams();
-    for (const [k, v] of Object.entries({ origin, edge, ...patch })) if (v) p.set(k, v);
-    const s = p.toString();
-    return `/ideas${s ? `?${s}` : ""}`;
+  // Approved = developed into a campaign, or added to the calendar.
+  const scheduled = new Set([...(db.calendar ?? []).flatMap((c) => (c.ideaId ? [c.ideaId] : [])), ...Object.values(db.calendarMeta ?? {}).flatMap((m) => (m.ideaId ? [m.ideaId] : []))]);
+  const approved = (i: Idea) => i.status === "developing" || i.status === "developed" || scheduled.has(i.id);
+  const buckets: Record<View, Idea[]> = {
+    review: db.ideas.filter((i) => i.status === "card" && !approved(i)),
+    approved: db.ideas.filter((i) => i.status !== "killed" && i.status !== "candidate" && approved(i)),
+    killed: db.ideas.filter((i) => i.status === "killed"),
   };
-  const icon = { lab: FlaskConical, trend: TrendingUp, moment: Flame, sample: Lightbulb };
-  const kindLabel = { lab: "Lab", trend: "Trend", moment: "Breaking moment", sample: "Sample" };
+  const list = [...buckets[view]].sort((a, b) => (view === "killed" ? b.createdAt.localeCompare(a.createdAt) : totalScore(b) - totalScore(a) || b.createdAt.localeCompare(a.createdAt)));
 
   return (
     <>
       <SectionTabs space="Ideas" tabs={IDEAS_TABS} active="ideas" />
-      <PageHeader
-        title="Brian\'s ideas"
-        subtitle="Every idea that survived the audience panel and Red Lines, grouped by where it came from. Killed ideas sit under each group with the reasons, and you can overrule them."
-      />
 
-      <div className="mb-3 flex flex-wrap gap-2">
-        {(
-          [
-            [undefined, "All sources"],
-            ["lab", "Lab"],
-            ["trend", "Trends"],
-            ["moment", "Breaking"],
-          ] as const
-        ).map(([o, l]) => (
-          <Chip key={l} href={qs({ origin: o })} active={origin === o}>
-            {l}
-          </Chip>
+      <div className="mb-6 flex flex-wrap items-center gap-2">
+        {VIEWS.map((x) => (
+          <Link
+            key={x.id}
+            href={x.id === "review" ? "/ideas" : `/ideas?view=${x.id}`}
+            className={clsx("inline-flex items-center gap-2 rounded-full px-4 py-2 text-[14px] transition", view === x.id ? "bg-ink text-bg" : "bg-surface text-ink-2 shadow-card hover:text-ink")}
+          >
+            {x.label}
+            <span className={clsx("rounded-full px-1.5 text-[12px] tabular", view === x.id ? "bg-white/20" : "bg-surface-3 text-ink-3")}>{buckets[x.id].length}</span>
+          </Link>
         ))}
+        <Link href="/ideas/new" className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-surface px-4 py-2 text-[13.5px] font-medium shadow-card hover:shadow-raised">
+          Get more ideas <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
       </div>
-      <div className="mb-8 flex flex-wrap items-center gap-2">
-        {[undefined, "wild", "spicy", "safe"].map((e) => (
-          <Chip key={e ?? "all"} href={qs({ edge: e })} active={edge === e} small>
-            {e ? e[0].toUpperCase() + e.slice(1) : "Any edge"}
-          </Chip>
-        ))}
-      </div>
+
+      <p className="mb-6 max-w-[720px] text-[13.5px] leading-relaxed text-ink-2">
+        {view === "review" && "Ideas that survived Brian's audience panel. Open one to add it to the calendar, develop it into a full campaign, or reject it."}
+        {view === "approved" && "Ideas you've put in the calendar or developed into a campaign."}
+        {view === "killed" && "Ideas the audience panel or Red Lines rejected, with the reason. Open one to overrule the panel; Red Lines can't be overruled."}
+      </p>
 
       {list.length === 0 ? (
-        <EmptyState icon={<Lightbulb className="h-5 w-5" />} title="No ideas here yet" body="Run a Lab lens, or open a trend or breaking moment and ask Brian for ideas." />
-      ) : (
-        <div className="space-y-16">
-          {(["reactive", "evergreen"] as const).map((hz) => {
-            const hzGroups = list.filter((g) => g.horizon === hz);
-            if (!hzGroups.length) return null;
+        db.ideas.length === 0 ? (
+          <EmptyState
+            icon={<Lightbulb className="h-5 w-5" />}
+            title="No ideas yet"
+            body="Point Brian somewhere and it comes back with about ten ideas; the audience panel keeps the best three."
+            action={
+              <Link href="/ideas/new" className="inline-flex h-9 items-center gap-1.5 rounded-full bg-ink px-4 text-[13.5px] font-medium text-bg hover:opacity-90">
+                Get ideas <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            }
+          />
+        ) : (
+          <p className="rounded-[16px] bg-surface px-5 py-6 text-[14px] text-ink-2 shadow-card">{VIEWS.find((x) => x.id === view)!.empty}</p>
+        )
+      ) : view === "killed" ? (
+        <div className="divide-y divide-line overflow-hidden rounded-[16px] bg-surface shadow-card">
+          {list.map((i) => {
+            const from = source(i, db);
             return (
-              <div key={hz}>
-                <div className={`mb-6 rounded-[18px] p-5 ${hz === "reactive" ? "bg-warn-soft" : "bg-accent-soft"}`}>
-                  <div className="flex flex-wrap items-baseline gap-x-3">
-                    <h2 className="text-[22px] font-semibold tracking-tight">{HORIZON_COPY[hz].name}</h2>
-                    <span className="text-[13px] text-ink-2">
-                      {hzGroups.reduce((n, g) => n + g.cards.length, 0)} cards
-                    </span>
-                  </div>
-                  <p className="mt-1 max-w-[720px] text-[13.5px] leading-relaxed text-ink-2">{HORIZON_COPY[hz].blurb}</p>
+              <Link key={i.id} href={`/ideas/${i.id}`} className="block px-5 py-4 transition hover:bg-surface-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[14.5px] font-medium">{i.name}</span>
+                  {i.screening.redLines && !i.screening.redLines.pass && <Pill tone="bad">Red line</Pill>}
                 </div>
-                <div className="space-y-12">
-          {hzGroups.map((g) => {
-            const Icon = icon[g.origin];
-            return (
-              <section key={g.key}>
-                <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <span className="inline-flex items-center gap-1.5 text-[12px] font-medium uppercase tracking-[0.06em] text-ink-3">
-                    <Icon className="h-3.5 w-3.5" /> {kindLabel[g.origin]}
-                  </span>
-                  <h2 className="text-[19px] font-semibold tracking-tight">
-                    {g.href ? (
-                      <Link href={g.href} className="hover:text-accent-ink">
-                        {g.label}
-                      </Link>
-                    ) : (
-                      g.label
-                    )}
-                  </h2>
-                  <span className="text-[13px] text-ink-3">
-                    {g.cards.length} card{g.cards.length === 1 ? "" : "s"} · {g.killed.length} killed
-                  </span>
+                <div className="mt-1 text-[13px] text-bad">{i.screening.critic.reasons[0]}</div>
+                <div className="mt-1 text-[12px] text-ink-3">
+                  From {from.label} · {relativeTime(i.createdAt)}
                 </div>
-                {g.cards.length > 0 ? (
-                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {g.cards.map((i) => (
-                      <IdeaCard key={i.id} idea={i} keyVisualUrl={keyVisualFor(i.id, db.packages)} />
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-[13.5px] text-ink-2">The Critic killed everything from this run.</p>
-                )}
-                {g.killed.length > 0 && (
-                  <details className="group mt-4 rounded-[16px] bg-surface shadow-card">
-                    <summary className="cursor-pointer list-none px-5 py-3 text-[13px] text-ink-2 hover:text-ink">
-                      <span className="group-open:hidden">Show {g.killed.length} killed, with reasons</span>
-                      <span className="hidden group-open:inline">Hide killed</span>
-                    </summary>
-                    <div className="divide-y divide-line border-t border-line">
-                      {g.killed.map((i) => (
-                        <Link key={i.id} href={`/ideas/${i.id}`} className="block px-5 py-3.5 transition hover:bg-surface-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[14px] font-medium">{i.name}</span>
-                            <EdgeBadge edge={i.edge} />
-                            {i.screening.redLines && !i.screening.redLines.pass && <Pill tone="bad">Red line</Pill>}
-                          </div>
-                          <div className="mt-0.5 text-[13px] text-ink-2">{i.oneLiner}</div>
-                          <div className="mt-1 text-[12.5px] text-bad">{i.screening.critic.reasons[0]}</div>
-                        </Link>
-                      ))}
-                    </div>
-                  </details>
-                )}
-              </section>
+              </Link>
             );
           })}
+        </div>
+      ) : (
+        <div className="grid gap-x-4 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">
+          {list.map((i) => {
+            const from = source(i, db);
+            return (
+              <div key={i.id} className="flex flex-col">
+                <div className="mb-1.5 truncate px-1 text-[12px] text-ink-3">
+                  From{" "}
+                  {from.href ? (
+                    <Link href={from.href} className="hover:text-accent-ink hover:underline">
+                      {from.label}
+                    </Link>
+                  ) : (
+                    from.label
+                  )}{" "}
+                  · {relativeTime(i.createdAt)}
+                  {scheduled.has(i.id) && <span className="text-good"> · in the calendar</span>}
                 </div>
+                <IdeaCard idea={i} keyVisualUrl={keyVisualFor(i.id, db.packages)} />
               </div>
             );
           })}
@@ -197,17 +125,21 @@ export default async function Ideas({ searchParams }: { searchParams: Promise<{ 
   );
 }
 
-function Chip({ href, active, children, small }: { href: string; active: boolean; children: React.ReactNode; small?: boolean }) {
-  return (
-    <Link
-      href={href}
-      className={clsx(
-        "rounded-full transition",
-        small ? "px-3 py-1 text-[12.5px]" : "px-3.5 py-1.5 text-[13px]",
-        active ? "bg-ink text-bg" : "bg-surface text-ink-2 shadow-card hover:text-ink",
-      )}
-    >
-      {children}
-    </Link>
-  );
+/** Where an idea came from, in plain words. */
+function source(i: Idea, db: DB): { label: string; href?: string } {
+  if (i.origin === "lab" || i.lens) {
+    if (i.lens === "spark") return { label: "your own idea", href: "/ideas/new" };
+    const lens = lensById(i.lens ?? "");
+    return { label: lens ? `"${lens.name}"` : "an earlier idea type", href: "/ideas/new" };
+  }
+  if (i.trendId) {
+    const t = db.trends.find((x) => x.id === i.trendId);
+    return { label: t ? `the trend "${t.title}"` : "a trend", href: t ? `/radar/trends/${t.id}` : undefined };
+  }
+  if (i.momentId?.startsWith("day_")) {
+    const day = specialDayById(i.momentId);
+    return { label: day ? `${day.title} (${day.date.slice(8)}/${day.date.slice(5, 7)})` : "a calendar day", href: day ? `/calendar?d=${day.date}&open=${day.date}` : "/calendar" };
+  }
+  const m = db.moments.find((x) => x.id === i.momentId);
+  return { label: m ? `the story "${m.title}"` : "a news story", href: m ? `/radar/breaking#${m.id}` : undefined };
 }

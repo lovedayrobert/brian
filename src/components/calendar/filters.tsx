@@ -33,14 +33,16 @@ export function matches(t: Task, f: Filters): boolean {
     const q = f.q.toLowerCase();
     if (![t.title, t.identifier, t.description, t.assignee?.name, t.project?.name, ...t.labels.map((l) => l.name)].some((x) => x?.toLowerCase().includes(q))) return false;
   }
+  if (f.sources.length && !f.sources.includes(t.source)) return false;
+  if (f.needsSocial && !t.needsSocial) return false;
+  // CRM sends are a layer, like special days: Linear filters (team, label, project, assignee, status) don't hide them.
+  if (t.source === "crm-sheet") return true;
   if (f.teams.length && !(t.team && f.teams.includes(t.team.key))) return false;
   if (f.projects.length && !(t.project && f.projects.includes(t.project.name))) return false;
   if (f.labels.length && !t.labels.some((l) => f.labels.includes(l.name))) return false;
   if (f.statuses.length && !f.statuses.includes(t.status.type)) return false;
   if (f.assignees.length && !f.assignees.includes(t.assignee?.name ?? "Unassigned")) return false;
   if (f.channels.length && !(t.channel && f.channels.includes(t.channel))) return false;
-  if (f.sources.length && !f.sources.includes(t.source)) return false;
-  if (f.needsSocial && !t.needsSocial) return false;
   return true;
 }
 
@@ -96,7 +98,7 @@ export function FilterBar({ data, filters, setFilters }: { data: CalendarData; f
                   </button>
                 ))}
                 <label className="mt-1 flex cursor-pointer items-center justify-between rounded-[10px] px-2.5 py-1.5 text-[13px] hover:bg-surface-2">
-                  CRM needing social
+                  Only CRM sends needing social
                   <input type="checkbox" checked={filters.needsSocial} onChange={() => setFilters((f) => ({ ...f, needsSocial: !f.needsSocial }))} />
                 </label>
                 <button onClick={() => setFilters({ ...EMPTY_FILTERS, q: filters.q })} className="mt-1 w-full rounded-[10px] px-2.5 py-1.5 text-left text-[12.5px] text-ink-3 hover:text-ink">

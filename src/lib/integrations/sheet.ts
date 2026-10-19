@@ -2,18 +2,23 @@ import { createHash, createSign } from "node:crypto";
 import type { CalendarChannel, CalendarItem, CalendarStatus } from "@/lib/domain/types";
 
 /**
- * The CRM calendar Google Sheet, read into Brian's calendar. Two ways in:
- *  - Private (recommended): share the sheet (view only) with a Google service
- *    account and set GOOGLE_SERVICE_ACCOUNT_JSON + CRM_SHEET_ID (+ CRM_SHEET_TAB).
- *  - Simple: CRM_SHEET_CSV_URL, a "Publish to web → CSV" link. Anyone with
- *    the link can read it, so only for sheets that hold nothing sensitive.
+ * The CRM calendar Google Sheet, read into Brian's calendar. Three ways in:
+ *  - CRM_SHEET_ID alone: the sheet's "anyone with the link can view" sharing.
+ *    Brian reads every month tab ("OCTOBER 2026") from last month to three
+ *    months ahead.
+ *  - Private: also set GOOGLE_SERVICE_ACCOUNT_JSON and share the sheet (view
+ *    only) with that service account; link sharing can then be switched off.
+ *  - CRM_SHEET_CSV_URL: a single published CSV.
+ * Rows without a date belong to the date above. When the sheet has an "SM"
+ * (social media) column, only rows ticked in it are pulled in: those are the
+ * CRM sends that need social media input.
  * Columns are found by header name (Date, Campaign/Title, Channel, Owner,
  * Status, Social…); CRM_SHEET_COLUMNS overrides, e.g.
  * "date=Send date,title=Campaign name,social=Needs social". Dates are read as
  * day/month unless CRM_SHEET_DATE_ORDER=MDY. Brian only reads the sheet.
  */
 export function sheetReady(): boolean {
-  return !!process.env.CRM_SHEET_CSV_URL || (!!process.env.GOOGLE_SERVICE_ACCOUNT_JSON && !!process.env.CRM_SHEET_ID);
+  return !!process.env.CRM_SHEET_CSV_URL || !!process.env.CRM_SHEET_ID;
 }
 
 async function serviceToken(): Promise<string> {
@@ -38,20 +43,55 @@ async function serviceToken(): Promise<string> {
   return j.access_token;
 }
 
-async function readRows(): Promise<string[][]> {
-  if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON && process.env.CRM_SHEET_ID) {
-    const range = encodeURIComponent(process.env.CRM_SHEET_TAB || "A:Z");
-    const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${process.env.CRM_SHEET_ID}/values/${range}?valueRenderOption=FORMATTED_VALUE`, {
-      headers: { Authorization: `Bearer ${await serviceToken()}` },
-      signal: AbortSignal.timeout(20_000),
-    });
-    const j = (await res.json()) as { values?: string[][]; error?: { message: string } };
-    if (!res.ok) throw new Error(`Google Sheets: ${j.error?.message ?? res.status}. Is the sheet shared with the service account?`);
-    return j.values ?? [];
+const MONTH_TAB = /^(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{4})$/i;
+const MONTH_NAMES = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+
+/** Month tabs from last month to three months ahead; every tab if none are named by month. */
+export function pickTabs(names: string[], now = new Date()): string[] {
+  const months = names.flatMap((n) => {
+    const m = n.trim().match(MONTH_TAB);
+    return m ? [{ n, idx: Number(m[2]) * 12 + MONTH_NAMES.indexOf(m[1].toLowerCase()) }] : [];
+  });
+  if (!months.length) return names;
+  const cur = now.getUTCFullYear() * 12 + now.getUTCMonth();
+  return months.filter((m) => m.idx >= cur - 1 && m.idx <= cur + 3).map((m) => m.n);
+}
+
+/** Each relevant tab as rows of cells. */
+async function readTables(): Promise<{ tab: string; rows: string[][] }[]> {
+  const id = process.env.CRM_SHEET_ID;
+  if (id && process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    const token = await serviceToken();
+    const meta = (await (await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}?fields=sheets.properties.title`, { headers: { Authorization: `Bearer ${token}` } })).json()) as { sheets?: { properties: { title: string } }[]; error?: { message: string } };
+    if (!meta.sheets) throw new Error(`Google Sheets: ${meta.error?.message ?? "no access"}. Is the sheet shared with the service account?`);
+    const tabs = process.env.CRM_SHEET_TAB ? [process.env.CRM_SHEET_TAB] : pickTabs(meta.sheets.map((x) => x.properties.title));
+    return Promise.all(
+      tabs.map(async (tab) => {
+        const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent(`'${tab}'!A:Z`)}?valueRenderOption=FORMATTED_VALUE`, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(20_000) });
+        const j = (await res.json()) as { values?: string[][] };
+        return { tab, rows: j.values ?? [] };
+      }),
+    );
+  }
+  if (id) {
+    // Link-shared sheet: the tab list comes from the sheet's own HTML view, each tab as CSV.
+    const html = await (await fetch(`https://docs.google.com/spreadsheets/d/${id}/htmlview`, { signal: AbortSignal.timeout(20_000) })).text();
+    const all = [...html.matchAll(/\{name: "([^"]+)", pageUrl: "[^"]*gid=(\d+)/g)].map((m) => ({ name: m[1].replace(/\\u0026/g, "&"), gid: m[2] }));
+    if (!all.length) throw new Error("Couldn't read the CRM sheet. Is it shared as 'anyone with the link can view'?");
+    const wanted = new Set(process.env.CRM_SHEET_TAB ? [process.env.CRM_SHEET_TAB] : pickTabs(all.map((t) => t.name)));
+    return Promise.all(
+      all
+        .filter((t) => wanted.has(t.name))
+        .map(async (t) => {
+          const res = await fetch(`https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${t.gid}`, { signal: AbortSignal.timeout(20_000) });
+          if (!res.ok) throw new Error(`CRM sheet tab ${t.name}: HTTP ${res.status}`);
+          return { tab: t.name, rows: parseCsv(await res.text()) };
+        }),
+    );
   }
   const res = await fetch(process.env.CRM_SHEET_CSV_URL!, { signal: AbortSignal.timeout(20_000) });
   if (!res.ok) throw new Error(`CRM sheet: HTTP ${res.status}`);
-  return parseCsv(await res.text());
+  return [{ tab: "CSV", rows: parseCsv(await res.text()) }];
 }
 
 export function parseCsv(text: string): string[][] {
@@ -89,12 +129,16 @@ export function parseCsv(text: string): string[][] {
 
 const GUESS: Record<string, RegExp> = {
   date: /^(date|send date|launch date|day|go live|go-live|start date|when)$/i,
-  title: /^(title|campaign|campaign name|name|subject|description|activity|what)$/i,
+  title: /^(title|campaign|campaign name|name|subject|activity|what)$/i,
   channel: /^(channel|medium|type|platform)$/i,
   owner: /^(owner|assignee|who|responsible|manager)$/i,
   status: /^(status|state|stage)$/i,
-  social: /social/i,
+  social: /^(sm|social|social media|needs social)$/i,
   notes: /^(notes|comments|details|brief)$/i,
+  description: /^(description|details|brief)$/i,
+  game: /^(game|games)$/i,
+  segment: /^(segment|target|target group|audience)$/i,
+  events: /^(events?|world)$/i,
 };
 
 function columns(header: string[]): Record<string, number> {
@@ -163,40 +207,75 @@ function statusOf(v: string): CalendarStatus {
   return "planned";
 }
 
-const truthy = (v: string) => /^(y|yes|true|x|✓|✔|needed|required|1)$/i.test(v.trim()) || /social/i.test(v);
 
-/** Every dated row in the sheet, as calendar items. Rows without a readable date are reported, not guessed. */
-export async function pullSheet(): Promise<{ items: CalendarItem[]; skipped: number; header: string[] }> {
-  const rows = (await readRows()).filter((r) => r.some((c) => c.trim()));
-  const headerAt = rows.findIndex((r) => r.some((c) => GUESS.date.test(c.trim())));
-  if (headerAt < 0) throw new Error("Couldn't find a Date column in the CRM sheet. Set CRM_SHEET_COLUMNS, e.g. date=Send date,title=Campaign.");
-  const header = rows[headerAt];
+/** Rows from one tab as calendar items. Exported for tests. */
+export function rowsToItems(rows: string[][], tab: string, now = new Date().toISOString()): { items: CalendarItem[]; skipped: number } {
+  const clean = rows.filter((r) => r.some((c) => c.trim()));
+  const headerAt = clean.findIndex((r) => r.some((c) => GUESS.date.test(c.trim())));
+  if (headerAt < 0) return { items: [], skipped: 0 };
+  const header = clean[headerAt].map((h) => h.trim());
   const col = columns(header);
-  if (col.title === undefined) throw new Error(`Couldn't find a title column. Headers are: ${header.join(", ")}`);
-  const now = new Date().toISOString();
+  const at = (r: string[], k: string) => (col[k] !== undefined ? (r[col[k]] ?? "").trim() : "");
+  // Columns between the segment and SM columns are channel ticks (NL, Onsite, Push, Blog, AFF).
+  const channelCols = header.map((h, i) => ({ h, i })).filter(({ h }) => /^(nl|newsletter|email|onsite|push|blog|aff|affiliates?|sms|sm)$/i.test(h));
+  const onlySocial = col.social !== undefined && process.env.CRM_SHEET_ALL_ROWS !== "1";
+  let date: string | null = null;
   let skipped = 0;
   const items: CalendarItem[] = [];
-  for (const r of rows.slice(headerAt + 1)) {
-    const date = parseDate(r[col.date] ?? "");
-    const title = (r[col.title] ?? "").trim();
-    if (!date || !title) {
-      if (title) skipped++;
+  for (const r of clean.slice(headerAt + 1)) {
+    const d = parseDate(at(r, "date"));
+    if (d) date = d;
+    else if (at(r, "date")) {
+      skipped++;
       continue;
     }
-    const channelCell = col.channel !== undefined ? r[col.channel] ?? "" : "";
+    const social = col.social !== undefined && !!at(r, "social");
+    if (onlySocial && !social) continue;
+    const description = at(r, "description");
+    const title = at(r, "title") || description.split("\n")[0].trim() || at(r, "events") || "Untitled CRM send (no name in the sheet)";
+    if (!date) {
+      skipped++;
+      continue;
+    }
+    const channels = channelCols.filter(({ i }) => (r[i] ?? "").trim()).map(({ h }) => h);
+    const notes = [
+      description && description !== title ? description : "",
+      at(r, "game") ? `**Game:** ${at(r, "game")}` : "",
+      at(r, "segment") ? `**Segment:** ${at(r, "segment")}` : "",
+      channels.length ? `**Channels:** ${channels.join(", ")}` : "",
+      `From the CRM sheet (${tab}).`,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
     items.push({
-      id: `crm_${createHash("sha1").update(`${date}|${title}|${channelCell}`).digest("hex").slice(0, 16)}`,
+      id: `crm_${createHash("sha1").update(`${tab}|${date}|${title}|${description.slice(0, 80)}`).digest("hex").slice(0, 16)}`,
       title,
       date,
-      channel: channelOf(channelCell),
+      channel: social ? "X" : channelOf(at(r, "channel")),
       type: "crm",
-      status: col.status !== undefined ? statusOf(r[col.status] ?? "") : "planned",
-      owner: col.owner !== undefined ? r[col.owner]?.trim() || undefined : undefined,
-      notes: col.notes !== undefined ? r[col.notes]?.trim() || undefined : undefined,
-      needsSocial: col.social !== undefined && col.social !== col.channel ? truthy(r[col.social] ?? "") : /social/i.test(channelCell),
+      status: col.status !== undefined ? statusOf(at(r, "status")) : "planned",
+      owner: at(r, "owner") || undefined,
+      notes,
+      needsSocial: social,
       source: "crm-sheet",
       updatedAt: now,
     });
   }
-  return { items, skipped, header };
+  return { items, skipped };
+}
+
+/** Every relevant row in the sheet, as calendar items. */
+export async function pullSheet(): Promise<{ items: CalendarItem[]; skipped: number; tabs: string[] }> {
+  const tables = await readTables();
+  let skipped = 0;
+  const items: CalendarItem[] = [];
+  for (const t of tables) {
+    const r = rowsToItems(t.rows, t.tab);
+    items.push(...r.items);
+    skipped += r.skipped;
+  }
+  if (!tables.some((t) => t.rows.some((r) => r.some((c) => GUESS.date.test(c.trim()))))) {
+    throw new Error("Couldn't find a Date column in the CRM sheet. Set CRM_SHEET_COLUMNS, e.g. date=Send date,title=Campaign.");
+  }
+  return { items, skipped, tabs: tables.map((t) => t.tab) };
 }

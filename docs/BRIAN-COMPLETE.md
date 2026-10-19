@@ -723,16 +723,13 @@ With the key set, every task created or edited in the calendar is a real Linear 
 
 ## CRM calendar (Google Sheet)
 
-Brian reads the sheet every 30 minutes and never writes to it. CRM rows show in orange; rows marked as needing social are outlined and have their own filter.
+Connected: `CRM_SHEET_ID` is the CRM calendar sheet. Brian reads the month tabs (e.g. `OCTOBER 2026`) from last month to three months ahead, every 30 minutes, and never writes to the sheet.
 
-**Private sheet (recommended):**
-1. In Google Cloud, create a service account (no roles needed) and a JSON key for it.
-2. Share the CRM sheet with the service account's email, *Viewer* only.
-3. Set `GOOGLE_SERVICE_ACCOUNT_JSON` (the whole JSON), `CRM_SHEET_ID` (the long id in the sheet's URL) and, if the calendar isn't the first tab, `CRM_SHEET_TAB` (e.g. `CRM Calendar!A:Z`).
-
-**Simple (only for non-sensitive sheets):** `CRM_SHEET_CSV_URL`, a *File → Share → Publish to web → CSV* link. Anyone with that link can read the sheet.
-
-Columns are found by header (Date, Campaign/Title, Channel, Owner, Status, a column with "social" in its name, Notes). If the headers are different, set `CRM_SHEET_COLUMNS`, e.g. `date=Send date,title=Campaign name,social=Social needed`. Dates are read day-first (`03/11/2026` = 3 November) unless `CRM_SHEET_DATE_ORDER=MDY`.
+- **Only rows ticked in the `SM` column come in.** Those are the CRM sends that need social media input. They show in the calendar with an orange outline, and stay visible whatever Linear filters you use. Set `CRM_SHEET_ALL_ROWS=1` to bring in every row instead.
+- Rows without a date belong to the date above (as in the sheet). A ticked row with no name shows as "Untitled CRM send" so it gets named in the sheet.
+- Each item carries the description, game, segment and which channels are ticked (NL, Onsite, Push, Blog, AFF, SM).
+- Today Brian reads the sheet through its "anyone with the link can view" sharing. To lock it down, create a Google service account, share the sheet with it (Viewer), set `GOOGLE_SERVICE_ACCOUNT_JSON`, then switch off link sharing.
+- Other layouts: `CRM_SHEET_COLUMNS` maps headers (e.g. `date=Send date,title=Campaign name,social=Social`), `CRM_SHEET_TAB` reads one tab, `CRM_SHEET_CSV_URL` reads a single published CSV.
 
 ## Google sign-in (BitStarz accounts only)
 
