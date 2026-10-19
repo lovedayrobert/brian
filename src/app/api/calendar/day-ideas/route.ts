@@ -1,6 +1,6 @@
 import { specialDayById } from "@/lib/calendar/days";
 import { ideasForDay } from "@/lib/pipeline/rapid";
-import { fail, requireUser } from "../../_util";
+import { fail, requireUser , setActor } from "../../_util";
 
 export const maxDuration = 300;
 
@@ -8,6 +8,7 @@ export const maxDuration = 300;
 export async function POST(req: Request) {
   const denied = await requireUser(req);
   if (denied) return denied;
+  setActor(req);
   try {
     const { dayId, steer } = (await req.json()) as { dayId?: string; steer?: string };
     const day = dayId ? specialDayById(dayId) : undefined;

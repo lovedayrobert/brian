@@ -3,6 +3,8 @@ import { SETTINGS_TABS, SectionTabs } from "@/components/section-tabs";
 import Link from "next/link";
 import { ActionButton } from "@/components/action-button";
 import { MemoryItem, TeachBox } from "@/components/memory-controls";
+import { admins, personName } from "@/lib/people";
+import { viewer } from "@/lib/viewer";
 import { Card, EmptyState, PageHeader, SectionTitle, Stat } from "@/components/ui";
 import { modelReady } from "@/lib/adapters/model";
 import { relativeTime } from "@/lib/format";
@@ -20,6 +22,7 @@ const KIND_TITLE: Record<MemoryKind, { title: string; note: string }> = {
 export default async function MemoryPage({ searchParams }: { searchParams: Promise<{ show?: string }> }) {
   const { show } = await searchParams;
   const db = await load();
+  const me = await viewer();
   const ai = modelReady();
   const memories = db.memories.filter((m) => m.brandId === "cashy");
   const active = memories.filter((m) => m.active);
@@ -49,7 +52,11 @@ export default async function MemoryPage({ searchParams }: { searchParams: Promi
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0 space-y-8">
-          <TeachBox />
+          {me.admin ? (
+            <TeachBox />
+          ) : (
+            <Card className="p-4 text-[13.5px] text-ink-2">Only admins ({admins().join(", ")}) can teach Brian rules or edit them. Your reactions, comments and verdicts on ideas still feed into what Brian learns.</Card>
+          )}
 
           {memories.length === 0 ? (
             <EmptyState
@@ -68,7 +75,7 @@ export default async function MemoryPage({ searchParams }: { searchParams: Promi
                   </SectionTitle>
                   <Card className="divide-y divide-line">
                     {list.map((m) => (
-                      <MemoryItem key={m.id} m={m} />
+                      <MemoryItem key={m.id} m={m} readOnly={!me.admin} byName={m.by ? personName(db, m.by) : undefined} />
                     ))}
                   </Card>
                 </section>
@@ -90,8 +97,8 @@ export default async function MemoryPage({ searchParams }: { searchParams: Promi
               pending="Looking for patterns…"
               icon={<Wand2 className="h-3.5 w-3.5" />}
               variant="secondary"
-              disabled={!ai || pending < 2}
-              disabledReason={!ai ? "Needs the AI key" : pending < 2 ? "Needs at least two new verdicts" : undefined}
+              disabled={!ai || pending < 2 || !me.admin}
+              disabledReason={!me.admin ? "Admins only" : !ai ? "Needs the AI key" : pending < 2 ? "Needs at least two new verdicts" : undefined}
             >
               Learn from feedback
             </ActionButton>

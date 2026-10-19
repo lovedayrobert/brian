@@ -1,6 +1,7 @@
 import type { Swipe } from "@/lib/domain/types";
 import { newId, repo } from "@/lib/store";
 import { USER_AGENT } from "@/lib/adapters/sources/types";
+import { logActivity } from "@/lib/activity";
 
 /**
  * The team swipe file (Marko's advice): Brian needs to see what the team
@@ -86,6 +87,7 @@ export async function addSwipe(input: { url: string; why: string; by: string; ti
   };
   await repo.update((d) => {
     d.swipes = [swipe, ...(d.swipes ?? []).filter((s) => s.url !== swipe.url)];
+    logActivity(d, { by: input.by, type: "swipe.added", text: `added to Inspiration: “${swipe.title.slice(0, 100)}”`, ref: { kind: "swipe", id: swipe.id, label: swipe.title.slice(0, 60) } });
   });
   return swipe;
 }

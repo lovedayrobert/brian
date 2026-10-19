@@ -3,7 +3,7 @@ import { modelReady, ModelUnavailableError } from "@/lib/adapters/model";
 import { runPackage } from "@/lib/pipeline/develop";
 import type { Creative } from "@/lib/pipeline/package-schemas";
 import { repo } from "@/lib/store";
-import { fail, requireUser } from "../../../_util";
+import { fail, requireUser , setActor } from "../../../_util";
 
 export const maxDuration = 900;
 
@@ -11,6 +11,7 @@ export const maxDuration = 900;
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const denied = await requireUser(req);
   if (denied) return denied;
+  setActor(req);
   try {
     const { id } = await params;
     const { teaser } = (await req.json().catch(() => ({}))) as { teaser?: boolean };

@@ -5,13 +5,15 @@ import { ExternalLink, Lightbulb, Loader2, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { CalendarData } from "@/lib/calendar/service";
+import { Comments } from "@/components/comments";
+import type { Viewer } from "./calendar-app";
 import { CHANNELS, KINDS, LOCAL_STATES, PRIORITIES, type Task, type TaskInput } from "@/lib/calendar/types";
 
 export type DrawerState =
   | { mode: "edit"; task: Task }
   | { mode: "create"; preset?: { date?: string | null; title?: string; description?: string; channel?: Task["channel"]; kind?: Task["kind"]; ideaId?: string; specialDayId?: string } };
 
-export function TaskDrawer({ state, data, onClose, onSaved }: { state: DrawerState; data: CalendarData; onClose: () => void; onSaved: (t: Task | null, removedId?: string) => void }) {
+export function TaskDrawer({ state, data, viewer, onClose, onSaved }: { state: DrawerState; data: CalendarData; viewer: Viewer; onClose: () => void; onSaved: (t: Task | null, removedId?: string) => void }) {
   const t = state.mode === "edit" ? state.task : undefined;
   const p = state.mode === "create" ? (state.preset ?? {}) : {};
   const lin = data.linear.connected ? data.linear : null;
@@ -243,6 +245,15 @@ export function TaskDrawer({ state, data, onClose, onSaved }: { state: DrawerSta
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+          {t && (
+            <div className="border-t border-line pt-4">
+              <div className="mb-2 text-[11.5px] font-medium uppercase tracking-[0.05em] text-ink-3">
+                Comments{t.source === "linear" ? " (in Linear)" : ""}
+                {t.createdBy && <span className="ml-2 normal-case tracking-normal text-ink-3">· created in Brian by {viewer.people.find((p) => p.id === t.createdBy)?.name ?? t.createdBy}</span>}
+              </div>
+              <Comments type="task" id={t.id} me={viewer.id} admin={viewer.admin} people={viewer.people} />
             </div>
           )}
           {error && <p className="text-[12.5px] text-bad">{error}</p>}

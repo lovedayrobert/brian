@@ -1,11 +1,12 @@
 import { generateIdeas } from "@/lib/pipeline/ideas";
-import { fail, requireUser } from "../_util";
+import { fail, requireUser , setActor } from "../_util";
 
 export const maxDuration = 300;
 
 export async function POST(req: Request) {
   const denied = await requireUser(req);
   if (denied) return denied;
+  setActor(req);
   try {
     const { trendId, momentId, lens, steer, horizon, spark, swipeId, dayId } = (await req.json()) as {
       trendId?: string;

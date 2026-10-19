@@ -12,6 +12,15 @@ import { TaskDrawer, type DrawerState } from "./task-drawer";
 import { DAY_KIND, FilterBar, type Filters, matches, EMPTY_FILTERS } from "./filters";
 import { TaskCard, type Display } from "./task-card";
 
+export interface Viewer {
+  id: string;
+  admin: boolean;
+  /** Your names as they appear on tasks (Linear name, Brian name) */
+  names: string[];
+  people: { id: string; name: string }[];
+  prefs: { calendarFilters?: unknown; calendarDisplay?: unknown };
+}
+
 const DEFAULT_DISPLAY: Display = { weekends: true, completed: true, days: true, compact: true, props: { identifier: true, assignee: true, priority: true, labels: false, project: false, channel: true } };
 
 function load<T>(key: string, fallback: T): T {
@@ -37,6 +46,7 @@ export function CalendarApp({
   ai,
   prefill,
   openDay,
+  viewer,
 }: {
   initial: CalendarData;
   initialView: View;
@@ -44,15 +54,16 @@ export function CalendarApp({
   ai: boolean;
   prefill?: DrawerState;
   openDay?: string;
+  viewer: Viewer;
 }) {
   const [view, setView] = useState<View>(initialView);
   const [anchor, setAnchor] = useState(initialAnchor);
   const [data, setData] = useState<CalendarData>(initial);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Rendered in the browser only (see calendar-client.tsx), so saved preferences can be read up front.
-  const [filters, setFilters] = useState<Filters>(() => load("brian.cal.filters", EMPTY_FILTERS));
-  const [display, setDisplay] = useState<Display>(() => load("brian.cal.display", DEFAULT_DISPLAY));
+  // Saved per person on the server, so they follow you across devices; this browser's copy is the fallback.
+  const [filters, setFilters] = useState<Filters>(() => ({ ...EMPTY_FILTERS, ...((viewer.prefs.calendarFilters as Filters) ?? load("brian.cal.filters", EMPTY_FILTERS)) }));
+  const [display, setDisplay] = useState<Display>(() => ({ ...DEFAULT_DISPLAY, ...((viewer.prefs.calendarDisplay as Display) ?? load("brian.cal.display", DEFAULT_DISPLAY)) }));
   const [drawer, setDrawer] = useState<DrawerState | null>(prefill ?? null);
   const [dayPanel, setDayPanel] = useState<string | null>(openDay ?? null);
   const [tray, setTray] = useState(false);
@@ -61,8 +72,15 @@ export function CalendarApp({
   const [displayOpen, setDisplayOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => save("brian.cal.filters", filters), [filters]);
-  useEffect(() => save("brian.cal.display", display), [display]);
+  useEffect(() => {
+    save("brian.cal.filters", filters);
+    save("brian.cal.display", display);
+    const t = setTimeout(() => {
+      fetch("/api/prefs", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ calendarFilters: filters, calendarDisplay: display }) }).catch(() => {});
+    }, 800);
+    return () => clearTimeout(t);
+  }, [filters, display]);
+  const mine = viewer.names.length > 0 && filters.assignees.length > 0 && filters.assignees.every((a) => viewer.names.includes(a));
 
   const range = useMemo(() => rangeFor(view, anchor), [view, anchor]);
 
@@ -281,6 +299,13 @@ export function CalendarApp({
             </button>
           ))}
         </div>
+        <button
+          onClick={() => setFilters((f) => ({ ...f, assignees: mine ? [] : viewer.names }))}
+          className={clsx("h-9 rounded-full px-3.5 text-[13px] shadow-card transition", mine ? "bg-ink text-bg" : "bg-surface text-ink-2 hover:text-ink")}
+          title="Only tasks assigned to you"
+        >
+          Mine
+        </button>
         <div className="relative ml-auto flex items-center">
           <Search className="pointer-events-none absolute left-3 h-3.5 w-3.5 text-ink-3" />
           <input
@@ -383,7 +408,7 @@ export function CalendarApp({
         </div>
       )}
 
-      {drawer && <TaskDrawer state={drawer} data={data} onClose={() => setDrawer(null)} onSaved={onSaved} />}
+      {drawer && <TaskDrawer state={drawer} data={data} viewer={viewer} onClose={() => setDrawer(null)} onSaved={onSaved} />}
       {dayPanel && (
         <DayPanel
           date={dayPanel}

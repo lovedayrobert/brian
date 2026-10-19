@@ -1,11 +1,12 @@
 import { pushToLinear } from "@/lib/adapters/tasks/linear";
 import type { Handover } from "@/lib/pipeline/package-schemas";
 import { repo } from "@/lib/store";
-import { fail, requireUser } from "../../../_util";
+import { fail, requireUser , setActor } from "../../../_util";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const denied = await requireUser(_req);
   if (denied) return denied;
+  setActor(_req);
   try {
     const { id } = await params;
     const pkg = (await repo.read()).packages.find((p) => p.id === id);

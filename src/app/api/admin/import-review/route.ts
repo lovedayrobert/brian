@@ -1,12 +1,13 @@
 import { importReviewBuffer } from "@/lib/review-transfer";
-import { fail, requireUser } from "../../_util";
+import { fail, requireAdmin , setActor } from "../../_util";
 
 export const maxDuration = 300;
 
 /** Load a blind-review bundle (gzipped) onto this server. Signed-in users only. */
 export async function POST(req: Request) {
-  const denied = await requireUser(req);
+  const denied = await requireAdmin(req);
   if (denied) return denied;
+  setActor(req);
   try {
     const buf = Buffer.from(await req.arrayBuffer());
     if (buf.length > 200_000_000) throw new Error("Bundle too large");

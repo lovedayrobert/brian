@@ -1,4 +1,5 @@
 import type * as z from "zod/v4";
+import { logActivity } from "@/lib/activity";
 import { callStructured, research, type AgentName } from "@/lib/adapters/model";
 import { falImage, falReady } from "@/lib/adapters/image/fal";
 import { ASSET_ASPECT, FORMATS, formatById, type VisualSpec } from "@/lib/brand/formats";
@@ -92,6 +93,7 @@ export async function startPackage(ideaId: string): Promise<Package> {
   };
   await repo.update((d) => {
     d.packages.unshift(pkg);
+    logActivity(d, { type: "idea.developed", text: `started a full campaign for “${idea.name}”`, ref: { kind: "idea", id: idea.id, label: idea.name } });
     const i = d.ideas.find((x) => x.id === ideaId);
     if (i) i.status = "developing";
   });

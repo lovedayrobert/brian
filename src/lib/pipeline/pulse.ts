@@ -1,4 +1,5 @@
 import * as z from "zod/v4";
+import { logActivity } from "@/lib/activity";
 import { callStructured } from "@/lib/adapters/model";
 import { EMOTIONS } from "@/lib/brand/quality-bar";
 import type { Moment, Pulse, Signal } from "@/lib/domain/types";
@@ -77,6 +78,7 @@ export async function readPulse(brandId = "cashy" as const): Promise<Pulse> {
   };
   await repo.update((d) => {
     d.pulses = [pulse, ...(d.pulses ?? [])].slice(0, 20);
+    logActivity(d, { type: "pulse.read", text: `read the room${pulse.villain ? `: villain of the week is ${pulse.villain.split(/[.,:;(]/)[0]}` : ""}` });
   });
   return pulse;
 }

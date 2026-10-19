@@ -2,6 +2,7 @@ import type { CalendarItem } from "@/lib/domain/types";
 import { archiveIssue, createIssue, issuesInRange, linearMeta, linearReady, type LinearIssue, type LinearMeta, unscheduledIssues, updateIssue } from "@/lib/integrations/linear";
 import { pullSheet, sheetReady } from "@/lib/integrations/sheet";
 import { newId, repo, type DB } from "@/lib/store";
+import { logActivity } from "@/lib/activity";
 import { type SpecialDay, specialDays } from "./days";
 import { CHANNELS, LOCAL_STATES, type StatusType, type Task, type TaskInput } from "./types";
 export { CHANNELS, LOCAL_STATES, type StatusType, type Task, type TaskInput };
@@ -47,6 +48,7 @@ function fromIssue(i: LinearIssue, meta: DB["calendarMeta"]): Task {
     kind: m.kind,
     ideaId: m.ideaId,
     specialDayId: m.specialDayId,
+    createdBy: m.createdBy,
   };
 }
 
@@ -68,6 +70,7 @@ function fromItem(c: CalendarItem): Task {
     needsSocial: c.needsSocial,
     ideaId: c.ideaId,
     specialDayId: c.specialDayId,
+    createdBy: c.createdBy,
     readOnly: c.source === "crm-sheet",
   };
 }
@@ -138,15 +141,32 @@ function validate(input: TaskInput, creating: boolean) {
   if (input.channel && !CHANNELS.includes(input.channel)) throw new Error("Unknown channel.");
 }
 
-async function saveMeta(issueId: string, input: TaskInput) {
-  const patch = Object.fromEntries(Object.entries({ channel: input.channel, kind: input.kind, ideaId: input.ideaId, specialDayId: input.specialDayId }).filter(([, v]) => v !== undefined));
+async function saveMeta(issueId: string, input: TaskInput & { createdBy?: string }) {
+  const patch = Object.fromEntries(Object.entries({ channel: input.channel, kind: input.kind, ideaId: input.ideaId, specialDayId: input.specialDayId, createdBy: input.createdBy }).filter(([, v]) => v !== undefined));
   if (!Object.keys(patch).length) return;
   await repo.update((d) => {
     d.calendarMeta = { ...(d.calendarMeta ?? {}), [issueId]: { ...(d.calendarMeta?.[issueId] ?? {}), ...patch } };
   });
 }
 
+async function logTask(task: Task, input: TaskInput, created: boolean) {
+  await repo.update((d) => {
+    if (created && input.ideaId) logActivity(d, { type: "idea.scheduled", text: `added “${task.title}” to the calendar for ${task.date ?? "no date yet"}`, ref: { kind: "idea", id: input.ideaId, label: task.title } });
+    else if (created) logActivity(d, { type: "task.created", text: `created “${task.title}”${task.date ? ` for ${task.date}` : ""}${task.identifier ? ` (${task.identifier})` : ""}`, ref: { kind: "task", id: task.id, label: task.title } });
+    else {
+      const what = input.date !== undefined && Object.keys(input).length === 1 ? `moved “${task.title}” to ${task.date ?? "no date"}` : input.statusId && Object.keys(input).length === 1 ? `set “${task.title}” to ${task.status.name}` : `updated “${task.title}”`;
+      logActivity(d, { type: "task.updated", text: what, ref: { kind: "task", id: task.id, label: task.title } });
+    }
+  });
+}
+
 export async function createTask(input: TaskInput, by: string): Promise<Task> {
+  const task = await createTaskInner(input, by);
+  await logTask(task, input, true);
+  return task;
+}
+
+async function createTaskInner(input: TaskInput, by: string): Promise<Task> {
   validate(input, true);
   if (linearReady()) {
     const meta = await linearMeta();
@@ -165,8 +185,8 @@ export async function createTask(input: TaskInput, by: string): Promise<Task> {
       dueDate: input.date ?? undefined,
       parentId: input.parentId ?? undefined,
     });
-    await saveMeta(issue.id, input);
-    return fromIssue(issue, { [issue.id]: { channel: input.channel, kind: input.kind, ideaId: input.ideaId, specialDayId: input.specialDayId } });
+    await saveMeta(issue.id, { ...input, createdBy: by });
+    return fromIssue(issue, { [issue.id]: { channel: input.channel, kind: input.kind, ideaId: input.ideaId, specialDayId: input.specialDayId, createdBy: by } });
   }
   const item: CalendarItem = {
     id: newId("cal"),
@@ -193,6 +213,12 @@ export async function createTask(input: TaskInput, by: string): Promise<Task> {
 }
 
 export async function updateTask(id: string, input: TaskInput): Promise<Task> {
+  const task = await updateTaskInner(id, input);
+  await logTask(task, input, false);
+  return task;
+}
+
+async function updateTaskInner(id: string, input: TaskInput): Promise<Task> {
   validate(input, false);
   if (id.startsWith("lin_")) {
     if (!linearReady()) throw new Error("Linear isn't connected.");

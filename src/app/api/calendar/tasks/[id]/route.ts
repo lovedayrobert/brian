@@ -1,9 +1,10 @@
 import { deleteTask, type TaskInput, updateTask } from "@/lib/calendar/service";
-import { fail, requireUser } from "../../../_util";
+import { fail, requireUser , setActor } from "../../../_util";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const denied = await requireUser(req);
   if (denied) return denied;
+  setActor(req);
   try {
     return Response.json({ task: await updateTask((await params).id, (await req.json()) as TaskInput) });
   } catch (e) {
@@ -14,6 +15,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const denied = await requireUser(req);
   if (denied) return denied;
+  setActor(req);
   try {
     await deleteTask((await params).id);
     return Response.json({ ok: true });

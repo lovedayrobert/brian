@@ -27,7 +27,7 @@ export interface LinearMeta {
   teams: { id: string; key: string; name: string; color?: string; states: { id: string; name: string; type: string; color: string; position: number }[] }[];
   labels: { id: string; name: string; color: string; teamId: string | null }[];
   projects: { id: string; name: string; color: string; teamIds: string[] }[];
-  users: { id: string; name: string; displayName: string; avatarUrl: string | null }[];
+  users: { id: string; name: string; displayName: string; email?: string; avatarUrl: string | null }[];
   defaultTeamId: string | null;
 }
 
@@ -38,11 +38,11 @@ export async function linearMeta(force = false): Promise<LinearMeta> {
   const d = await gql<{
     teams: { nodes: { id: string; key: string; name: string; color: string | null; states: { nodes: LinearMeta["teams"][number]["states"] } }[] };
     projects: { nodes: { id: string; name: string; color: string; teams: { nodes: { id: string }[] } }[] };
-    users: { nodes: { id: string; name: string; displayName: string; avatarUrl: string | null; active: boolean }[] };
+    users: { nodes: { id: string; name: string; displayName: string; email: string; avatarUrl: string | null; active: boolean }[] };
   }>(`query {
     teams(first: 50) { nodes { id key name color states { nodes { id name type color position } } } }
     projects(first: 100) { nodes { id name color teams { nodes { id } } } }
-    users(first: 150) { nodes { id name displayName avatarUrl active } }
+    users(first: 250) { nodes { id name displayName email avatarUrl active } }
   }`);
   // Big workspaces have hundreds of labels, so they're read page by page.
   const labels: { id: string; name: string; color: string; team: { id: string } | null }[] = [];
@@ -61,7 +61,7 @@ export async function linearMeta(force = false): Promise<LinearMeta> {
     teams,
     labels: labels.map((l) => ({ id: l.id, name: l.name, color: l.color, teamId: l.team?.id ?? null })),
     projects: d.projects.nodes.map((p) => ({ id: p.id, name: p.name, color: p.color, teamIds: p.teams.nodes.map((t) => t.id) })),
-    users: d.users.nodes.filter((u) => u.active).map(({ id, name, displayName, avatarUrl }) => ({ id, name, displayName, avatarUrl })),
+    users: d.users.nodes.filter((u) => u.active).map(({ id, name, displayName, email, avatarUrl }) => ({ id, name, displayName, email, avatarUrl })),
     defaultTeamId: teams.find((t) => t.key.toLowerCase() === want || t.id === process.env.LINEAR_TEAM || t.name.toLowerCase() === want)?.id ?? teams[0]?.id ?? null,
   };
   metaCache = { at: Date.now(), meta };
@@ -153,4 +153,27 @@ export async function archiveIssue(id: string): Promise<void> {
 /** Drop undefined fields so an update only touches what was sent. */
 function clean(o: object) {
   return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined));
+}
+
+export interface LinearComment {
+  id: string;
+  body: string;
+  createdAt: string;
+  user: { name: string; avatarUrl: string | null } | null;
+}
+
+export async function issueComments(issueId: string): Promise<LinearComment[]> {
+  const d = await gql<{ issue: { comments: { nodes: LinearComment[] } } }>(
+    `query($id: String!) { issue(id: $id) { comments(first: 100) { nodes { id body createdAt user { name avatarUrl } } } } }`,
+    { id: issueId },
+  );
+  return [...d.issue.comments.nodes].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
+export async function addIssueComment(issueId: string, body: string): Promise<LinearComment> {
+  const d = await gql<{ commentCreate: { comment: LinearComment } }>(
+    `mutation($input: CommentCreateInput!) { commentCreate(input: $input) { comment { id body createdAt user { name avatarUrl } } } }`,
+    { input: { issueId, body } },
+  );
+  return d.commentCreate.comment;
 }

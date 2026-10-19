@@ -69,7 +69,7 @@ export function TeachBox() {
   );
 }
 
-export function MemoryItem({ m }: { m: Memory }) {
+export function MemoryItem({ m, readOnly, byName }: { m: Memory; readOnly?: boolean; byName?: string }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(m.text);
@@ -104,7 +104,7 @@ export function MemoryItem({ m }: { m: Memory }) {
           <div className="min-w-0 flex-1">
             <div className="text-[14px] leading-snug">{m.text}</div>
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11.5px] text-ink-3">
-              <span>{source}</span>
+              <span>{byName && m.source === "taught" ? `Taught by ${byName}` : source}</span>
               <span>·</span>
               <span>{new Date(m.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
               <span>·</span>
@@ -118,7 +118,7 @@ export function MemoryItem({ m }: { m: Memory }) {
               {!m.active && <span className="font-medium text-warn">Paused</span>}
             </div>
           </div>
-          <div className="flex shrink-0 gap-0.5 opacity-60 transition group-hover:opacity-100">
+          {!readOnly && <div className="flex shrink-0 gap-0.5 opacity-60 transition group-hover:opacity-100">
             {busy ? (
               <Loader2 className="m-1.5 h-4 w-4 animate-spin text-ink-3" />
             ) : (
@@ -134,7 +134,7 @@ export function MemoryItem({ m }: { m: Memory }) {
                 </IconBtn>
               </>
             )}
-          </div>
+          </div>}
         </div>
       )}
     </div>

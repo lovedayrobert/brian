@@ -6,6 +6,9 @@ import type { RapidResponse } from "@/lib/pipeline/rapid";
 import type { BacktestResult } from "@/lib/engine/backtest";
 import type { Feedback, Memory, MemoryEvent } from "@/lib/memory";
 import type { ReviewSet } from "@/lib/review";
+import type { Person } from "@/lib/people";
+import type { Activity } from "@/lib/activity";
+import type { Comment } from "@/lib/collab-types";
 
 /**
  * Repository interface. The prototype uses a local JSON file so it runs with
@@ -42,12 +45,21 @@ export interface DB {
   /** The marketing calendar: team items, CRM sheet rows and Linear issues */
   calendar: CalendarItem[];
   /** Brian-only fields for Linear issues (channel, idea link), keyed by issue id */
-  calendarMeta: Record<string, { channel?: CalendarItem["channel"]; kind?: CalendarItem["type"]; ideaId?: string; specialDayId?: string }>;
+  calendarMeta: Record<string, { channel?: CalendarItem["channel"]; kind?: CalendarItem["type"]; ideaId?: string; specialDayId?: string; createdBy?: string }>;
   /** Last read of the CRM sheet */
   crmSync: { at: string; ok: boolean; rows: number; skipped: number; error?: string } | null;
+  /** Everyone who has signed in */
+  people: Person[];
+  /** What the team did, newest first */
+  activity: Activity[];
+  /** target id → emoji → person ids */
+  reactions: Record<string, Record<string, string[]>>;
+  comments: Comment[];
+  /** Per-person settings that follow them across devices */
+  prefs: Record<string, { calendarFilters?: unknown; calendarDisplay?: unknown }>;
 }
 
-const EMPTY: DB = { signals: [], trends: [], moments: [], ideas: [], packages: [], agentRuns: [], sweeps: [], rapid: [], memories: [], memoryEvents: [], feedback: [], spendLedger: {}, imported: [], reviews: [], pulses: [], swipes: [], calendar: [], calendarMeta: {}, crmSync: null };
+const EMPTY: DB = { signals: [], trends: [], moments: [], ideas: [], packages: [], agentRuns: [], sweeps: [], rapid: [], memories: [], memoryEvents: [], feedback: [], spendLedger: {}, imported: [], reviews: [], pulses: [], swipes: [], calendar: [], calendarMeta: {}, crmSync: null, people: [], activity: [], reactions: {}, comments: [], prefs: {} };
 
 const LOCK_STALE_MS = 30_000;
 const LOCK_WAIT_MS = 20_000;

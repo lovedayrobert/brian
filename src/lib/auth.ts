@@ -122,6 +122,8 @@ export interface GoogleClaims {
   email?: string;
   email_verified?: boolean;
   hd?: string;
+  name?: string;
+  picture?: string;
 }
 
 /**

@@ -193,6 +193,9 @@ export interface Idea {
   engine?: 1 | 2 | 3 | 4;
   /** Engine 2: attention mechanic id. Engine 3: content format id (CONTENT_FORMATS). */
   attentionMechanic?: string;
+  /** Who asked Brian for it, and the spark it started from */
+  createdBy?: string;
+  spark?: { text: string; swipeId?: string };
   /** Engine 4: the act, the feeling it aims and the reaction it gets */
   emotion?: string;
   emotionTarget?: string;
@@ -290,6 +293,8 @@ export interface AgentRun {
   ok: boolean;
   error?: string;
   subject?: string;
+  /** Who started it (the signed-in person) */
+  by?: string;
 }
 
 export interface SweepRun {

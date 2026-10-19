@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import * as z from "zod/v4";
+import { currentActor } from "@/lib/actor";
 import type { AgentRun, Citation } from "@/lib/domain/types";
 import { newId, repo } from "@/lib/store";
 import { capsFromEnv, checkBudget, FALLBACK_WORST, PRICES, spendFromRuns, WEB_SEARCH_USD, worstCaseCost } from "@/lib/engine/spend";
@@ -179,7 +180,7 @@ export async function callStructured<S extends z.ZodType>(opts: {
   } finally {
     run.durationMs = Date.now() - started;
     await repo.update((db) => {
-      db.agentRuns = [run, ...db.agentRuns].slice(0, 2000);
+      db.agentRuns = [{ ...run, by: currentActor() }, ...db.agentRuns].slice(0, 2000);
       // The ledger is never trimmed, so caps stay accurate however many calls run.
       const day = run.startedAt.slice(0, 10);
       db.spendLedger = { ...(db.spendLedger ?? {}), [day]: Math.round(((db.spendLedger?.[day] ?? 0) + run.costUsd) * 10000) / 10000 };
@@ -237,7 +238,7 @@ export async function research(opts: {
   } finally {
     run.durationMs = Date.now() - started;
     await repo.update((db) => {
-      db.agentRuns = [run, ...db.agentRuns].slice(0, 2000);
+      db.agentRuns = [{ ...run, by: currentActor() }, ...db.agentRuns].slice(0, 2000);
       // The ledger is never trimmed, so caps stay accurate however many calls run.
       const day = run.startedAt.slice(0, 10);
       db.spendLedger = { ...(db.spendLedger ?? {}), [day]: Math.round(((db.spendLedger?.[day] ?? 0) + run.costUsd) * 10000) / 10000 };
@@ -295,7 +296,7 @@ export async function chargeExternal<T>(
   } finally {
     run.durationMs = Date.now() - started;
     await repo.update((db) => {
-      db.agentRuns = [run, ...db.agentRuns].slice(0, 2000);
+      db.agentRuns = [{ ...run, by: currentActor() }, ...db.agentRuns].slice(0, 2000);
       const day = run.startedAt.slice(0, 10);
       db.spendLedger = { ...(db.spendLedger ?? {}), [day]: Math.round(((db.spendLedger?.[day] ?? 0) + run.costUsd) * 10000) / 10000 };
     });
@@ -368,7 +369,7 @@ export async function callChecker<S extends z.ZodType>(opts: { system: string; p
   } finally {
     run.durationMs = Date.now() - started;
     await repo.update((db) => {
-      db.agentRuns = [run, ...db.agentRuns].slice(0, 2000);
+      db.agentRuns = [{ ...run, by: currentActor() }, ...db.agentRuns].slice(0, 2000);
       const day = run.startedAt.slice(0, 10);
       db.spendLedger = { ...(db.spendLedger ?? {}), [day]: Math.round(((db.spendLedger?.[day] ?? 0) + run.costUsd) * 10000) / 10000 };
     });

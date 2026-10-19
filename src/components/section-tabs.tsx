@@ -34,6 +34,7 @@ export function SectionTabs({ space, tabs, active }: { space: string; tabs: { id
 }
 
 export const SETTINGS_TABS = [
+  { id: "team", href: "/settings?tab=team", label: "Team" },
   { id: "coverage", href: "/settings?tab=coverage", label: "Coverage and cost" },
   { id: "sources", href: "/settings?tab=sources", label: "Sources" },
   { id: "brand", href: "/settings?tab=brand", label: "Brand" },

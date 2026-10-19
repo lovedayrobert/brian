@@ -1,3 +1,4 @@
+import { touchPerson } from "@/lib/people";
 import { allowedDomains, checkGoogleClaims, cookieValue, createSession, googleConfigured, publicOrigin, readSigned, SESSION_COOKIE, SESSION_MAX_AGE, type GoogleClaims } from "@/lib/auth";
 
 const STATE_COOKIE = "brian_oauth";
@@ -46,6 +47,7 @@ export async function GET(req: Request) {
   const check = checkGoogleClaims(claims, { clientId: process.env.GOOGLE_CLIENT_ID!, nonce: saved.nonce, domains: allowedDomains() });
   if (!check.ok) return back(origin, check.reason === "domain" ? "domain" : "google");
 
+  await touchPerson(check.email, { name: claims.name, email: check.email, avatarUrl: claims.picture });
   const token = await createSession(check.email, process.env.BRIAN_SESSION_SECRET!);
   const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
   return new Response(null, {

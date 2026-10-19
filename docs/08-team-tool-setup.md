@@ -12,6 +12,16 @@ Four spaces plus Settings, and nothing else in the sidebar (see the product rule
 - **Calendar**: Linear tasks, the CRM sheet, special days, ideas for any day.
 - **Settings**: coverage and cost, sources, brand, models, what Brian has learned, accuracy, results.
 
+## Working together
+
+- **Accounts:** everyone signs in with their BitStarz Google account (or a password until Google is set up). Brian matches each person to their Linear account by email.
+- **Who did what:** ideas show who asked for them and from what spark or post; tasks show who created them in Brian; Memory shows who taught each rule; Settings → Team shows each person's AI spend this month.
+- **Reactions** 🔥 👍 👎 😂 on ideas and Inspiration posts. *To review* sorts by the team's reactions (🔥 counts double, 👎 counts against), and 🔥 / 👍 / 👎 also count as feedback Brian learns from.
+- **Comments** with @mentions on ideas, Inspiration posts and calendar tasks. On Linear tasks the comment goes onto the Linear issue (signed "Name (via Brian)", because Brian posts with one Linear key). Mentions show under *For you* on the person's Home.
+- **Your view:** Home has *Mine / Team*; the calendar has *Mine*. Calendar filters and display settings are saved to your account and follow you across devices.
+- **Team activity:** *What the team did* on Home: ideas made and approved, comments, reactions, calendar changes, rules taught.
+- **Roles:** everyone can react, comment, get ideas, approve and plan. Only admins (`BRIAN_ADMINS`, comma-separated emails or login names; default `rob,marko,rob.loveday@bitstarz.com`) can teach or edit Memory and import reviews. Add Marko's Google email to `BRIAN_ADMINS` once he signs in with Google.
+
 ## Marketing calendar (`/calendar`)
 
 - **Views:** month, week, agenda, board (by status). Keyboard: `t` today, `←/→` move, `c` new task, `/` search, `m w a b` views, `u` tasks with no date, `Esc` closes.

@@ -11,6 +11,7 @@ import { BRANDS } from "@/lib/brand/brands";
 import { QUALITY_BAR, STUNTS } from "@/lib/brand/quality-bar";
 import { CAMPAIGN_COST, PRESETS, RADAR_COSTS, SOURCES } from "@/lib/config/sources";
 import { relativeTime, usd } from "@/lib/format";
+import { admins, initials, isAdmin } from "@/lib/people";
 import { load, spend } from "@/lib/queries";
 
 export const metadata = { title: "Settings" };
@@ -24,6 +25,8 @@ export default async function Settings({ searchParams }: { searchParams: Promise
   return (
     <>
       <SectionTabs space="Settings" tabs={SETTINGS_TABS} active={tab} />
+
+      {tab === "team" && <Team db={db} />}
 
       {tab === "coverage" && (
         <>
@@ -328,6 +331,45 @@ function AccuracyTab({ db }: { db: Awaited<ReturnType<typeof load>> }) {
         ) : (
           <p className="mt-4 text-[13.5px] text-ink-3">Not run yet. Run <code className="rounded bg-surface-3 px-1">npm run backtest</code>.</p>
         )}
+      </Card>
+    </div>
+  );
+}
+
+function Team({ db }: { db: Awaited<ReturnType<typeof load>> }) {
+  const month = new Date().toISOString().slice(0, 7);
+  const spendBy = new Map<string, number>();
+  for (const r of db.agentRuns) if (r.startedAt.startsWith(month)) spendBy.set(r.by ?? "brian", (spendBy.get(r.by ?? "brian") ?? 0) + r.costUsd);
+  const people = [...(db.people ?? [])].sort((a, b) => b.lastSeen.localeCompare(a.lastSeen));
+  return (
+    <div className="space-y-6">
+      <p className="max-w-[680px] text-[15px] leading-relaxed text-ink-2">
+        Everyone who has signed in. Anyone can react, comment, get ideas, approve them and plan in the calendar. Admins ({admins().join(", ")}) can also edit what Brian has learned and change settings. Admins are set with BRIAN_ADMINS.
+      </p>
+      <Card className="divide-y divide-line">
+        {people.length === 0 && <p className="px-5 py-4 text-[13.5px] text-ink-3">Nobody has signed in on this server yet.</p>}
+        {people.map((p) => (
+          <div key={p.id} className="flex flex-wrap items-center gap-3 px-5 py-3.5">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent-ink">{initials(p.name)}</span>
+            <div className="min-w-0 flex-1">
+              <div className="text-[14px] font-medium">
+                {p.name} {isAdmin(p.id) && <Pill tone="accent">Admin</Pill>}
+              </div>
+              <div className="text-[12.5px] text-ink-3">
+                {p.email ?? p.id} · last seen {relativeTime(p.lastSeen)}
+              </div>
+            </div>
+            <div className="text-right text-[12.5px] text-ink-2">
+              {usd(spendBy.get(p.id) ?? 0)} <span className="text-ink-3">AI this month</span>
+            </div>
+          </div>
+        ))}
+        {spendBy.get("brian") ? (
+          <div className="flex items-center justify-between px-5 py-3 text-[12.5px] text-ink-3">
+            <span>Before sign-in tracking, or run by Brian on its own</span>
+            <span>{usd(spendBy.get("brian") ?? 0)}</span>
+          </div>
+        ) : null}
       </Card>
     </div>
   );

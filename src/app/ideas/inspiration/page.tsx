@@ -2,6 +2,10 @@ import { Bookmark } from "lucide-react";
 import { IDEAS_TABS, SectionTabs } from "@/components/section-tabs";
 import { ActionButton } from "@/components/action-button";
 import { SparkBox, SwipeForm } from "@/components/swipe-form";
+import { Comments } from "@/components/comments";
+import { Reactions } from "@/components/reactions";
+import { personName } from "@/lib/people";
+import { nameMap, reactionIds, viewer } from "@/lib/viewer";
 import { Card, EmptyState, PageHeader, Pill, SourceLink } from "@/components/ui";
 import { modelReady } from "@/lib/adapters/model";
 import { STUNTS } from "@/lib/brand/quality-bar";
@@ -12,6 +16,9 @@ export const metadata = { title: "Inspiration" };
 
 export default async function SwipePage() {
   const db = await load();
+  const me = await viewer();
+  const names = nameMap(db, [...reactionIds(db), ...(db.people ?? []).map((p) => p.id)]);
+  const people = (db.people ?? []).map((p) => ({ id: p.id, name: p.name }));
   const swipes = db.swipes ?? [];
   const ai = modelReady();
 
@@ -42,7 +49,7 @@ export default async function SwipePage() {
                         {compact(v)} {k}
                       </span>
                     ))}
-                  <span>· added by {s.addedBy} {relativeTime(s.addedAt)}</span>
+                  <span>· added by {personName(db, s.addedBy)} {relativeTime(s.addedAt)}</span>
                 </div>
                 <h3 className="mt-2 text-[15.5px] font-semibold leading-snug">{s.title}</h3>
                 <p className="mt-1.5 text-[14px] leading-relaxed text-ink-2">
@@ -52,6 +59,17 @@ export default async function SwipePage() {
                 <div className="mt-2">
                   <SourceLink url={s.url} />
                 </div>
+                <div className="mt-3">
+                  <Reactions type="swipe" id={s.id} initial={db.reactions?.[s.id] ?? {}} me={me.id} names={names} size="sm" />
+                </div>
+                <details className="mt-3 rounded-[12px] bg-surface-2 px-3.5 py-2">
+                  <summary className="cursor-pointer text-[12.5px] text-ink-2">
+                    Comments ({(db.comments ?? []).filter((c) => c.target.type === "swipe" && c.target.id === s.id).length})
+                  </summary>
+                  <div className="pb-2 pt-3">
+                    <Comments type="swipe" id={s.id} me={me.id} admin={me.admin} people={people} />
+                  </div>
+                </details>
                 <div className="mt-4 border-t border-line pt-4">
                   <SparkBox swipeId={s.id} disabled={!ai} compact />
                 </div>

@@ -13,12 +13,15 @@ import { addDays, shortDate, todayDay } from "@/lib/calendar/dates";
 import { getCalendar } from "@/lib/calendar/service";
 import type { Task } from "@/lib/calendar/types";
 import { relativeTime } from "@/lib/format";
+import { initials, personName } from "@/lib/people";
 import { breaking, cards, keyVisualFor, load } from "@/lib/queries";
 
 export const metadata = { title: { absolute: "Brian" } };
 
 /** Home: what to do today. Everything here links into Radar, Ideas or Calendar. */
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ scope?: string }> }) {
+  const { scope: sc } = await searchParams;
+  const scope = sc === "mine" ? "mine" : "team";
   const db = await load();
   const ai = modelReady();
   const today = todayDay();
@@ -29,12 +32,22 @@ export default async function Home() {
   // The home team's work: overdue (last two weeks) and the next seven days.
   const team = process.env.LINEAR_TEAM;
   const cal = await getCalendar(addDays(today, -14), addDays(today, 6), { teamKey: team, unscheduled: false });
-  const open = cal.tasks.filter((t) => t.status.type !== "completed" && t.status.type !== "canceled" && t.source !== "crm-sheet");
+  // "Mine": tasks assigned to your Linear account (matched by email) or your name.
+  const meId = user ?? (authMode() === "off-dev" ? "local" : "");
+  const person = db.people?.find((p) => p.id === meId);
+  const linearMe = cal.linear.connected ? cal.linear.users.find((u) => u.email && u.email.toLowerCase() === (person?.email ?? meId).toLowerCase()) : undefined;
+  const myNames = new Set([linearMe?.name, person?.name].filter(Boolean) as string[]);
+  const isMine = (t: Task) => (t.assignee && myNames.has(t.assignee.name)) || t.createdBy === meId;
+  const open = cal.tasks.filter((t) => t.status.type !== "completed" && t.status.type !== "canceled" && t.source !== "crm-sheet" && (scope === "team" || isMine(t)));
   const overdue = open.filter((t) => t.date && t.date < today).sort(byDate);
   const dueSoon = open.filter((t) => t.date && t.date >= today).sort(byDate);
   const crmSocial = cal.tasks.filter((t) => t.needsSocial && t.date && t.date >= today);
   const days = (await getCalendar(today, addDays(today, 21), { unscheduled: false })).days;
-  const ideas = cards(db.ideas).slice(0, 3);
+  const ideas = cards(db.ideas)
+    .filter((i) => scope === "team" || i.createdBy === meId)
+    .slice(0, 3);
+  const feed = (db.activity ?? []).filter((a) => a.type !== "reaction" || scope === "team").slice(0, 12);
+  const forYou = (db.activity ?? []).filter((a) => meId && a.mentions?.includes(meId) && a.by !== meId).slice(0, 5);
   const pulse = db.pulses?.[0];
   const news = breaking(db.moments).filter((m) => m.sensitivity !== "blocked" && !m.industry).slice(0, 3);
   const sweep = db.sweeps[0];
@@ -54,7 +67,34 @@ export default async function Home() {
         eyebrow={new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
         title={`${greeting}, ${firstName(user ?? (authMode() === "off-dev" ? "rob" : null))}`}
         subtitle={summary}
+        actions={
+          <div className="flex rounded-full bg-surface p-0.5 shadow-card">
+            {(["mine", "team"] as const).map((x) => (
+              <Link key={x} href={x === "team" ? "/" : "/?scope=mine"} className={clsx("rounded-full px-4 py-1.5 text-[13px] transition", scope === x ? "bg-ink text-bg" : "text-ink-2 hover:text-ink")}>
+                {x === "mine" ? "Mine" : "Team"}
+              </Link>
+            ))}
+          </div>
+        }
       />
+
+      {forYou.length > 0 && (
+        <Card className="mb-6 border-l-[3px] border-l-accent p-4">
+          <div className="mb-1.5 text-[11.5px] font-medium uppercase tracking-[0.05em] text-accent-ink">For you</div>
+          <ul className="space-y-1.5 text-[13.5px]">
+            {forYou.map((a) => (
+              <li key={a.id}>
+                <span className="font-medium">{personName(db, a.by)}</span> {a.text} <span className="text-ink-3">· {relativeTime(a.at)}</span>
+                {a.ref && (
+                  <Link href={refHref(a.ref)} className="ml-1 text-accent-ink hover:underline">
+                    Open
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       {!ai && <AiBanner className="mb-6" />}
 
@@ -68,14 +108,14 @@ export default async function Home() {
         <div className="min-w-0 space-y-10">
           <section>
             <SectionTitle action={<Link href="/calendar?view=agenda" className="text-[13px] text-accent-ink hover:underline">Calendar</Link>}>
-              This week{team ? ` in ${team}` : ""}
+              {scope === "mine" ? "Your week" : `This week${team ? ` in ${team}` : ""}`}
             </SectionTitle>
             <Card className="divide-y divide-line">
               {overdue.length > 0 && <TaskGroup label="Overdue" tone="bad" tasks={overdue.slice(0, 6)} />}
               {dueSoon.length > 0 ? (
                 <TaskGroup label="Due" tasks={dueSoon.slice(0, 10)} today={today} />
               ) : (
-                <p className="px-5 py-4 text-[13.5px] text-ink-3">Nothing due this week.</p>
+                <p className="px-5 py-4 text-[13.5px] text-ink-3">{scope === "mine" && !myNames.size ? "Brian can't find your Linear account yet. It matches you by your sign-in email." : "Nothing due this week."}</p>
               )}
               {crmSocial.length > 0 && <TaskGroup label="CRM sends that need social" tone="warn" tasks={crmSocial.slice(0, 5)} />}
             </Card>
@@ -141,6 +181,25 @@ export default async function Home() {
           </section>
 
           <section>
+            <SectionTitle>What the team did</SectionTitle>
+            <Card className="divide-y divide-line">
+              {feed.length ? (
+                feed.map((a) => (
+                  <div key={a.id} className="flex gap-2.5 px-4 py-2.5">
+                    <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[10px] font-semibold text-accent-ink">{initials(personName(db, a.by))}</span>
+                    <div className="min-w-0 text-[13px] leading-snug">
+                      <span className="font-medium">{personName(db, a.by)}</span> {a.ref ? <Link href={refHref(a.ref)} className="hover:text-accent-ink">{a.text}</Link> : a.text}
+                      <div className="text-[11.5px] text-ink-3">{relativeTime(a.at)}</div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="px-4 py-3 text-[13px] text-ink-3">Nothing yet. Ideas, comments, reactions and calendar changes show here.</p>
+              )}
+            </Card>
+          </section>
+
+          <section>
             <SectionTitle action={<Link href="/calendar?view=agenda" className="text-[13px] text-accent-ink hover:underline">All</Link>}>Coming up</SectionTitle>
             <Card className="divide-y divide-line">
               {days.slice(0, 7).map((d) => (
@@ -164,6 +223,14 @@ export default async function Home() {
       </div>
     </>
   );
+}
+
+function refHref(r: { kind: string; id: string }): string {
+  if (r.kind === "idea") return `/ideas/${r.id}`;
+  if (r.kind === "swipe") return "/ideas/inspiration";
+  if (r.kind === "memory") return "/memory";
+  if (r.kind === "package") return `/develop/${r.id}`;
+  return "/calendar";
 }
 
 const byDate = (a: Task, b: Task) => (a.date ?? "").localeCompare(b.date ?? "") || (a.priority || 9) - (b.priority || 9);

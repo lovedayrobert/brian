@@ -1,5 +1,5 @@
 import { getCalendar } from "@/lib/calendar/service";
-import { fail, requireUser } from "../_util";
+import { fail, requireUser , setActor } from "../_util";
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -7,6 +7,7 @@ const DAY = /^\d{4}-\d{2}-\d{2}$/;
 export async function GET(req: Request) {
   const denied = await requireUser(req);
   if (denied) return denied;
+  setActor(req);
   try {
     const u = new URL(req.url);
     const from = u.searchParams.get("from") ?? "";

@@ -1,4 +1,6 @@
 import * as z from "zod/v4";
+import { currentActor } from "@/lib/actor";
+import { logActivity } from "@/lib/activity";
 import type { BrandId } from "@/lib/domain/types";
 import { newId, repo, type DB } from "@/lib/store";
 
@@ -27,6 +29,8 @@ export interface Memory {
   usedCount: number;
   lastUsedAt?: string;
   refs: { type: "idea" | "package"; id: string; label: string }[];
+  /** Who taught it, or whose feedback it came from */
+  by?: string;
 }
 
 export type MemoryEventType = "feedback" | "learned" | "used" | "edited" | "paused" | "forgotten" | "consolidated";
@@ -39,6 +43,7 @@ export interface MemoryEvent {
   memoryId?: string;
   ref?: { type: "idea" | "package"; id: string; label: string };
   sentiment?: "up" | "down";
+  by?: string;
 }
 
 export interface Feedback {
@@ -48,10 +53,11 @@ export interface Feedback {
   sentiment: "up" | "down";
   reason?: string;
   consolidated: boolean;
+  by?: string;
 }
 
 function event(db: DB, e: Omit<MemoryEvent, "id" | "at">) {
-  db.memoryEvents.unshift({ id: newId("mev"), at: new Date().toISOString(), ...e });
+  db.memoryEvents.unshift({ id: newId("mev"), at: new Date().toISOString(), by: currentActor(), ...e });
   db.memoryEvents = db.memoryEvents.slice(0, 1000);
 }
 
@@ -72,6 +78,7 @@ function remember(
     updatedAt: now,
     usedCount: 0,
     refs: m.refs ?? [],
+    by: currentActor(),
   };
   db.memories.unshift(mem);
   event(db, { type: "learned", text: mem.text, memoryId: mem.id, ref: mem.refs[0] });
@@ -81,7 +88,7 @@ function remember(
 /** Thumbs up/down. A reason becomes a preference right away; a bare thumb waits for consolidation. */
 export async function recordFeedback(f: { target: Feedback["target"]; sentiment: "up" | "down"; reason?: string }) {
   await repo.update((db) => {
-    const fb: Feedback = { id: newId("fb"), at: new Date().toISOString(), ...f, reason: f.reason?.trim() || undefined, consolidated: false };
+    const fb: Feedback = { id: newId("fb"), at: new Date().toISOString(), ...f, reason: f.reason?.trim() || undefined, consolidated: false, by: currentActor() };
     db.feedback.unshift(fb);
     event(db, {
       type: "feedback",
@@ -104,7 +111,8 @@ export async function recordFeedback(f: { target: Feedback["target"]; sentiment:
 export async function teach(text: string, kind: MemoryKind = "rule") {
   if (!text.trim()) throw new Error("Write something to teach Brian first.");
   await repo.update((db) => {
-    remember(db, { kind, text, source: "taught" });
+    const m = remember(db, { kind, text, source: "taught" });
+    logActivity(db, { type: "memory.taught", text: `taught Brian: “${m.text.slice(0, 140)}”`, ref: { kind: "memory", id: m.id, label: m.text.slice(0, 60) } });
   });
 }
 
@@ -115,6 +123,7 @@ export async function learnFromBehaviour(b:
   | { type: "steer"; packageId: string; label: string; instruction: string }) {
   await repo.update((db) => {
     if (b.type === "overrule") {
+      logActivity(db, { type: "idea.overruled", text: `overruled the panel on “${b.label}”`, ref: { kind: "idea", id: b.ideaId, label: b.label } });
       event(db, { type: "feedback", sentiment: "up", text: `Overruled the Critic and developed “${b.label}”`, ref: { type: "idea", id: b.ideaId, label: b.label } });
       remember(db, {
         kind: "lesson",
@@ -124,6 +133,7 @@ export async function learnFromBehaviour(b:
       });
     }
     if (b.type === "reject") {
+      logActivity(db, { type: "idea.rejected", text: `rejected “${b.label}”${b.reason ? `: ${b.reason}` : ""}`, ref: { kind: "idea", id: b.ideaId, label: b.label } });
       event(db, { type: "feedback", sentiment: "down", text: `Rejected “${b.label}”${b.reason ? `: ${b.reason}` : ""}`, ref: { type: "idea", id: b.ideaId, label: b.label } });
       if (b.reason) remember(db, { kind: "preference", source: "behaviour", text: `Avoid ideas like “${b.label}”: ${b.reason}`, refs: [{ type: "idea", id: b.ideaId, label: b.label }] });
     }
@@ -159,6 +169,7 @@ export async function editMemory(id: string, patch: { text?: string; active?: bo
     }
     if (patch.text !== undefined && patch.text.trim() && patch.text.trim() !== m.text) {
       event(db, { type: "edited", text: `“${m.text}” → “${patch.text.trim()}”`, memoryId: id });
+      logActivity(db, { type: "memory.edited", text: `edited a rule: “${patch.text.trim().slice(0, 120)}”`, ref: { kind: "memory", id, label: patch.text.trim().slice(0, 60) } });
       m.text = patch.text.trim();
     }
     if (patch.active !== undefined && patch.active !== m.active) {

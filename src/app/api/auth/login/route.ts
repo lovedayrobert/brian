@@ -1,3 +1,4 @@
+import { touchPerson } from "@/lib/people";
 import { authMode, checkPassword, passwordsEnabled, createSession, parseUsers, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/auth";
 
 // Slow down password guessing: 5 attempts a minute per address.
@@ -16,6 +17,7 @@ export async function POST(req: Request) {
   if (!name || !password || !checkPassword(parseUsers(process.env.BRIAN_USERS), name, password)) {
     return Response.json({ error: "Wrong name or password." }, { status: 401 });
   }
+  await touchPerson(name.trim().toLowerCase(), {});
   const token = await createSession(name.trim().toLowerCase(), process.env.BRIAN_SESSION_SECRET!);
   const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
   return new Response(JSON.stringify({ ok: true }), {

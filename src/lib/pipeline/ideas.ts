@@ -3,6 +3,8 @@ import { callChecker, callStructured, checkerReady, qualityMax, research, SpendC
 import type { BrandId, Claim, Citation, Idea, Moment, Signal, Trend } from "@/lib/domain/types";
 import { AUDIENCE_PANEL, EMOTIONS, MOVES, QUALITY_BAR } from "@/lib/brand/quality-bar";
 import { pulseContext } from "./pulse";
+import { currentActor } from "@/lib/actor";
+import { logActivity } from "@/lib/activity";
 import { specialDayById } from "@/lib/calendar/days";
 import { swipeContext, swipeLine } from "@/lib/swipe";
 import type { DB } from "@/lib/store";
@@ -273,6 +275,8 @@ Find 10 acts Cashy could do on this. First work out what people actually feel ab
       },
       status: passed ? "candidate" : "killed",
       keyVisualPrompt: c.keyVisualPrompt,
+      createdBy: currentActor(),
+      spark: opts.spark ? { text: opts.spark.text, swipeId: opts.spark.swipeId } : undefined,
       createdAt: now,
     };
   });
@@ -311,10 +315,18 @@ Find 10 acts Cashy could do on this. First work out what people actually feel ab
 
   // Save straight after the Critic: the paid work is done, and a later failure must never lose it.
   for (const i of ideas) i.sourceContext = sourceContextFor(i, db);
-  const save = () =>
+  const save = (log?: boolean) =>
     repo.update((d) => {
       const ids = new Set(ideas.map((i) => i.id));
       d.ideas = [...ideas, ...d.ideas.filter((i) => !ids.has(i.id))];
+      if (log) {
+        const kept = ideas.filter((i) => i.status === "card");
+        logActivity(d, {
+          type: "idea.generated",
+          text: `got ${ideas.length} ideas from ${subject}; the panel kept ${kept.length}`,
+          ref: kept[0] ? { kind: "idea", id: kept[0].id, label: kept[0].name } : undefined,
+        });
+      }
     });
   await save();
 
@@ -341,7 +353,7 @@ Find 10 acts Cashy could do on this. First work out what people actually feel ab
     i.status = "killed";
     i.screening.critic.reasons.unshift("Passed the Critic but ranked below the top three.");
   }
-  await save();
+  await save(true);
   return { cards: ideas.filter((i) => i.status === "card"), killed: ideas.filter((i) => i.status === "killed") };
 }
 

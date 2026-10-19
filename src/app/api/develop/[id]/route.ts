@@ -1,9 +1,10 @@
-import { requireUser } from "../../_util";
+import { requireUser , setActor } from "../../_util";
 import { repo } from "@/lib/store";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const denied = await requireUser(_req);
   if (denied) return denied;
+  setActor(_req);
   const { id } = await params;
   const pkg = (await repo.read()).packages.find((p) => p.id === id);
   if (!pkg) return Response.json({ error: "Not found" }, { status: 404 });
@@ -14,6 +15,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const denied = await requireUser(_req);
   if (denied) return denied;
+  setActor(_req);
   const { id } = await params;
   const { runPackage, SECTION_ORDER } = await import("@/lib/pipeline/develop");
   const failed: string[] = [];

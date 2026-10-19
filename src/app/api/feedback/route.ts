@@ -1,10 +1,11 @@
 import { learnFromBehaviour, recordFeedback } from "@/lib/memory";
 import { repo } from "@/lib/store";
-import { fail, requireUser } from "../_util";
+import { fail, requireUser , setActor } from "../_util";
 
 export async function POST(req: Request) {
   const denied = await requireUser(req);
   if (denied) return denied;
+  setActor(req);
   try {
     const { target, sentiment, reason, reject } = (await req.json()) as {
       target: { type: "idea" | "package"; id: string; label: string };

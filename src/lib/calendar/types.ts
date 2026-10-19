@@ -25,6 +25,8 @@ export interface Task {
   needsSocial?: boolean;
   ideaId?: string;
   specialDayId?: string;
+  /** Who made it in Brian */
+  createdBy?: string;
   readOnly?: boolean;
 }
 

@@ -12,10 +12,17 @@ import { keyVisualFor, load } from "@/lib/queries";
 import { scoreSet } from "@/lib/scores";
 import { horizonFor } from "@/lib/horizon";
 import { emotionName, moveName } from "@/lib/brand/quality-bar";
+import { Comments } from "@/components/comments";
+import { Reactions } from "@/components/reactions";
+import { personName } from "@/lib/people";
+import { nameMap, reactionIds, viewer } from "@/lib/viewer";
 
 export default async function IdeaDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const db = await load();
+  const me = await viewer();
+  const names = nameMap(db, [...reactionIds(db), ...(db.people ?? []).map((p) => p.id)]);
+  const people = (db.people ?? []).map((p) => ({ id: p.id, name: p.name }));
   const idea = db.ideas.find((i) => i.id === id);
   if (!idea) notFound();
   const trend = db.trends.find((t) => t.id === idea.trendId);
@@ -37,7 +44,18 @@ export default async function IdeaDetail({ params }: { params: Promise<{ id: str
           </span>
         }
         title={idea.name}
-        subtitle={idea.oneLiner !== idea.name ? idea.oneLiner : undefined}
+        subtitle={
+          <span className="block">
+            {idea.oneLiner !== idea.name && <span className="block">{idea.oneLiner}</span>}
+            <span className="mt-1 block text-[13px] text-ink-3">
+              {idea.createdBy ? `Asked for by ${personName(db, idea.createdBy)}` : "Made by Brian"}
+              {idea.spark?.text ? ` from the spark “${idea.spark.text.slice(0, 80)}”` : ""}
+            </span>
+            <span className="mt-3 block">
+              <Reactions type="idea" id={idea.id} initial={db.reactions?.[idea.id] ?? {}} me={me.id} names={names} />
+            </span>
+          </span>
+        }
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {!(idea.screening.redLines && !idea.screening.redLines.pass) && (
@@ -125,6 +143,13 @@ export default async function IdeaDetail({ params }: { params: Promise<{ id: str
             {whyOurs && <Block label="Why it's ours (earlier engine)">{whyOurs}</Block>}
             <Block label={`Edge: ${idea.edge}. Likely backlash`}>{idea.backlash}</Block>
           </Card>
+
+          <section>
+            <SectionTitle>Comments</SectionTitle>
+            <Card className="p-5">
+              <Comments type="idea" id={idea.id} me={me.id} admin={me.admin} people={people} />
+            </Card>
+          </section>
 
           <section>
             <SectionTitle>Evidence</SectionTitle>
