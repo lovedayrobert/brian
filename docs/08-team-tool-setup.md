@@ -30,6 +30,22 @@ Four spaces plus Settings, and nothing else in the sidebar (see the product rule
 - **Special days** are filled in automatically: holidays, crypto anniversaries (Bitcoin Pizza Day, Genesis Block, whitepaper day…), internet and gaming days, Black Friday, Friday the 13ths, Super Bowl, Kentucky Derby, GTA 6. Add more in `src/lib/calendar/days.ts`.
 - **Brian inside the calendar:** open any day for *Post ideas* (three ideas, about $0.10), *A bigger move* (the full engine, about $0.75) or *Plan it myself*. Every idea has *Add as task*, which opens the editor filled in. On any idea page, *Add to calendar* does the same.
 
+## Results (Calendar → Results)
+
+- **Published:** on any calendar task, paste the link to each post once it's out. Brian reads X and Telegram posts by itself (YouTube too with `YOUTUBE_API_KEY`) when added and again at about 1 hour, 24 hours and 7 days, and every day for the first month. Instagram, TikTok and Discord numbers are entered on the task until their access is connected. On Linear tasks the post link is also attached to the issue.
+- **Tracking links:** every task has a campaign name and a link per channel (`utm_source`, `utm_medium`, `utm_campaign`, `utm_content`). Use those links in posts, newsletters and creator briefs so GA4 can tie visits and sign-ups to the task. The default destination is `https://cashy.com` (`NEXT_PUBLIC_BRIAN_DEFAULT_LINK` changes it).
+- **Results tab:** posts tracked, views, engagements, website visits and key events from them; top posts; a table by task and idea with Brian's prediction alongside; what works by channel, type of idea and day (once there are 3+ posts per group); and the website from GA4: sessions, users, key events, top sources, every campaign, top blog pages.
+
+**Connecting GA4**
+1. Google Cloud console → create (or pick) a project → APIs & Services → Library → enable **Google Analytics Data API**.
+2. IAM & Admin → Service accounts → create one called `brian-reader` (no roles) → Keys → Add key → JSON. If your Workspace blocks key creation, IT needs to allow it for this project.
+3. In GA4: Admin → Property access management → add the service account's email as **Viewer**.
+4. GA4 Admin → Property details: copy the **Property ID** (a number).
+5. In Railway set `GOOGLE_SERVICE_ACCOUNT_JSON` (paste the whole key file) and `GA4_PROPERTY_ID`. `GA4_BLOG_PATH` defaults to `/articles`.
+6. In GA4 make sure sign-ups (and first deposits, if tracked) are marked as **key events**, so "key events" in Brian means sign-ups.
+
+The same service account can also read the CRM sheet privately and, later, Search Console.
+
 ## Linear
 
 | Variable | What |

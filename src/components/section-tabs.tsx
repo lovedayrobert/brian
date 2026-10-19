@@ -43,3 +43,8 @@ export const SETTINGS_TABS = [
   { id: "accuracy", href: "/settings?tab=accuracy", label: "Accuracy" },
   { id: "results", href: "/results", label: "Results" },
 ];
+
+export const CALENDAR_TABS = [
+  { id: "calendar", href: "/calendar", label: "Calendar" },
+  { id: "results", href: "/calendar/results", label: "Results" },
+];

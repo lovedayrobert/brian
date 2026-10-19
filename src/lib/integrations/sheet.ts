@@ -1,4 +1,5 @@
-import { createHash, createSign } from "node:crypto";
+import { createHash } from "node:crypto";
+import { googleToken } from "./google";
 import type { CalendarChannel, CalendarItem, CalendarStatus } from "@/lib/domain/types";
 
 /**
@@ -21,27 +22,7 @@ export function sheetReady(): boolean {
   return !!process.env.CRM_SHEET_CSV_URL || !!process.env.CRM_SHEET_ID;
 }
 
-async function serviceToken(): Promise<string> {
-  const sa = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON!) as { client_email: string; private_key: string };
-  const now = Math.floor(Date.now() / 1000);
-  const b64 = (o: object) => Buffer.from(JSON.stringify(o)).toString("base64url");
-  const unsigned = `${b64({ alg: "RS256", typ: "JWT" })}.${b64({
-    iss: sa.client_email,
-    scope: "https://www.googleapis.com/auth/spreadsheets.readonly",
-    aud: "https://oauth2.googleapis.com/token",
-    iat: now,
-    exp: now + 3600,
-  })}`;
-  const sig = createSign("RSA-SHA256").update(unsigned).sign(sa.private_key, "base64url");
-  const res = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: `${unsigned}.${sig}` }),
-  });
-  const j = (await res.json()) as { access_token?: string; error_description?: string };
-  if (!j.access_token) throw new Error(`Google sign-in for the sheet failed: ${j.error_description ?? res.status}`);
-  return j.access_token;
-}
+const serviceToken = () => googleToken("https://www.googleapis.com/auth/spreadsheets.readonly");
 
 const MONTH_TAB = /^(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{4})$/i;
 const MONTH_NAMES = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
@@ -251,7 +232,7 @@ export function rowsToItems(rows: string[][], tab: string, now = new Date().toIS
       id: `crm_${createHash("sha1").update(`${tab}|${date}|${title}|${description.slice(0, 80)}`).digest("hex").slice(0, 16)}`,
       title,
       date,
-      channel: social ? "X" : channelOf(at(r, "channel")),
+      channel: social ? "Other" : channelOf(at(r, "channel")),
       type: "crm",
       status: col.status !== undefined ? statusOf(at(r, "status")) : "planned",
       owner: at(r, "owner") || undefined,

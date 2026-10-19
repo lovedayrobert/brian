@@ -1,4 +1,5 @@
 import { CalendarClient } from "@/components/calendar/calendar-client";
+import { CALENDAR_TABS, SectionTabs } from "@/components/section-tabs";
 import type { DrawerState } from "@/components/calendar/task-drawer";
 import { modelReady } from "@/lib/adapters/model";
 import { rangeFor, todayDay, type View } from "@/lib/calendar/dates";
@@ -56,5 +57,10 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
       };
   }
 
-  return <CalendarClient initial={data} initialView={view} initialAnchor={anchor} ai={modelReady()} prefill={prefill} viewer={viewerInfo} openDay={/^\d{4}-\d{2}-\d{2}$/.test(sp.open ?? "") ? sp.open : undefined} />;
+  return (
+    <>
+      <SectionTabs space="Calendar" tabs={CALENDAR_TABS} active="calendar" />
+      <CalendarClient initial={data} initialView={view} initialAnchor={anchor} ai={modelReady()} prefill={prefill} viewer={viewerInfo} openDay={/^\d{4}-\d{2}-\d{2}$/.test(sp.open ?? "") ? sp.open : undefined} />
+    </>
+  );
 }

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { CalendarData } from "@/lib/calendar/service";
 import { Comments } from "@/components/comments";
+import { TaskResults } from "./task-results";
 import type { Viewer } from "./calendar-app";
 import { CHANNELS, KINDS, LOCAL_STATES, PRIORITIES, type Task, type TaskInput } from "@/lib/calendar/types";
 
@@ -245,6 +246,11 @@ export function TaskDrawer({ state, data, viewer, onClose, onSaved }: { state: D
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+          {t && !t.readOnly && (
+            <div className="border-t border-line pt-4">
+              <TaskResults task={t} />
             </div>
           )}
           {t && (

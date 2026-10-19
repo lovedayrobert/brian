@@ -277,7 +277,7 @@ export function CalendarApp({
   };
 
   return (
-    <div className="flex h-[calc(100dvh-88px)] min-h-[620px] flex-col">
+    <div className="flex h-[calc(100dvh-150px)] min-h-[600px] flex-col">
       {/* Toolbar */}
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <h1 className="mr-2 text-[22px] font-semibold tracking-tight">{title}</h1>

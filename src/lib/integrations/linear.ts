@@ -177,3 +177,8 @@ export async function addIssueComment(issueId: string, body: string): Promise<Li
   );
   return d.commentCreate.comment;
 }
+
+/** Put a link (e.g. the published post) on a Linear issue as an attachment. */
+export async function attachLink(issueId: string, url: string, title: string): Promise<void> {
+  await gql(`mutation($issueId: String!, $url: String!, $title: String) { attachmentLinkURL(issueId: $issueId, url: $url, title: $title) { success } }`, { issueId, url, title });
+}
