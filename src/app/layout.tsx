@@ -22,11 +22,15 @@ export const viewport: Viewport = {
   ],
 };
 
+import { capsFromEnv, spendFromRuns } from "@/lib/engine/spend";
+
 export const dynamic = "force-dynamic";
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const db = await repo.read();
   const lastSweep = db.sweeps[0];
+  const caps = capsFromEnv();
+  const spent = spendFromRuns(Object.entries(db.spendLedger ?? {}).map(([day, costUsd]) => ({ startedAt: day, costUsd })), new Date(), caps.budgetSince);
   return (
     <html lang="en-GB" className={`${inter.variable} h-full`}>
       <body className="min-h-full">
@@ -37,6 +41,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             images: imageReady() || falReady(),
             lastSweep: lastSweep?.finishedAt ?? null,
             liveSources: lastSweep?.sources.filter((s) => s.ok && s.signals > 0).length ?? 0,
+            budget: caps.budgetUsd ?? null,
+            budgetLeft: caps.budgetUsd !== undefined ? Math.max(0, caps.budgetUsd - (spent.spentSinceBudget ?? 0)) : null,
           }}
         >
           {children}

@@ -1,6 +1,7 @@
 import { USER_AGENT } from "@/lib/adapters/sources/types";
 import { newId, repo } from "@/lib/store";
 import { parseCount } from "./platforms";
+import { xMaxReads, xMe, xOwnPosts, xReady } from "@/lib/integrations/x";
 import type { Publication } from "./publications";
 
 /**
@@ -91,14 +92,65 @@ export async function snapshotChannels(): Promise<void> {
           d.publications = [...(d.publications ?? []), ...fresh];
           if (!last || Date.now() - new Date(last.at).getTime() > 12 * 3_600_000) d.channelStats = [...(d.channelStats ?? []), { at: now, channel: c.key, followers: t.subscribers, posts: t.posts.length }];
         });
-      } else if (!last || Date.now() - new Date(last.at).getTime() > 12 * 3_600_000) {
-        const x = await readX(c.handle);
-        await repo.update((d) => {
-          d.channelStats = [...(d.channelStats ?? []), { at: now, channel: c.key, followers: x.followers, posts: x.posts }];
-        });
+      } else {
+        if (!last || Date.now() - new Date(last.at).getTime() > 12 * 3_600_000) {
+          const x = await readX(c.handle);
+          await repo.update((d) => {
+            d.channelStats = [...(d.channelStats ?? []), { at: now, channel: c.key, followers: x.followers, posts: x.posts }];
+          });
+        }
+        if (xReady()) await readOwnXPosts(c.key);
       }
     } catch (e) {
       console.error(`Channel ${c.key}:`, (e as Error).message);
     }
   }
+}
+
+/**
+ * With the X API connected: once a day, our latest 20 posts with impressions,
+ * likes, reposts, replies, saves and link clicks. Every post read is counted
+ * and Brian stops at X_MAX_READS_PER_MONTH, so the X bill can't run away.
+ */
+async function readOwnXPosts(key: string) {
+  const db = await repo.read();
+  const month = new Date().toISOString().slice(0, 7);
+  const usage = db.xUsage?.month === month ? db.xUsage : { month, reads: 0, lastPull: undefined as string | undefined, userId: db.xUsage?.userId };
+  if (usage.lastPull && Date.now() - new Date(usage.lastPull).getTime() < 23 * 3_600_000) return;
+  const want = 20;
+  if (usage.reads + want + (usage.userId ? 0 : 1) > xMaxReads()) {
+    console.error(`X: monthly read limit reached (${usage.reads}/${xMaxReads()}).`);
+    return;
+  }
+  let userId = usage.userId;
+  if (!userId) {
+    userId = (await xMe()).id;
+    usage.reads += 1;
+  }
+  const posts = await xOwnPosts(userId, want);
+  usage.reads += posts.length;
+  const at = new Date().toISOString();
+  await repo.update((d) => {
+    d.publications ??= [];
+    for (const p of posts) {
+      const url = `https://x.com/${key.split(":")[1]}/status/${p.id}`;
+      const snap = { at, source: "auto" as const, views: p.views, likes: p.likes, reposts: p.reposts, replies: p.replies, saves: p.saves, clicks: p.clicks };
+      const existing = d.publications.find((x) => x.url === url || x.url.endsWith(`/status/${p.id}`));
+      if (existing) existing.snapshots.push(snap);
+      else
+        d.publications.push({
+          id: newId("pub"),
+          taskId: `channel:${key}`,
+          taskTitle: p.text.slice(0, 90) + (p.text.length > 90 ? "…" : ""),
+          taskDate: p.createdAt.slice(0, 10),
+          campaign: "",
+          url,
+          platform: "X",
+          addedBy: "brian",
+          addedAt: p.createdAt,
+          snapshots: [snap],
+        });
+    }
+    d.xUsage = { ...usage, userId, lastPull: at };
+  });
 }

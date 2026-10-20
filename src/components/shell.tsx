@@ -24,6 +24,9 @@ export interface ShellStatus {
   images: boolean;
   lastSweep: string | null;
   liveSources: number;
+  /** AI money left under the budget cap, if one is set */
+  budgetLeft?: number | null;
+  budget?: number | null;
 }
 
 export function Shell({ children, status }: { children: React.ReactNode; status: ShellStatus }) {
@@ -179,6 +182,9 @@ function SystemStatus({ status }: { status: ShellStatus }) {
     <div className="mt-2 space-y-1.5 rounded-[10px] px-3 py-2.5 text-[11.5px] text-ink-2">
       <Row ok={status.liveSources > 0} label={status.liveSources ? `${status.liveSources} live sources` : "No sweep yet"} />
       <Row ok={status.ai} label={status.ai ? "AI connected" : "AI not connected"} />
+      {status.budget != null && status.budgetLeft != null && (
+        <Row ok={status.budgetLeft > status.budget * 0.2} label={`AI budget: $${status.budgetLeft.toFixed(2)} of $${status.budget} left`} />
+      )}
       <Row ok={status.images} label={status.images ? "Image model connected" : "Images not connected"} neutral />
       {status.lastSweep && (
         <div className="pl-[14px] text-ink-3" suppressHydrationWarning>

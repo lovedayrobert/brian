@@ -77,18 +77,20 @@ const reservations = new Map<string, number>();
 
 async function reserve(id: string, estimate: number): Promise<void> {
   const db = await repo.read();
-  const spent = spendFromRuns(Object.entries(db.spendLedger ?? {}).map(([day, costUsd]) => ({ startedAt: day, costUsd })));
+  const caps = capsFromEnv();
+  const spent = spendFromRuns(Object.entries(db.spendLedger ?? {}).map(([day, costUsd]) => ({ startedAt: day, costUsd })), new Date(), caps.budgetSince);
   const reserved = [...reservations.values()].reduce((a, b) => a + b, 0);
   // No await between the check and the reservation, so concurrent calls can't both slip under the cap.
-  const decision = checkBudget({ ...spent, reserved }, estimate, capsFromEnv());
+  const decision = checkBudget({ ...spent, reserved }, estimate, caps);
   if (!decision.ok) throw new SpendCapError(decision.reason);
   reservations.set(id, estimate);
 }
 
 export async function spendStatus() {
   const db = await repo.read();
-  const spent = spendFromRuns(Object.entries(db.spendLedger ?? {}).map(([day, costUsd]) => ({ startedAt: day, costUsd })));
-  return { ...spent, caps: capsFromEnv() };
+  const caps = capsFromEnv();
+  const spent = spendFromRuns(Object.entries(db.spendLedger ?? {}).map(([day, costUsd]) => ({ startedAt: day, costUsd })), new Date(), caps.budgetSince);
+  return { ...spent, caps };
 }
 
 export class ModelUnavailableError extends Error {

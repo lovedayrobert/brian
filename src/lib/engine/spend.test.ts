@@ -76,3 +76,28 @@ describe("capsFromEnv", () => {
     expect(capsFromEnv({ BRIAN_DAILY_CAP_USD: "5", BRIAN_MONTHLY_CAP_USD: "abc" })).toEqual({ dailyUsd: 5, monthlyUsd: 300 });
   });
 });
+
+describe("total budget", () => {
+  const caps = { dailyUsd: 5, monthlyUsd: 1000, budgetUsd: 20, budgetSince: "2026-10-20" };
+  const runs = [
+    { startedAt: "2026-10-19", costUsd: 14 }, // before the budget started: doesn't count
+    { startedAt: "2026-10-20", costUsd: 3 },
+    { startedAt: "2026-10-21", costUsd: 4.5 },
+    { startedAt: "2026-10-22", costUsd: 4.5 },
+    { startedAt: "2026-10-23", costUsd: 4.5 },
+  ];
+  it("counts only spend since the start date", () => {
+    expect(spendFromRuns(runs, new Date("2026-10-24T09:00:00Z"), "2026-10-20").spentSinceBudget).toBe(16.5);
+  });
+  it("refuses a call that would pass the budget, even under the daily cap", () => {
+    const s = { ...spendFromRuns(runs, new Date("2026-10-24T09:00:00Z"), "2026-10-20"), reserved: 0 };
+    expect(checkBudget(s, 3, caps).ok).toBe(true);
+    const d = checkBudget(s, 4, caps);
+    expect(d.ok).toBe(false);
+    if (!d.ok) expect(d.reason).toContain("budget of $20");
+  });
+  it("reads the budget from the environment", () => {
+    expect(capsFromEnv({ BRIAN_DAILY_CAP_USD: "5", BRIAN_BUDGET_USD: "20", BRIAN_BUDGET_SINCE: "2026-10-20" })).toMatchObject({ dailyUsd: 5, budgetUsd: 20, budgetSince: "2026-10-20" });
+    expect(capsFromEnv({ BRIAN_BUDGET_USD: "20" }).budgetUsd).toBeUndefined(); // needs a start date too
+  });
+});

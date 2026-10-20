@@ -45,6 +45,9 @@ export function worstCaseCost(opts: {
 export interface Caps {
   dailyUsd: number;
   monthlyUsd: number;
+  /** A total budget from a start date (e.g. the credit just bought): BRIAN_BUDGET_USD from BRIAN_BUDGET_SINCE (YYYY-MM-DD, UTC) */
+  budgetUsd?: number;
+  budgetSince?: string;
 }
 
 export function capsFromEnv(env: Record<string, string | undefined> = process.env): Caps {
@@ -52,12 +55,16 @@ export function capsFromEnv(env: Record<string, string | undefined> = process.en
     const n = Number(v);
     return Number.isFinite(n) && n >= 0 && v !== undefined && v !== "" ? n : d;
   };
-  return { dailyUsd: num(env.BRIAN_DAILY_CAP_USD, 50), monthlyUsd: num(env.BRIAN_MONTHLY_CAP_USD, 300) };
+  const since = env.BRIAN_BUDGET_SINCE && /^\d{4}-\d{2}-\d{2}$/.test(env.BRIAN_BUDGET_SINCE) ? env.BRIAN_BUDGET_SINCE : undefined;
+  const budget = env.BRIAN_BUDGET_USD !== undefined && env.BRIAN_BUDGET_USD !== "" && Number.isFinite(Number(env.BRIAN_BUDGET_USD)) ? Number(env.BRIAN_BUDGET_USD) : undefined;
+  return { dailyUsd: num(env.BRIAN_DAILY_CAP_USD, 50), monthlyUsd: num(env.BRIAN_MONTHLY_CAP_USD, 300), ...(budget !== undefined && since ? { budgetUsd: budget, budgetSince: since } : {}) };
 }
 
 export interface SpendState {
   spentToday: number;
   spentThisMonth: number;
+  /** Spend since the budget's start date, when a budget is set */
+  spentSinceBudget?: number;
   reserved: number;
 }
 
@@ -69,6 +76,9 @@ export function checkBudget(state: SpendState, estimate: number, caps: Caps): Bu
   if (day > caps.dailyUsd) {
     return { ok: false, reason: `Daily AI spend cap of $${caps.dailyUsd} reached ($${state.spentToday.toFixed(2)} spent today). It resets at midnight UTC, or raise BRIAN_DAILY_CAP_USD.` };
   }
+  if (caps.budgetUsd !== undefined && (state.spentSinceBudget ?? 0) + state.reserved + estimate > caps.budgetUsd) {
+    return { ok: false, reason: `AI budget of $${caps.budgetUsd} since ${caps.budgetSince} is used up ($${(state.spentSinceBudget ?? 0).toFixed(2)} spent). Top up credit and raise BRIAN_BUDGET_USD to continue.` };
+  }
   if (month > caps.monthlyUsd) {
     return { ok: false, reason: `Monthly AI spend cap of $${caps.monthlyUsd} reached ($${state.spentThisMonth.toFixed(2)} spent this month). Raise BRIAN_MONTHLY_CAP_USD to continue.` };
   }
@@ -76,15 +86,17 @@ export function checkBudget(state: SpendState, estimate: number, caps: Caps): Bu
 }
 
 /** Spend so far, from the agent-run log. Days and months are UTC. */
-export function spendFromRuns(runs: { startedAt: string; costUsd: number }[], now = new Date()): Omit<SpendState, "reserved"> {
+export function spendFromRuns(runs: { startedAt: string; costUsd: number }[], now = new Date(), budgetSince?: string): Omit<SpendState, "reserved"> {
   const day = now.toISOString().slice(0, 10);
   const month = now.toISOString().slice(0, 7);
   let spentToday = 0;
   let spentThisMonth = 0;
+  let spentSinceBudget = 0;
   for (const r of runs) {
+    if (budgetSince && r.startedAt.slice(0, 10) >= budgetSince) spentSinceBudget += r.costUsd;
     if (r.startedAt.slice(0, 7) !== month) continue;
     spentThisMonth += r.costUsd;
     if (r.startedAt.slice(0, 10) === day) spentToday += r.costUsd;
   }
-  return { spentToday, spentThisMonth };
+  return { spentToday, spentThisMonth, ...(budgetSince ? { spentSinceBudget } : {}) };
 }

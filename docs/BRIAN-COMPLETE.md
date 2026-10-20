@@ -729,6 +729,17 @@ Four spaces plus Settings, and nothing else in the sidebar (see the product rule
 - **Tracking links:** every task has a campaign name and a link per channel (`utm_source`, `utm_medium`, `utm_campaign`, `utm_content`). Use those links in posts, newsletters and creator briefs so GA4 can tie visits and sign-ups to the task. The default destination is `https://cashy.com` (`NEXT_PUBLIC_BRIAN_DEFAULT_LINK` changes it).
 - **Results tab:** posts tracked, views, engagements, website visits and key events from them; top posts; a table by task and idea with Brian's prediction alongside; what works by channel, type of idea and day (once there are 3+ posts per group); and the website from GA4: sessions, users, key events, top sources, every campaign, top blog pages.
 
+**AI budget.** `BRIAN_BUDGET_USD` from `BRIAN_BUDGET_SINCE` (YYYY-MM-DD) is a hard total: no AI call runs if it would pass it, on top of `BRIAN_DAILY_CAP_USD`. The sidebar shows what's left. Local copies of Brian keep their own ledger, so give them a separate small budget and keep the two under the credit you bought.
+
+**Connecting X (our own account only)**
+1. Signed in as @PlayCashy, go to developer.x.com → sign up for a developer account → create a Project and an App.
+2. In the app's settings → User authentication settings: **Read** only (Brian never posts).
+3. Keys and tokens: copy the **API Key and Secret**, and generate the **Access Token and Secret** for @PlayCashy.
+4. In the developer portal, add credit and **set a monthly spending limit** (e.g. $10).
+5. In Railway set `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_SECRET`. Optional `X_MAX_READS_PER_MONTH` (default 1,000 post reads: at most $5 a month at X's standard rate).
+
+Brian then reads @PlayCashy's latest 20 posts once a day (about 600 reads a month), with impressions and link clicks for posts under 30 days old, and adds them to Results automatically.
+
 **Connecting GA4**
 1. Google Cloud console → create (or pick) a project → APIs & Services → Library → enable **Google Analytics Data API**.
 2. IAM & Admin → Service accounts → create one called `brian-reader` (no roles) → Keys → Add key → JSON. If your Workspace blocks key creation, IT needs to allow it for this project.

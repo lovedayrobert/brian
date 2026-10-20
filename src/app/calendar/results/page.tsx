@@ -13,6 +13,7 @@ import { load } from "@/lib/queries";
 import { AUTO, engagements, type Platform } from "@/lib/results/platforms";
 import { latest, type Publication } from "@/lib/results/publications";
 import { channels } from "@/lib/results/channels";
+import { xMaxReads, xReady } from "@/lib/integrations/x";
 
 export const metadata = { title: "Results" };
 
@@ -85,7 +86,7 @@ export default async function Results({ searchParams }: { searchParams: Promise<
   });
 
   const sources: { name: Platform | "GA4"; state: "auto" | "manual" | "needs" }[] = [
-    { name: "X", state: "auto" },
+    { name: "X", state: "auto" }, // links by fxtwitter; every post with the X API
     { name: "Telegram", state: "auto" }, // every channel post, automatically
     { name: "YouTube", state: process.env.YOUTUBE_API_KEY ? "auto" : "manual" },
     { name: "Instagram", state: "manual" },
@@ -137,6 +138,9 @@ export default async function Results({ searchParams }: { searchParams: Promise<
             {s.name}: {s.state === "auto" ? "automatic" : s.state === "manual" ? "numbers by hand for now" : "needs access"}
           </span>
         ))}
+        <span className="rounded-full bg-surface-3 px-2.5 py-1 text-ink-2">
+          {xReady() ? `X API: ${db.xUsage?.month === new Date().toISOString().slice(0, 7) ? db.xUsage.reads : 0} of ${xMaxReads()} reads this month` : "X API: not connected (paste X links for now)"}
+        </span>
       </div>
 
       {pubs.length === 0 ? (

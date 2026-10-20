@@ -63,6 +63,8 @@ export interface DB {
   publications: Publication[];
   /** Follower counts for our own channels over time */
   channelStats: ChannelSnapshot[];
+  /** X API post reads this month, so the bill stays under the limit */
+  xUsage?: { month: string; reads: number; lastPull?: string; userId?: string };
 }
 
 const EMPTY: DB = { signals: [], trends: [], moments: [], ideas: [], packages: [], agentRuns: [], sweeps: [], rapid: [], memories: [], memoryEvents: [], feedback: [], spendLedger: {}, imported: [], reviews: [], pulses: [], swipes: [], calendar: [], calendarMeta: {}, crmSync: null, people: [], activity: [], reactions: {}, comments: [], prefs: {}, publications: [], channelStats: [] };
