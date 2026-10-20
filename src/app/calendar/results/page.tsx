@@ -5,6 +5,7 @@ import { ActionButton } from "@/components/action-button";
 import { CALENDAR_TABS, SectionTabs } from "@/components/section-tabs";
 import { Card, EmptyState, PageHeader, Pill, SectionTitle } from "@/components/ui";
 import { moveName } from "@/lib/brand/quality-bar";
+import { SIZE_NAME } from "@/components/idea-card";
 import { compact, relativeTime } from "@/lib/format";
 import { ga4Ready, ga4Summary, type Ga4Summary } from "@/lib/integrations/ga4";
 import { serviceAccountEmail } from "@/lib/integrations/google";
@@ -73,7 +74,7 @@ export default async function Results({ searchParams }: { searchParams: Promise<
   const byPlatform = group((p) => p.platform);
   const byMove = group((p) => {
     const i = p.ideaId ? db.ideas.find((x) => x.id === p.ideaId) : undefined;
-    return i?.attentionMechanic ? moveName(i.attentionMechanic) : undefined;
+    return i?.size ? SIZE_NAME[i.size] : i?.attentionMechanic ? moveName(i.attentionMechanic) : undefined;
   });
   const byDay = group((p) => DAYS[(new Date(p.addedAt).getUTCDay() + 6) % 7]);
 
@@ -235,7 +236,7 @@ export default async function Results({ searchParams }: { searchParams: Promise<
             <SectionTitle>What works</SectionTitle>
             <div className="grid gap-4 lg:grid-cols-3">
               <Breakdown title="By channel" rows={byPlatform} min={MIN} />
-              <Breakdown title="By type of idea" rows={byMove} min={MIN} />
+              <Breakdown title="By size of idea" rows={byMove} min={MIN} />
               <Breakdown title="By day posted" rows={byDay} min={MIN} />
             </div>
           </section>

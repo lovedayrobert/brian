@@ -1,7 +1,7 @@
 import * as z from "zod/v4";
 import { callChecker, callStructured, checkerReady, preflight, qualityMax, research, SpendCapError } from "@/lib/adapters/model";
 import type { BrandId, Claim, Citation, Idea, Moment, Signal, Trend } from "@/lib/domain/types";
-import { AUDIENCE_PANEL, EMOTIONS, MOVES, QUALITY_BAR } from "@/lib/brand/quality-bar";
+import { AUDIENCE_PANEL, copiesExample, EMOTIONS, MOVES, QUALITY_BAR } from "@/lib/brand/quality-bar";
 import { pulseContext } from "./pulse";
 import { aiTells, offerToFamous, STYLE_RULES } from "@/lib/brand/style";
 import { watchTopics } from "@/lib/adapters/sources/x";
@@ -30,7 +30,6 @@ const InventorOut = z.object({
       size: z.enum(["reply", "post", "meme", "act", "campaign"]).describe("The smallest size that lands. reply = a reply under someone else's post; post = one post from Cashy's account; meme = one image or clip with a caption; act = something Cashy actually does in the world; campaign = rare, several parts"),
       subject: z.string().describe("Who or what it's about, in 1-4 words, e.g. 'Kai Cenat Trackhawk', 'Spider-Man kicker', 'AI girlfriend scam'"),
       post: z.string().nullable().describe("For reply, post or meme: the exact words (and what the image shows, for a meme), ready to publish. null for acts and campaigns"),
-      archetype: z.enum(MOVES.map((m) => m.id) as [string, ...string[]]),
       emotion: z.enum(EMOTIONS.map((e) => e.id) as [string, ...string[]]),
       emotionTarget: z.string().describe("Who or what the feeling is aimed at, and why the audience already feels it"),
       pulseRef: z.string().nullable().describe("The Pulse item or signal it rides, named, or null"),
@@ -152,7 +151,7 @@ export async function generateIdeas(opts: {
   const memory = await memoryForRun(opts.brandId, `inventing ideas for ${subject}`);
   const system = [
     memory,
-    "You are the Inventor at Brian, the person on Cashy's marketing team with the best ideas. You read the room (the Pulse) and decide where Cashy should show up and how big. Most of the time the right answer is one sharp post, reply or meme, posted today, written out in full. Sometimes a strong feeling deserves a real act: something Cashy actually does that people retell, like Shuffle paying Jack Doherty to stop posting or a guy gambling on a kitchen-store fridge. Almost never a campaign. Start from what people feel (hate, outrage, wtf, schadenfreude, tribal, disgust, love) and match the size to the feeling. Never inflate a small joke into a deal or a campaign. Never make offers, deals, gifts or outreach to famous or rich people: they're millionaires, they'll ignore it and nobody cares. Talk about them, never to them. Only call someone a villain if most people genuinely dislike them. Nobody cares about a casino's strengths, so the product is never the point. Write like a person, not an AI.",
+    "You are the Inventor at Brian, the person on Cashy's marketing team with the best ideas. You read the room (the Pulse) and decide where Cashy should show up and how big. Most of the time the right answer is one sharp post, reply or meme, posted today, written out in full. Sometimes a strong feeling deserves a real act: something Cashy actually does in the world that people retell. Almost never a campaign. Start from what people feel (hate, outrage, wtf, schadenfreude, tribal, disgust, love) and match the size to the feeling. Never inflate a small joke into a deal or a campaign. Never make offers, deals, gifts or outreach to famous or rich people: they're millionaires, they'll ignore it and nobody cares. Talk about them, never to them. Only call someone a villain if most people genuinely dislike them. Nobody cares about a casino's strengths, so the product is never the point. Write like a person, not an AI.",
     STYLE_RULES,
     toolkitContext(opts.brandId, db),
     brandVoiceContext(opts.brandId),
@@ -187,7 +186,7 @@ export async function generateIdeas(opts: {
       agent: "planner",
       subject,
       schema: PlanOut,
-      system: [memory, "You are the Planner at Brian. Before anyone writes ideas, you decide where to look: the four most promising angles (a feeling, who it's aimed at, and the kind of act), and the obvious ideas to avoid. Think like the people behind Shuffle muting Jack Doherty and Stake's logo on every viral video: novel, never generic.", qualityBarContext()].join("\n\n"),
+      system: [memory, "You are the Planner at Brian. Before anyone writes ideas, you decide where to look: the four most promising angles (a feeling, who it's aimed at, and the kind of response), and the obvious ideas to avoid. Novel, never generic, never a copy of something already done.", qualityBarContext()].join("\n\n"),
       prompt: `${pulse}\n${sourceText}\n\nPick the four angles and list the obvious ideas to avoid.`,
     });
     // Marko's setup: a second model (GPT-6 Astra) checks the plan before anyone writes.
@@ -254,7 +253,7 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
     schema: CriticOut,
     system: [
       memory,
-      "You are the audience panel at Brian. For every candidate you first react as each panel member, instantly and in their own voice, the way they'd react seeing it on their timeline: would they share it, and what would they feel? Only then do you judge. You are harsh: most ideas die here. Love-hate counts: if haters would share it to condemn it, that's distribution. Automatic kills: any offer, deal, gift, bounty or outreach to a famous or rich person (they're millionaires; it's out of touch); a small joke inflated into a deal, stunt or campaign (it should have been a post); anything that only works if a famous person or another brand replies, cooperates or notices; someone cast as a villain who isn't widely disliked; scripted content (POVs, acted skits, series); anything about Cashy's product; anything with no strong feeling behind it; and anything that reads like an ad or an AI wrote it. A sharp one-line post that people would actually share is a pass, not a lesser idea.",
+      "You are the audience panel at Brian. For every candidate you first react as each panel member, instantly and in their own voice, the way they'd react seeing it on their timeline: would they share it, and what would they feel? Only then do you judge. You are harsh: most ideas die here. Love-hate counts: if haters would share it to condemn it, that's distribution. Automatic kills: anything that reuses the concept, object, format or target of an idea in already_done (learning why it worked is the point; copying it is not); any offer, deal, gift, bounty or outreach to a famous or rich person (they're millionaires; it's out of touch); a small joke inflated into a deal, stunt or campaign (it should have been a post); anything that only works if a famous person or another brand replies, cooperates or notices; someone cast as a villain who isn't widely disliked; scripted content (POVs, acted skits, series); anything about Cashy's product; anything with no strong feeling behind it; and anything that reads like an ad or an AI wrote it. A sharp one-line post that people would actually share is a pass, not a lesser idea.",
       STYLE_RULES,
       toolkitContext(opts.brandId, db),
       `<panel>\n${AUDIENCE_PANEL.map((p) => `- [${p.id}] ${p.who}`).join("\n")}\n</panel>`,
@@ -283,8 +282,9 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
     // Writing that reads like an AI wrote it is killed whatever the panel thought, and so is any
     // offer, deal or gift to a famous person (they're millionaires; Cashy has no pull with them).
     const famous = offerToFamous(`${c.move} ${c.howItWorks}`, publicFigures);
+    const copied = copiesExample(`${c.move} ${c.howItWorks} ${c.post ?? ""}`);
     const tells = [...aiTells(c.move, c.post, c.shareLine, c.howItWorks, c.headline), ...(famous ? [`an offer to ${famous}, a famous person`] : [])];
-    const passed = r?.verdict === "pass" && !r.bannedPatternHit && (r.panel ?? []).filter((x) => x.shares).length >= 3 && tells.length === 0;
+    const passed = r?.verdict === "pass" && !r.bannedPatternHit && (r.panel ?? []).filter((x) => x.shares).length >= 3 && tells.length === 0 && !copied;
     return {
       id: newId("idea"),
       brandId: opts.brandId,
@@ -306,7 +306,6 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
       engine: 4,
       horizon,
       effort: c.cost,
-      attentionMechanic: c.archetype,
       emotion: c.emotion,
       emotionTarget: c.emotionTarget,
       pulseRef: c.pulseRef ?? undefined,
@@ -336,7 +335,7 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
             note: t.note,
           })),
           bannedPatternHit: r?.bannedPatternHit ?? undefined,
-          reasons: [...(famous ? [`Out of touch: an offer to ${famous}. Famous people won't care and nobody will watch.`] : []), ...(tells.filter((t) => !t.startsWith("an offer")).length ? [`Reads like an AI wrote it (${tells.filter((t) => !t.startsWith("an offer")).join(", ")})`] : []), ...(r?.reasons ?? ["The Critic did not review this candidate."])],
+          reasons: [...(copied ? [`Copies an example (${copied}) instead of learning from it.`] : []), ...(famous ? [`Out of touch: an offer to ${famous}. Famous people won't care and nobody will watch.`] : []), ...(tells.filter((t) => !t.startsWith("an offer")).length ? [`Reads like an AI wrote it (${tells.filter((t) => !t.startsWith("an offer")).join(", ")})`] : []), ...(r?.reasons ?? ["The Critic did not review this candidate."])],
         },
         priorArt: null,
         redLines: null,

@@ -1,5 +1,5 @@
 import { BRANDS, CAMPAIGN_HISTORY } from "@/lib/brand/brands";
-import { EMOTIONS, MOVES, QUALITY_BAR, REFERENCE_MOVES, STUNTS } from "@/lib/brand/quality-bar";
+import { EMOTIONS, PRINCIPLES, QUALITY_BAR, REFERENCE_MOVES, STUNTS } from "@/lib/brand/quality-bar";
 import type { BrandId, Citation, Signal, Trend } from "@/lib/domain/types";
 
 /**
@@ -44,16 +44,14 @@ ${CAMPAIGN_HISTORY.filter((h) => h.brandId === brandId)
 
 export function qualityBarContext(): string {
   return `
-<what_works>
-The plays that worked for crypto casinos, and what they have in common:
-${STUNTS.filter((s) => s.kind !== "villain play" && s.kind !== "contract stunt").map((s) => `- ${s.brand}: ${s.what}\n  Feeling: ${s.emotion}\n  What people said sharing it: "${s.shareLine}"\n  Why: ${s.whyItWorked}`).join("\n")}
-Outside gambling, the same pattern:
+<principles note="What great ideas have in common. Work from these.">
+${PRINCIPLES.map((p) => `- ${p.name}: ${p.why}`).join("\n")}
+</principles>
+
+<already_done note="Reference only, to show the bar. These have been done. Learn WHY each worked (the feeling, the collision, the timing); never reuse its concept, object, format or target. An idea that resembles one of these is an automatic kill.">
+${STUNTS.map((s) => `- ${s.brand}: ${s.what} Feeling it used: ${s.emotion}`).join("\n")}
 ${REFERENCE_MOVES.map((s) => `- ${s.who}: ${s.what} ${s.emotion}`).join("\n")}
-
-(Deals with famous people, like Shuffle signing Jack Doherty, are left out on purpose: they needed money and access Cashy doesn't have.)
-
-The common thread: each is ONE real act the brand did, not content. Each aims a feeling the audience already has at full strength. Each is one sentence. People share it to say something about themselves. Each is raw and cheap. You can't retell it without the brand's name. Nobody had done it before.
-</what_works>
+</already_done>
 
 <quality_bar>
 What a great idea is:
@@ -70,11 +68,6 @@ Edge levels: safe, spicy, wild. Lean spicy and wild: outrage, offence and love-h
 Red lines (the only hard stops):
 ${QUALITY_BAR.redLines.map((t) => `- ${t}`).join("\n")}
 </quality_bar>
-
-<moves>
-Every idea is one of these kinds of act:
-${MOVES.map((m) => `- [${m.id}] ${m.name}: ${m.how}${m.from ? ` (like ${m.from})` : ""}`).join("\n")}
-</moves>
 
 <feelings>
 Every idea names the feeling it rides:

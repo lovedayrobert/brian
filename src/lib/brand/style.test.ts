@@ -23,3 +23,18 @@ describe("offers to famous people", () => {
     expect(offerToFamous("Reply under the Kai Cenat clip: Adin gave him a lease, not a car", names)).toBeNull();
   });
 });
+
+import { copiesExample } from "./quality-bar";
+
+describe("copies of the reference examples", () => {
+  it("catches the surface concept coming back", () => {
+    expect(copiesExample("A guy plays Cashy on a smart fridge in a shop")).toBe("the kitchen-store fridge");
+    expect(copiesExample("Cashy puts its logo on old viral meme videos")).toBe("Stake's logo on viral videos");
+    expect(copiesExample("Cashy pays the streamer to stop posting for a month")).toBe("paying someone to stop posting");
+    expect(copiesExample("Asking strangers for directions with the GTA map")).toBe("the GTA map in real streets");
+  });
+  it("leaves new ideas alone", () => {
+    expect(copiesExample("Reply under the Kai Cenat clip: Adin gave him a lease, not a car")).toBeNull();
+    expect(copiesExample("Peter Parker finally made rent")).toBeNull();
+  });
+});

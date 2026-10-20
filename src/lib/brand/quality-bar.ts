@@ -121,12 +121,12 @@ export const EMOTIONS: { id: string; name: string; why: string }[] = [
 /** The kinds of act that worked. Each lens and each idea is one of these. */
 export const MOVES: { id: string; name: string; how: string; from: string }[] = [
   { id: "villain", name: "Say what everyone's thinking", how: "When most people dislike someone or something right now, the post or meme that says what everyone's thinking, so they share it to agree. Never an offer or message to the person.", from: "" },
-  { id: "too-far", name: "Too far", how: "Do something offensive, wrong or taboo enough that people share it to condemn it while fans share it because it's funny.", from: "Duel's blackjack" },
-  { id: "everywhere", name: "Be everywhere", how: "Put Cashy's name where attention already is, at a scale nobody else bothers with: inside viral videos, memes, clips, game lobbies, streams, comment sections, usernames. The distribution is the idea.", from: "Stake's logo on viral videos" },
-  { id: "wrong-place", name: "Wrong place", how: "Do the casino thing somewhere it absolutely shouldn't happen or be possible (a fridge, a car screen, a shop TV, a smart device), for real, filmed raw on a phone.", from: "Gambling on a kitchen-store fridge" },
+  { id: "too-far", name: "Too far", how: "Do something offensive, wrong or taboo enough that people share it to condemn it while fans share it because it's funny.", from: "" },
+  { id: "everywhere", name: "Be everywhere", how: "Put Cashy's name where attention already is, at a scale nobody else bothers with: inside viral videos, memes, clips, game lobbies, streams, comment sections, usernames. The distribution is the idea.", from: "" },
+  { id: "wrong-place", name: "Wrong place", how: "Put the casino somewhere it has no business being, in a way nobody has done, for real, filmed raw.", from: "" },
   { id: "deal-twist", name: "Offer with a twist", how: "A public offer to our own players or to everyone, whose terms are the joke and tied to what people are talking about. Never an offer to a famous person.", from: "" },
-  { id: "main-character", name: "Main character of the day", how: "Do something real to, for or about whatever the internet is obsessed with today, while it's still the only thing anyone talks about.", from: "Oreo in the Super Bowl blackout" },
-  { id: "rival-raid", name: "Rival raid", how: "Steal rivals' players, attention or moments in public, cheekily: their streamers, their fans, their bad news.", from: "Housebets reading rivals' wallets" },
+  { id: "main-character", name: "Main character of the day", how: "Do something real to, for or about whatever the internet is obsessed with today, while it's still the only thing anyone talks about.", from: "" },
+  { id: "rival-raid", name: "Rival raid", how: "Steal rivals' players, attention or moments in public, cheekily: their streamers, their fans, their bad news.", from: "" },
   { id: "schadenfreude", name: "Laugh at the fall", how: "Mark someone's public failure (a rival, a public figure, a brand) with a real act that lets people enjoy it together.", from: "" },
 ];
 
@@ -150,7 +150,7 @@ export const QUALITY_BAR = {
   traits: [
     "The right size: the smallest thing that lands. Most moments need one sharp post, reply or meme, written out in full. Only a strong feeling earns a real act (something Cashy actually does: pays, sends, builds, puts its name somewhere, plays somewhere absurd). Campaigns almost never. A joke that works as a tweet must stay a tweet.",
     "It aims a feeling the audience already has, at full strength: hate, outrage, wtf, schadenfreude, tribalism, disgust, love. Cashy doesn't create the feeling; it points it.",
-    "One sentence, retold with no explanation: 'Shuffle paid Jack Doherty to stop posting.' If it needs a second sentence, it's dead.",
+    "One sentence, retold with no explanation. If it needs a second sentence, it's dead.",
     "People share it to say something about themselves: 'finally', 'this is so wrong lmao', 'wait, is that real?'. Write that line.",
     "Raw, cheap and real: a phone, a person, a contract, a logo. Polish says 'ad'.",
     "You can't retell it without saying Cashy.",
@@ -203,4 +203,40 @@ export const CONTENT_FORMATS: { id: string; name: string }[] = [
 
 export function formatName(id: string): string {
   return moveName(id);
+}
+
+/**
+ * What the examples teach, in general terms. Brian works from these, not from
+ * the examples themselves (Rob, 21 Oct 2026: "I gave the examples for Brian to
+ * work out why they succeeded … but it just copies the concept").
+ */
+export const PRINCIPLES: { name: string; why: string }[] = [
+  { name: "The feeling already exists", why: "The best ideas don't create a feeling; they find one millions of people already have (hate, hype, envy, disbelief) and give it somewhere to go. Start from the feeling, not the brand." },
+  { name: "Two worlds that never meet", why: "Surprise comes from a collision nobody has made: something from one world dropped into another where it doesn't belong. The collision has to be new every time; reusing a known collision is copying." },
+  { name: "Real beats staged", why: "Real people, real reactions, real things happening, shot raw. Staged or polished reads as an ad and gets scrolled past." },
+  { name: "Ride attention that's already flowing", why: "Put Cashy where people are already looking (a moment, a format, a conversation, a feed) rather than asking them to come and look." },
+  { name: "One sentence, and the brand can't be dropped", why: "If it takes two sentences it won't be retold. If it can be retold without the brand's name, the brand gets nothing." },
+  { name: "Cheap and on time", why: "The cost is the thinking, not the budget. Timing is most of the impact: the same idea a week late is worthless." },
+  { name: "Love-hate spreads", why: "People share things to condemn them as well as to praise them. Mild things get neither." },
+  { name: "People share to say something about themselves", why: "A share is a statement: 'this is so me', 'finally', 'I can't believe this'. If sharing it doesn't let them say something, they won't." },
+];
+
+/**
+ * Signatures of the reference examples. An idea that reuses one (the object,
+ * the format, the target) is a copy, not a lesson, and is killed in code.
+ */
+export const EXAMPLE_SIGNATURES: { example: string; re: RegExp }[] = [
+  { example: "the kitchen-store fridge", re: /\b(fridge|refrigerator|microwave|toaster|washing machine|smart (tv|fridge|appliance)|kitchen[- ]store|appliance)\b/i },
+  { example: "Stake's logo on viral videos", re: /\b(logo|watermark)\b[^.]{0,60}\b(meme|viral|clip|video)s?\b|\b(meme|viral) (videos?|clips?)\b[^.]{0,60}\b(logo|watermark)\b/i },
+  { example: "paying someone to stop posting", re: /\b(to stop (posting|streaming|tweeting)|not to (post|stream|tweet)|stay off (x|twitter|stream))\b/i },
+  { example: "the GTA map in real streets", re: /\b(gta|in-game|game) map\b|\bdirections\b[^.]{0,40}\bmap\b/i },
+  { example: "Duel's offensive dealer costume", re: /\b(dealer|host|croupier)\b[^.]{0,40}\b(costume|dressed as|uniform)\b/i },
+  { example: "Housebets reading rivals' wallets", re: /\b(wallet|on-?chain)\b[^.]{0,60}\b(rival|competitor|other casinos?)\b/i },
+  { example: "the Moldy Whopper", re: /\b(rotting|mould|mold|decay)\b[^.]{0,40}\b(time-?lapse|days)\b/i },
+  { example: "Liquid Death's hate-comment album", re: /\b(hate comments?|mean comments?)\b[^.]{0,40}\b(album|song|track|lyrics)\b/i },
+  { example: "KFC's follow list", re: /\bfollow(s|ing)? only\b/i },
+];
+
+export function copiesExample(text: string): string | null {
+  return EXAMPLE_SIGNATURES.find((e) => e.re.test(text))?.example ?? null;
 }

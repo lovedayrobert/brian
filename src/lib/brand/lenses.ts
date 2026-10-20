@@ -25,24 +25,24 @@ export const LENSES: Lens[] = [
     name: "Too far",
     tagline: "So wrong people share it to condemn it.",
     prompt:
-      "Invent an act that is offensive, wrong or taboo enough that people share it to complain while fans share it because it's funny, the way Duel's blackjack host costume did. Love-hate is distribution. Taboo and offensive are allowed; slurs, attacks on groups, minors and real tragedies are not.",
-    examples: ["The thing a casino should never do, done", "A game nobody should have made"],
+      "Find something people would share to complain about while fans share it because it's funny. Love-hate is distribution. Taboo and offensive are allowed; slurs, attacks on groups, minors and real tragedies are not. Learn from why offensive stunts spread; never reuse one.",
+    examples: ["A post people quote-tweet to complain about", "A line that splits the timeline in two"],
   },
   {
     id: "everywhere",
-    name: "Be everywhere",
-    tagline: "Put Cashy's name where attention already is.",
+    name: "Ride the attention",
+    tagline: "Be where people are already looking.",
     prompt:
-      "Invent a way to put Cashy's name inside the things people already watch and share, at a scale nobody else bothers with, the way Stake put its logo on legacy viral meme videos. The distribution mechanism is the idea: clips, memes, game lobbies, streams, usernames, comment sections, anything with built-in reach.",
-    examples: ["A logo on everything people already repost", "A name hidden somewhere millions look"],
+      "Find where attention is already flowing right now (a moment, a format, a conversation, a feed, a comment section) and the way to put Cashy there so it travels with it. Invent the method; don't reuse one that's been done.",
+    examples: ["Showing up inside the thing everyone's already watching", "A way to travel with a moment instead of chasing it"],
   },
   {
     id: "wrong-place",
-    name: "Wrong place",
-    tagline: "The casino thing somewhere it absolutely shouldn't be.",
+    name: "Two worlds collide",
+    tagline: "Something from one world dropped into another.",
     prompt:
-      "Invent a real moment of playing Cashy, or putting Cashy, somewhere absurd: a device, a place or a screen nobody would think could run a casino, filmed raw on a phone, like the guy gambling on a kitchen-store fridge. It has to genuinely work, and nobody can have done it.",
-    examples: ["Gambling on a device that has no business running a casino", "A screen in a place nobody expects"],
+      "Collide two worlds that never meet: take something people know from one place (a game, a sport, an app, a job, a ritual) and drop it into another where it doesn't belong, for real, filmed raw. The collision must be new. No appliances, devices or 'gambling somewhere odd' (done), no game maps in real streets (done).",
+    examples: ["Something everyone knows, somewhere it never appears", "A collision people have to see twice"],
   },
   {
     id: "deal-twist",

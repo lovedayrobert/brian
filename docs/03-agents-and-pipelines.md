@@ -160,3 +160,11 @@ After Rob's review of the first engine-4 run:
 - **Reality.** "What Cashy can actually do" (Settings → Brand, admins edit) is part of every run. Ideas that need a famous person or another brand to cooperate or reply die. Villains must be people most of the audience genuinely dislikes.
 - **Writing.** `src/lib/brand/style.ts` lists AI writing habits ("ship", "it's not X, it's Y", "diabolical", em dashes, forced slang). They're banned in the prompts and any idea containing them is killed in code.
 - **Budget.** An idea run only starts if its worst case (about $2.70) fits under every cap, so money is never spent on a run the cap would stop halfway.
+
+## Learning from examples, not copying them (21 Oct 2026)
+
+Rob's examples (Shuffle and Jack Doherty, Duel, Stake's logo, the kitchen-store fridge, the GTA map in LA) are there for Brian to learn why they worked, not to copy. So:
+- The Inventor works from **principles** distilled from them (`PRINCIPLES` in `src/lib/brand/quality-bar.ts`): the feeling already exists; two worlds that never meet; real beats staged; ride attention that's already flowing; one sentence the brand can't be dropped from; cheap and on time; love-hate spreads; people share to say something about themselves.
+- The examples appear only as **already done**, with "learn why, never reuse its concept, object, format or target".
+- A **code check** (`copiesExample`) kills ideas that reuse an example's signature (appliances, logos on viral videos, paying someone to stop posting, game maps in real streets…).
+- Ideas are no longer forced into template types named after the examples; the "Get ideas" types are written as principles.

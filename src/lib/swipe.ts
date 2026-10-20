@@ -108,5 +108,5 @@ export function swipeLine(s: Swipe): string {
 /** The team's taste, for the Inventor and the panel. */
 export function swipeContext(swipes: Swipe[] | undefined, n = 15): string {
   if (!swipes?.length) return "";
-  return `<team_taste note="Things the Cashy team finds clever. Never copy them. They show the kind of thinking the team wants and how far outside the box to go.">\n${swipes.slice(0, n).map(swipeLine).join("\n")}\n</team_taste>`;
+  return `<team_taste note="Things the Cashy team finds clever. Work out WHY each one worked (the feeling it used, the collision, the timing, who shared it and why) and use that. Never reuse their concept, object, format or target: that is copying, and copies are killed.">\n${swipes.slice(0, n).map(swipeLine).join("\n")}\n</team_taste>`;
 }
