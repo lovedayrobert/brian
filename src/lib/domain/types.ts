@@ -202,8 +202,6 @@ export interface Idea {
   madeBy?: string;
   /** Which world it's about (streaming, sport, crypto…), for spreading ideas out. */
   world?: string;
-  /** The panel was split on it, but kept so a run never comes back empty. */
-  closeCall?: boolean;
   /** Who or what it's about, in a few words */
   subject?: string;
   /** For replies, posts and memes: the exact words */

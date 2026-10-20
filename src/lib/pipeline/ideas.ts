@@ -285,7 +285,6 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
     .filter((n) => /^[A-Z][\w.'-]{3,}/.test(n) && !/^(Cashy|The|This|That|Man|Student|Canadian|French|Pokemon|Spider)$/.test(n));
 
   const now = new Date().toISOString();
-  const hardKilled = new Set<string>();
   const ideas: Idea[] = candidates.map((c, i) => {
     const r = critic.reviews.find((x) => x.index === i);
     // Writing that reads like an AI wrote it is killed whatever the panel thought, and so is any
@@ -300,7 +299,6 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
     const verdictPass = small ? r?.verdict === "pass" || postTestsPass : r?.verdict === "pass";
     const passed = verdictPass && !r?.bannedPatternHit && sharers >= (small ? 2 : 3) && tells.length === 0 && !copied;
     const id = newId("idea");
-    if (tells.length || copied || r?.bannedPatternHit) hardKilled.add(id);
     return {
       id,
       brandId: opts.brandId,
@@ -405,20 +403,6 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
     });
   // At most one streamer idea in the final three.
   const top = capByWorld(survivors, (i) => i.world, (w) => (w === "streaming" ? 1 : 3)).slice(0, 3);
-  // Too harsh to come back empty (Rob, 20 Oct): fill up to three with the panel's best close calls, posts and replies
-  // only, never ones the code killed (AI writing, offers to famous people, copies). Red Lines still checks them.
-  for (const i of ideas
-    .filter((i) => i.status === "killed" && !hardKilled.has(i.id) && (i.size === "reply" || i.size === "post" || i.size === "meme") && (i.reactions ?? []).some((x) => x.shares))
-    .sort((a, b) => totalScore(b) - totalScore(a))) {
-    if (top.length >= 3) break;
-    const k = subjectKey(i.subject ?? i.name);
-    if (usedSubjects.has(k) || (i.world === "streaming" && top.some((t) => t.world === "streaming"))) continue;
-    usedSubjects.add(k);
-    i.status = "candidate";
-    i.closeCall = true;
-    i.screening.critic.reasons.unshift("Close call: the panel was split on this one. Kept so you can judge it yourself.");
-    top.push(i);
-  }
 
   // Save straight after the Critic: the paid work is done, and a later failure must never lose it.
   for (const i of ideas) i.sourceContext = sourceContextFor(i, db);
