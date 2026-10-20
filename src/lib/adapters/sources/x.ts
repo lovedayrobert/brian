@@ -5,12 +5,13 @@ import type { SourceAdapter } from "./types";
 
 /**
  * What people are actually saying on X, through the paid API, on a strict
- * budget. Culture first, the way the free Radar works: each pull reads the
- * top posts on the strongest X trends of the moment (no topic filter) and the
- * Pulse's villain and main character, plus one culture watchlist in rotation
- * (streamer drama, streamers, crypto culture, sports and betting, viral clips). Rivals
- * get one small read every X_RIVALS_EVERY_DAYS (default 3). Posts go to
- * Breaking, Trends and, above all, the Pulse.
+ * budget. Topics, not accounts: what matters is the conversation about people
+ * and things. Each pull reads the most engaged posts on (1) what's hot right
+ * now (the Pulse's villain, main character and subjects, then the strongest X
+ * trends), (2) one standing topic group from our audience's world, and (3) two
+ * accounts that post about things (DramaAlert, Dexerto, WatcherGuru…).
+ * Rivals: what people say about them, every X_RIVALS_EVERY_DAYS (default 3).
+ * Posts go to the Pulse first, then Breaking and Trends.
  *
  * Money: X bills per post read. X_MONTHLY_BUDGET_USD (default $9) is split
  * evenly across the days of the month, so it can't be spent in one go; a pull
@@ -31,12 +32,32 @@ const parseLists = (raw: string) =>
     .filter(([n, h]) => n && h)
     .map(([n, h]) => ({ name: n.trim(), handles: h.split(",").map((x) => x.trim().replace(/^@/, "")).filter(Boolean) }));
 
-/** The accounts our audience actually watches: streamer drama, streamers, crypto, sports and betting, viral clips. Read two at a time in rotation (all checked against X). */
+/**
+ * Accounts that post ABOUT things (drama, crypto scandals, betting culture,
+ * viral clips), read two at a time in rotation. Not people's own accounts: what
+ * matters is what's said about them. All checked against X.
+ */
 export function watchlists(): { name: string; handles: string[] }[] {
-  return parseLists(process.env.X_WATCHLISTS || "drama:DramaAlert,Dexerto,FearedBuck,JakeSucky,StreamerBans|streamers:adinross,xQc,KaiCenat,ishowspeedsui,Trainwreckstv|crypto:WatcherGuru,zachxbt,lookonchain|sports:BleacherReport,barstoolsports,ActionNetworkHQ|viral:NoContextHumans,knowyourmeme,DailyLoud");
+  return parseLists(process.env.X_WATCHLISTS || "drama:DramaAlert,Dexerto,FearedBuck,JakeSucky,StreamerBans|crypto:WatcherGuru,zachxbt,lookonchain|sports:BleacherReport,barstoolsports,ActionNetworkHQ|viral:NoContextHumans,knowyourmeme,DailyLoud");
 }
 
-/** Rivals: a small read every few days, never the main use of the budget. */
+/**
+ * Standing topics from our audience's world, searched across everyone's posts
+ * (most engaged first), one group per pull in rotation. X_WATCH_TOPICS:
+ * groups separated by "|", terms by ",". Edit freely: these are examples of the
+ * kind of conversation to watch, not a fixed brief.
+ */
+export function watchTopics(): { name: string; terms: string[] }[] {
+  return (process.env.X_WATCH_TOPICS || "streamers:Adin Ross,xQc,Kai Cenat,IShowSpeed,Trainwreck|streaming drama:Kick streamer,Twitch ban,banned on stream|degen betting:parlay,bad beat,slot stream|crypto culture:memecoin,rug pull,rugged|gaming:GTA 6,GTA VI")
+    .split("|")
+    .map((g) => g.split(":"))
+    .filter(([n, t]) => n && t)
+    .map(([n, t]) => ({ name: n.trim(), terms: t.split(",").map((x) => x.trim()).filter(Boolean) }));
+}
+
+const term = (t: string) => (/\s/.test(t) ? `"${t}"` : t);
+
+/** Rivals: what people say to and about them (complaints, hate, wins), every few days. Never the main use of the budget. */
 export function rivals(): { name: string; handles: string[] } {
   return { name: "rivals", handles: (process.env.X_RIVALS || "Stake,shufflecom,Roobet,rollbit,bcgame,rainbetcom").split(",").map((x) => x.trim().replace(/^@/, "")).filter(Boolean) };
 }
@@ -105,7 +126,10 @@ async function pickTopics(max: number): Promise<string[]> {
     .filter((t) => t.sourceIds.includes("xtrends") && t.sensitivity === "clear" && /^[\p{Script=Latin}\d\s#'&.:-]+$/u.test(t.title))
     .sort((a, b) => strength(b) - strength(a))
     .map((t) => t.title);
-  return [...new Set([...fromPulse, ...fromTrends])].slice(0, max);
+  // The Pulse's strongest subjects (most intense feeling first), when it has read the room recently.
+  const pulseFresh = db.pulses?.[0] && Date.now() - new Date(db.pulses[0].createdAt).getTime() < 48 * 3_600_000;
+  const fromPulseItems = pulseFresh ? db.pulses[0].items.filter((i) => i.opening).slice(0, 4).map((i) => i.subject.split(/[.,:;(—–]/)[0].trim().split(/\s+/).slice(0, 4).join(" ")) : [];
+  return [...new Set([...fromPulse, ...fromPulseItems, ...fromTrends])].slice(0, max);
 }
 
 export const x: SourceAdapter = {
@@ -128,15 +152,24 @@ export const x: SourceAdapter = {
     }
     const queries: { q: string; label: string; sort: "relevancy" | "recency" }[] = [];
     const fromList = (l: { name: string; handles: string[] }) => `(${l.handles.map((h) => `from:${h}`).join(" OR ")}) -is:retweet -is:reply`;
-    // Culture first: the strongest trends and the Pulse's villain / main character, then one culture watchlist.
-    for (const t of await pickTopics(2)) queries.push({ q: `${/\s/.test(t) ? `"${t}"` : t} lang:en -is:retweet -is:reply`, label: t, sort: "relevancy" });
-    // Two culture accounts per pull, rotating through all of them, so a prolific account can't take every read.
-    const pair = culturePair(state?.pulls ?? 0);
+    const tail = `lang:en -is:retweet -is:reply ${FILLER}`;
+    const pull = state?.pulls ?? 0;
+    // 1. What's hot right now: the Pulse's villain, main character and top subjects, then the strongest X trends.
+    for (const t of await pickTopics(1)) queries.push({ q: `${term(t)} ${tail}`, label: t, sort: "relevancy" });
+    // 2. One standing topic group from our audience's world, in rotation: the conversation about it, from anyone.
+    const topics = watchTopics();
+    if (topics.length) {
+      const g = topics[pull % topics.length];
+      queries.push({ q: `(${g.terms.map(term).join(" OR ")}) ${tail}`, label: `topic: ${g.name}`, sort: "relevancy" });
+    }
+    // 3. Two accounts that post about things (drama, crypto, betting, viral), in rotation.
+    const pair = culturePair(pull);
     if (pair) queries.push({ q: `${fromList(pair)} ${FILLER}`, label: `watchlist: ${pair.name}`, sort: "relevancy" });
-    // Rivals: one small read every few days.
+    // 4. Rivals, every few days: what people say to and about them, not their own promos.
     const rivalDays = Number(process.env.X_RIVALS_EVERY_DAYS) || 3;
     const rivalsDue = !state?.rivalsAt || now.getTime() - new Date(state.rivalsAt).getTime() > rivalDays * 86_400_000;
-    if (rivalsDue && rivals().handles.length) queries.push({ q: fromList(rivals()), label: "watchlist: rivals", sort: "relevancy" });
+    const r = rivals().handles;
+    if (rivalsDue && r.length) queries.push({ q: `(${r.map((h) => `@${h}`).join(" OR ")}) ${r.map((h) => `-from:${h}`).join(" ")} ${tail}`, label: "watchlist: rivals", sort: "relevancy" });
 
     const got: Signal[] = [];
     let spent = 0;
@@ -148,7 +181,10 @@ export const x: SourceAdapter = {
         if (q.label === "watchlist: rivals") readRivals = true;
         budgetPosts -= Math.max(10, posts.length);
         spent += posts.length * b.price;
-        got.push(...posts.map((p) => toSignal(p, q.label, now)));
+        // Drop copycat clips nobody engaged with; they add noise, not signal.
+        const minLikes = Number(process.env.X_MIN_LIKES) || 20;
+        const worth = posts.filter((p) => p.likes >= minLikes || (p.views ?? 0) >= 5_000);
+        got.push(...worth.map((p) => toSignal(p, q.label, now)));
       } catch (e) {
         log(`X ${q.label}: ${(e as Error).message}`);
       }
