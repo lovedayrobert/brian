@@ -41,7 +41,7 @@ Four spaces plus Settings, and nothing else in the sidebar (see the product rule
 
 **X as a Radar source (the important part)**
 - **Free:** X trending topics every hour (US, UK, worldwide; `X_TREND_REGIONS`) from trends24.in, the strongest 40 per country (`X_TRENDS_PER_REGION`), each with an hourly curve so the lifecycle model stages it. They appear in Trends and feed the Pulse.
-- **Paid, on a strict budget:** with `X_BEARER_TOKEN`, each pull (every `X_PULL_HOURS`, default 12) reads the top 10 posts on up to three topics (the Pulse's villain and main character, then the most relevant X trends) and 10 recent posts from one watchlist in rotation. Watchlists: `X_WATCHLISTS`, e.g. `rivals:Stake,Roobet,rollbitcom|drama:DramaAlert,Dexerto|streamers:adinross,xQc`; check the handles. Posts feed Breaking, Trends and, first of all, the Pulse.
+- **Paid, on a strict budget:** with `X_BEARER_TOKEN`, each pull (every `X_PULL_HOURS`, default 12) reads the top 10 posts on up to three topics (the Pulse's villain and main character, then the most relevant X trends) and 10 recent posts from one watchlist in rotation. Watchlists: `X_WATCHLISTS`, default `rivals:Stake,shufflecom,Roobet,rollbit,bcgame,rainbetcom|drama:DramaAlert,Dexerto,FearedBuck|streamers:adinross,xQc,KaiCenat` (all checked against X). Posts feed Breaking, Trends and, first of all, the Pulse.
 - **Budget:** `X_MONTHLY_BUDGET_USD` (default $9) is split evenly across the days of the month and each read is counted at `X_PRICE_PER_POST` (default $0.005), so a day can't spend more than its share (about $0.29). Set a matching spending limit in X's developer portal too.
 - Our own @PlayCashy posts through the API are off (`X_TRACK_OWN=1` turns them on); pasted links on tasks are read free.
 

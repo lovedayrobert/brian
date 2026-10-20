@@ -23,7 +23,7 @@ export const xBudget = () => ({
 });
 
 export function watchlists(): { name: string; handles: string[] }[] {
-  const raw = process.env.X_WATCHLISTS || "rivals:Stake,Roobet,rollbitcom,BCGameOfficial,shufflecom|drama:DramaAlert,Dexerto,FearedBuck|streamers:adinross,xQc,KaiCenat";
+  const raw = process.env.X_WATCHLISTS || "rivals:Stake,shufflecom,Roobet,rollbit,bcgame,rainbetcom|drama:DramaAlert,Dexerto,FearedBuck|streamers:adinross,xQc,KaiCenat";
   return raw
     .split("|")
     .map((l) => l.split(":"))

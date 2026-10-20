@@ -16,7 +16,7 @@ describe("X budget", () => {
     expect(allowanceLeft({ ...state, day: "2026-10-19" }, now)).toBeCloseTo(9 / 31, 5); // new day
   });
   it("reads watchlists", () => {
-    expect(watchlists()[0]).toEqual({ name: "rivals", handles: ["Stake", "Roobet", "rollbitcom", "BCGameOfficial", "shufflecom"] });
+    expect(watchlists()[0]).toEqual({ name: "rivals", handles: ["Stake", "shufflecom", "Roobet", "rollbit", "bcgame", "rainbetcom"] });
   });
 });
 
