@@ -8,7 +8,7 @@ import type { SourceAdapter } from "./types";
  * budget. Culture first, the way the free Radar works: each pull reads the
  * top posts on the strongest X trends of the moment (no topic filter) and the
  * Pulse's villain and main character, plus one culture watchlist in rotation
- * (viral and meme aggregators, drama and clip pages, big streamers). Rivals
+ * (streamer drama, streamers, crypto culture, sports and betting, viral clips). Rivals
  * get one small read every X_RIVALS_EVERY_DAYS (default 3). Posts go to
  * Breaking, Trends and, above all, the Pulse.
  *
@@ -31,9 +31,9 @@ const parseLists = (raw: string) =>
     .filter(([n, h]) => n && h)
     .map(([n, h]) => ({ name: n.trim(), handles: h.split(",").map((x) => x.trim().replace(/^@/, "")).filter(Boolean) }));
 
-/** Culture accounts that surface what's blowing up, read in rotation (all checked against X). */
+/** The accounts our audience actually watches: streamer drama, streamers, crypto, sports and betting, viral clips. Read two at a time in rotation (all checked against X). */
 export function watchlists(): { name: string; handles: string[] }[] {
-  return parseLists(process.env.X_WATCHLISTS || "viral:DailyLoud,PopBase,PopCrave,interesting_aIl,knowyourmeme|drama:DramaAlert,FearedBuck,Dexerto,Complex,CultureCrave|streamers:adinross,xQc,KaiCenat");
+  return parseLists(process.env.X_WATCHLISTS || "drama:DramaAlert,Dexerto,FearedBuck,JakeSucky,StreamerBans|streamers:adinross,xQc,KaiCenat,ishowspeedsui,Trainwreckstv|crypto:WatcherGuru,zachxbt,lookonchain|sports:BleacherReport,barstoolsports,ActionNetworkHQ|viral:NoContextHumans,knowyourmeme,DailyLoud");
 }
 
 /** Rivals: a small read every few days, never the main use of the budget. */

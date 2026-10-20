@@ -16,15 +16,15 @@ describe("X budget", () => {
     expect(allowanceLeft({ ...state, day: "2026-10-19" }, now)).toBeCloseTo(9 / 31, 5); // new day
   });
   it("puts culture first and keeps rivals separate", () => {
-    expect(watchlists().map((l) => l.name)).toEqual(["viral", "drama", "streamers"]);
+    expect(watchlists().map((l) => l.name)).toEqual(["drama", "streamers", "crypto", "sports", "viral"]);
     expect(watchlists().some((l) => l.handles.includes("Stake"))).toBe(false);
     expect(rivals().handles).toEqual(["Stake", "shufflecom", "Roobet", "rollbit", "bcgame", "rainbetcom"]);
   });
   it("rotates two culture accounts per pull through every account", () => {
     const seen = new Set<string>();
-    for (let i = 0; i < 7; i++) culturePair(i)!.handles.forEach((h) => seen.add(h));
+    for (let i = 0; i < 10; i++) culturePair(i)!.handles.forEach((h) => seen.add(h));
     expect(seen.size).toBe(watchlists().flatMap((l) => l.handles).length);
-    expect(culturePair(0)!.handles).toEqual(["DailyLoud", "PopBase"]);
+    expect(culturePair(0)!.handles).toEqual(["DramaAlert", "Dexerto"]);
   });
 });
 
