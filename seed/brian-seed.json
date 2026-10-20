@@ -1,5 +1,1490 @@
 {
- "ideas": [],
+ "ideas": [
+  {
+   "id": "idea_mvgdl7a2dv1dw",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "villain",
+   "name": "Cashy publicly offered Kanel Joseph $10,000 to only ever stream from a stationary exercise bike for the next six months.",
+   "oneLiner": "Cashy publicly offered Kanel Joseph $10,000 to only ever stream from a stationary exercise bike for the next six months.",
+   "headline": "Crypto casino offers reckless biker streamer $10K to ride a bike that doesn't move",
+   "edge": "spicy",
+   "backlash": "Some will say paying him rewards a hit-and-run. Paying only after six months of compliance, with no road riding, answers that. Legal should check whether he faces any police action before posting. The victim is never referenced.",
+   "mechanism": "Cashy's X account quote-posts the clip with a signed one-page offer. The terms: six months, IRL streams only from a stationary bike, no road riding on stream, and payment at the end, not up front. Cashy sends the same offer by DM and email to his public business contact and posts the screenshot. If he ignores it, the offer itself is the story. Cashy never claims he agreed. The $10k figure is an assumption, sized to be believable rather than life-changing. It costs a lawyer-checked page and an afternoon.",
+   "borrowedAttention": "Kanel Joseph, the streamer filmed running red lights, hitting a person and a truck with his bike and fleeing. It is the top LivestreamFail post, and people want him off the road.",
+   "engine": 4,
+   "horizon": "evergreen",
+   "effort": "$10k only if accepted (assumption) plus legal review, 1\u20132 days",
+   "attentionMechanic": "villain",
+   "emotion": "hate",
+   "emotionTarget": "Kanel Joseph, the streamer filmed running red lights, hitting a person and a truck with his bike and fleeing. It is the top LivestreamFail post, and people want him off the road.",
+   "pulseRef": "Kanel Joseph reckless biking stream (villain of the week)",
+   "howItWorks": "Cashy's X account quote-posts the clip with a signed one-page offer. The terms: six months, IRL streams only from a stationary bike, no road riding on stream, and payment at the end, not up front. Cashy sends the same offer by DM and email to his public business contact and posts the screenshot. If he ignores it, the offer itself is the story. Cashy never claims he agreed. The $10k figure is an assumption, sized to be believable rather than life-changing. It costs a lawyer-checked page and an afternoon.",
+   "proof": "Screenshot of the signed offer letter with the clause highlighted, quote-posted on the clip",
+   "shareMoment": "cashy offering him a bike that doesn't move is the only consequence he's getting lmao",
+   "whoAmplifies": "Brands stay away from streamers in active scandals. Nobody has turned the punishment people want into a contract.",
+   "cashyRole": "The offer is on Cashy letterhead from Cashy's account. 'Cashy offered him a stationary bike' is the whole sentence.",
+   "reactions": [
+    {
+     "who": "Degen, 24",
+     "says": "stationary bike is funny but this is just the Doherty play with a Peloton",
+     "shares": true
+    },
+    {
+     "who": "Clip and drama account admin",
+     "says": "Kanel's hot on LSF today, I'd post the letter once",
+     "shares": true
+    },
+    {
+     "who": "19-year-old on TikTok",
+     "says": "who is kanel joseph",
+     "shares": false
+    },
+    {
+     "who": "Someone who hates gambling brands",
+     "says": "a casino offering cash to a guy who hit someone and fled, gross",
+     "shares": true
+    },
+    {
+     "who": "Marketer at Stake or Shuffle",
+     "says": "Shuffle did pay-to-stop already, this is a cover version",
+     "shares": false
+    }
+   ],
+   "evidence": [
+    {
+     "text": "Kanel Joseph filmed driving through red lights, #1 on r/LivestreamFail",
+     "citations": [
+      {
+       "url": "https://www.reddit.com/r/LivestreamFail/comments/1xa6cn5/streamer_kanel_joseph_driving_through_red_lights/",
+       "title": "Streamer Kanel Joseph driving through red lights and recklessly yesterday",
+       "publisher": "r/LivestreamFail",
+       "retrievedAt": "2026-10-20T07:31:17.733Z"
+      }
+     ],
+     "status": "verified"
+    },
+    {
+     "text": "Kanel Joseph blocks traffic, hits a person and a truck with his bike, then flees",
+     "citations": [
+      {
+       "url": "https://www.reddit.com/r/LivestreamFail/comments/1xafvgp/kaneljoseph_blocks_traffic_hits_person_truck_with/",
+       "title": "kaneljoseph blocks traffic, hits person, truck with bike, then flees the scenw",
+       "publisher": "r/LivestreamFail",
+       "retrievedAt": "2026-10-20T07:31:17.733Z"
+      }
+     ],
+     "status": "verified"
+    }
+   ],
+   "scores": {
+    "charge": {
+     "value": 6,
+     "reason": "Anger is real but niche to LSF."
+    },
+    "spread": {
+     "value": 5,
+     "reason": "Streamer drama accounts only."
+    },
+    "simplicity": {
+     "value": 9,
+     "reason": "One sentence with a visual punchline."
+    },
+    "realness": {
+     "value": 9,
+     "reason": "A page and an afternoon."
+    },
+    "attribution": {
+     "value": 8,
+     "reason": "Cashy letterhead carries it."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "kill",
+     "tests": [
+      {
+       "name": "One-act test",
+       "pass": true,
+       "note": "One public offer, one sentence."
+      },
+      {
+       "name": "Feeling test",
+       "pass": true,
+       "note": "Real anger at a reckless streamer."
+      },
+      {
+       "name": "Share test",
+       "pass": true,
+       "note": "Three would share, counting the hater."
+      },
+      {
+       "name": "Real test",
+       "pass": true,
+       "note": "A letter and a post."
+      },
+      {
+       "name": "First test",
+       "pass": false,
+       "note": "Pay-a-villain-to-stop is Shuffle's format with a prop swapped in."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "The offer is Cashy's."
+      },
+      {
+       "name": "Next-week test",
+       "pass": false,
+       "note": "Kanel is a small name. Unless police act, it's gone in days."
+      }
+     ],
+     "reasons": [
+      "Derivative of the Doherty deal, so a rival wouldn't be jealous",
+      "The villain is too small to still be talked about next week",
+      "Paying a hit-and-run streamer risks reading as rewarding him"
+     ]
+    },
+    "priorArt": null,
+    "redLines": null
+   },
+   "status": "killed",
+   "keyVisualPrompt": "Phone photo of a printed one-page contract on a desk, a pen beside it, the clause 'stationary bike only' circled in red marker, a small Cashy logo in the letterhead corner, harsh overhead office light",
+   "createdAt": "2026-10-20T07:42:25.562Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "Aim at the villain",
+    "summary": "Do something to the person everyone loves to hate."
+   }
+  },
+  {
+   "id": "idea_mvgdl7a2pmajg",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "villain",
+   "name": "Cashy mailed Ice Poseidon a one-way bus ticket out of Austin.",
+   "oneLiner": "Cashy mailed Ice Poseidon a one-way bus ticket out of Austin.",
+   "headline": "Crypto casino buys Ice Poseidon a one-way ticket out of Austin",
+   "edge": "safe",
+   "backlash": "Ice fans call it free content, and if he streams it, that's extra reach for Cashy.",
+   "mechanism": "Cashy buys a real one-way intercity bus ticket out of Austin in his name. If it has to be open-dated, any destination far away works. Cashy prints it, puts it in an envelope and sends it to his public PO box or management, then posts a phone photo of the envelope going into the mailbox. Cashy doesn't go to his location and doesn't involve residents. It costs about $100 and a day.",
+   "borrowedAttention": "Ice Poseidon, a long-hated IRL streamer whose Austin safezone event has local residents saying they've had enough",
+   "engine": 4,
+   "horizon": "evergreen",
+   "effort": "~$100 and one day (assumption)",
+   "attentionMechanic": "villain",
+   "emotion": "hate",
+   "emotionTarget": "Ice Poseidon, a long-hated IRL streamer whose Austin safezone event has local residents saying they've had enough",
+   "pulseRef": "Ice Poseidon's Austin safezone event",
+   "howItWorks": "Cashy buys a real one-way intercity bus ticket out of Austin in his name. If it has to be open-dated, any destination far away works. Cashy prints it, puts it in an envelope and sends it to his public PO box or management, then posts a phone photo of the envelope going into the mailbox. Cashy doesn't go to his location and doesn't involve residents. It costs about $100 and a day.",
+   "proof": "Photo of the ticket and envelope addressed to him, plus the purchase confirmation screenshot",
+   "shareMoment": "cashy bought ice poseidon a one way ticket out of austin, austin owes them",
+   "whoAmplifies": "Everyone tweets 'leave Austin'. Nobody has actually bought the ticket.",
+   "cashyRole": "The ticket was bought and sent by Cashy. Without the name it's just a random guy, and with it a casino did what the city wanted.",
+   "reactions": [
+    {
+     "who": "Degen, 24",
+     "says": "lol ok, ice will probably show it on stream",
+     "shares": false
+    },
+    {
+     "who": "Clip and drama account admin",
+     "says": "only if Ice reacts to it",
+     "shares": false
+    },
+    {
+     "who": "19-year-old on TikTok",
+     "says": "don't know him",
+     "shares": false
+    },
+    {
+     "who": "Someone who hates gambling brands",
+     "says": "casino trying to be relatable, pass",
+     "shares": false
+    },
+    {
+     "who": "Marketer at Stake or Shuffle",
+     "says": "a one-way ticket gag is a dad joke",
+     "shares": false
+    }
+   ],
+   "evidence": [
+    {
+     "text": "Austin, Texas residents have had enough of Ice Poseidon's safezone event",
+     "citations": [
+      {
+       "url": "https://www.reddit.com/r/LivestreamFail/comments/1xaf7rl/austin_texas_residents_have_had_enough_of_ice/",
+       "title": "Austin Texas residents have had enough of Ice Poseidon\u2019s safezone event",
+       "publisher": "r/LivestreamFail",
+       "retrievedAt": "2026-10-20T07:31:17.733Z"
+      }
+     ],
+     "status": "verified"
+    }
+   ],
+   "scores": {
+    "charge": {
+     "value": 4,
+     "reason": "Low-heat local backlash."
+    },
+    "spread": {
+     "value": 3,
+     "reason": "Only if Ice streams it."
+    },
+    "simplicity": {
+     "value": 9,
+     "reason": "One sentence."
+    },
+    "realness": {
+     "value": 10,
+     "reason": "Trivial to do."
+    },
+    "attribution": {
+     "value": 7,
+     "reason": "The envelope says Cashy."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "kill",
+     "tests": [
+      {
+       "name": "One-act test",
+       "pass": true,
+       "note": "One mailed ticket."
+      },
+      {
+       "name": "Feeling test",
+       "pass": false,
+       "note": "Ice hate is old and lukewarm, 6/10 at best."
+      },
+      {
+       "name": "Share test",
+       "pass": false,
+       "note": "Nobody on the panel shares it."
+      },
+      {
+       "name": "Real test",
+       "pass": true,
+       "note": "$100 and a day."
+      },
+      {
+       "name": "First test",
+       "pass": false,
+       "note": "One-way ticket jokes are everywhere."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "Sent by Cashy."
+      },
+      {
+       "name": "Next-week test",
+       "pass": false,
+       "note": "A one-day gag."
+      }
+     ],
+     "reasons": [
+      "Weak feeling and a tired joke",
+      "No panel shares"
+     ]
+    },
+    "priorArt": null,
+    "redLines": null
+   },
+   "status": "killed",
+   "keyVisualPrompt": "Phone shot of a printed one-way bus ticket stub held over a blue USPS mailbox, 'AUSTIN \u2192' visible, envelope with a small Cashy return-address sticker, overcast street",
+   "createdAt": "2026-10-20T07:42:25.562Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "Aim at the villain",
+    "summary": "Do something to the person everyone loves to hate."
+   }
+  },
+  {
+   "id": "idea_mvgdl7a27re2y",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "villain",
+   "name": "Cashy engraved a trophy reading 'Most Hours, 5 Years, Nobody Said Shit' and shipped it to xQc.",
+   "oneLiner": "Cashy engraved a trophy reading 'Most Hours, 5 Years, Nobody Said Shit' and shipped it to xQc.",
+   "headline": "Crypto casino sends xQc a trophy for the years 'nobody said shit'",
+   "edge": "spicy",
+   "backlash": "xQc may hate it on stream, and that's the point. Some Juicers will call it disrespect, which is tribal fuel. The quote is his real public words, so there's no fabrication.",
+   "mechanism": "Cashy buys a cheap trophy from a local engraver and has it engraved with his own public words. It goes to his public business address with a handwritten note: 'for the five years'. Cashy posts a raw photo of the trophy in the box, timed before the Streamer Awards while the argument is live. It costs about $80 and three days.",
+   "borrowedAttention": "xQc's very public bitterness about Speed being favoured for Streamer of the Year. Fans love and hate his crashouts.",
+   "engine": 4,
+   "horizon": "evergreen",
+   "effort": "~$80, 3 days (assumption)",
+   "attentionMechanic": "schadenfreude",
+   "emotion": "tribal",
+   "emotionTarget": "xQc's very public bitterness about Speed being favoured for Streamer of the Year. Fans love and hate his crashouts.",
+   "pulseRef": "xQc vs Joe Bartolozzi over Streamer of the Year",
+   "howItWorks": "Cashy buys a cheap trophy from a local engraver and has it engraved with his own public words. It goes to his public business address with a handwritten note: 'for the five years'. Cashy posts a raw photo of the trophy in the box, timed before the Streamer Awards while the argument is live. It costs about $80 and three days.",
+   "proof": "Phone photo of the engraved trophy in its shipping box, with the engraving legible",
+   "shareMoment": "cashy sent xqc the trophy he's been crying about LMAOOO",
+   "whoAmplifies": "The pulse opening suggests a trophy for whoever feels robbed. Nobody has actually engraved his rant and posted it.",
+   "cashyRole": "The trophy says it's from Cashy on the base plate, and the post comes from Cashy.",
+   "reactions": [
+    {
+     "who": "Degen, 24",
+     "says": "engraving 'nobody said shit' on a trophy is so disrespectful, I need xqc to open it live",
+     "shares": true
+    },
+    {
+     "who": "Clip and drama account admin",
+     "says": "xQc unboxing that on stream is guaranteed clip of the day",
+     "shares": true
+    },
+    {
+     "who": "19-year-old on TikTok",
+     "says": "LMAO they sent him his own crashout",
+     "shares": true
+    },
+    {
+     "who": "Someone who hates gambling brands",
+     "says": "of course a casino is buddying up to xqc",
+     "shares": false
+    },
+    {
+     "who": "Marketer at Stake or Shuffle",
+     "says": "cheap, petty and he'll definitely react, annoyingly good",
+     "shares": false
+    }
+   ],
+   "evidence": [
+    {
+     "text": "xQc: 'where was this energy when I had the most hours and the most variety..for 5 fuckin years..nobody was saying shit'",
+     "citations": [
+      {
+       "url": "https://www.reddit.com/r/LivestreamFail/comments/1xadre0/xqc_rejects_joe_bartolozzis_suggestion_that/",
+       "title": "xQc rejects Joe Bartolozzi's suggestion that Speed\u2019s gotten too big to win Streamer of the Year \"So where was this energy when I had the most hours and the most variety..for 5 fuckin years..nobody was saying shit..so I don't give a shit anymore you little bitch ass, fuck you JoJo Bartolome!\"",
+       "publisher": "r/LivestreamFail",
+       "retrievedAt": "2026-10-20T07:31:17.733Z"
+      }
+     ],
+     "status": "verified"
+    }
+   ],
+   "scores": {
+    "charge": {
+     "value": 7,
+     "reason": "Live tribal grudge plus crashout schadenfreude."
+    },
+    "spread": {
+     "value": 8,
+     "reason": "LSF, clip accounts and his own stream."
+    },
+    "simplicity": {
+     "value": 9,
+     "reason": "One sentence."
+    },
+    "realness": {
+     "value": 10,
+     "reason": "A local engraver this week."
+    },
+    "attribution": {
+     "value": 8,
+     "reason": "Plate and sender are both Cashy."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "pass",
+     "tests": [
+      {
+       "name": "One-act test",
+       "pass": true,
+       "note": "One engraved trophy shipped. 'Cashy sent xQc a trophy engraved with his rant.'"
+      },
+      {
+       "name": "Feeling test",
+       "pass": true,
+       "note": "Rides the live SOTY grudge and fans' love-hate of his crashouts."
+      },
+      {
+       "name": "Share test",
+       "pass": true,
+       "note": "Three would share."
+      },
+      {
+       "name": "Real test",
+       "pass": true,
+       "note": "$80 and three days."
+      },
+      {
+       "name": "First test",
+       "pass": true,
+       "note": "Nobody has turned his own quote into the trophy."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "The base plate and the post both say Cashy."
+      },
+      {
+       "name": "Next-week test",
+       "pass": true,
+       "note": "Comes back at the Streamer Awards, and an on-stream unboxing gives it a second wave."
+      }
+     ],
+     "reasons": [
+      "xQc reacts to everything on stream, so his reaction carries the distribution",
+      "His own words are the punchline, so it's parody and not fake",
+      "It lasts until the awards"
+     ]
+    },
+    "priorArt": {
+     "found": false,
+     "summary": "Web check skipped on this test run.",
+     "examples": []
+    },
+    "redLines": {
+     "pass": true,
+     "issues": [],
+     "consequences": [
+      "Real person is the target of a gift, not shown as agreeing. No fake quote: the engraving is xQc's own public words from the LivestreamFail clip, but the 'Shit' swearing is fine. Keep the wording exact so it can't be called a misquote.",
+      "Shipping to a streamer's 'public business address' is the line to watch. If it turns out to be a home address, it reads as doxxing or stalking and the press angle turns on Cashy. Use a verified business or PO address only, or deliver via his management.",
+      "xQc is a Kick streamer with a history of gambling content and a volatile temper. He could respond on stream with an angry rant or a roast. That is more reach, but he could also refuse it publicly or call it cringe.",
+      "The idea sits on the xQc vs Joe Bartolozzi / Speed Streamer of the Year fight, which fans are split on. Cashy picks xQc's side and annoys Speed fans, Joe Bartolozzi and possibly the awards organisers.",
+      "Posting a raw photo timed to the awards could be seen as piggybacking on an event Cashy doesn't sponsor. Low platform risk since the post doesn't promote gambling, but keep 18+ and any promo off the post.",
+      "Weak spot on the attribution and first tests: the trophy gift is a known format, and the joke is more about xQc than Cashy. Marketing should check whether it needs more edge to travel.",
+      "Legal should check any market where Cashy doesn't take players if the trophy is posted to a streamer there, though a physical gift with no sign-up push is unlikely to be a breach."
+     ]
+    }
+   },
+   "status": "card",
+   "keyVisualPrompt": "Cheap gold plastic trophy in a cardboard box with packing peanuts, the engraved plate in sharp focus, tiny Cashy sticker on the base, taken on a garage floor",
+   "createdAt": "2026-10-20T07:42:25.562Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "Aim at the villain",
+    "summary": "Do something to the person everyone loves to hate."
+   }
+  },
+  {
+   "id": "idea_mvgdl7a2grild",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "villain",
+   "name": "Cashy booked a licensed polygraph examiner and offered Kai Cenat, Adin Ross and IShowSpeed $50,000 each to take a lie detector test on whether they actually like each other.",
+   "oneLiner": "Cashy booked a licensed polygraph examiner and offered Kai Cenat, Adin Ross and IShowSpeed $50,000 each to take a lie detector test on whether they actually like each other.",
+   "headline": "Crypto casino offers Kai, Adin and Speed $150K to take a friendship lie detector test",
+   "edge": "spicy",
+   "backlash": "Fans of each may feel it's stirring drama, which drives replies. There's no claim they accepted, so no endorsement issue.",
+   "mechanism": "Cashy puts a licensed polygraph examiner on a day-rate hold, then posts the booking confirmation and a one-page offer on X, tagging all three. There is one question per pair: 'Do you actually like him?' Payment only happens if all three sit the test. Cashy never claims they agreed. The $50k each is an assumption, chosen as a number big enough to get screenshotted. It costs the examiner deposit, a few hundred dollars, and the post.",
+   "borrowedAttention": "The 'streaming goats' and the fake-friendship accusation. Fans are picking sides and want to catch them pretending.",
+   "engine": 4,
+   "horizon": "evergreen",
+   "effort": "~$300 deposit, $150k only if accepted (assumption), 1 day",
+   "attentionMechanic": "deal-twist",
+   "emotion": "tribal",
+   "emotionTarget": "The 'streaming goats' and the fake-friendship accusation. Fans are picking sides and want to catch them pretending.",
+   "pulseRef": "Kai Cenat, Adin Ross, IShowSpeed and the Trackhawk",
+   "howItWorks": "Cashy puts a licensed polygraph examiner on a day-rate hold, then posts the booking confirmation and a one-page offer on X, tagging all three. There is one question per pair: 'Do you actually like him?' Payment only happens if all three sit the test. Cashy never claims they agreed. The $50k each is an assumption, chosen as a number big enough to get screenshotted. It costs the examiner deposit, a few hundred dollars, and the post.",
+   "proof": "Screenshot of the polygraph booking confirmation next to the offer letter",
+   "shareMoment": "cashy really offering the big 3 a polygraph to settle the fake friends thing \ud83d\ude2d",
+   "whoAmplifies": "The debate exists only as quote-tweets. Nobody has put a real examiner on hold to settle it.",
+   "cashyRole": "Cashy's offer and Cashy's money. Retold, it's 'Cashy offered them a polygraph'.",
+   "reactions": [
+    {
+     "who": "Degen, 24",
+     "says": "adin's done lie detector streams a hundred times",
+     "shares": false
+    },
+    {
+     "who": "Clip and drama account admin",
+     "says": "big names, I'd post the offer once",
+     "shares": true
+    },
+    {
+     "who": "19-year-old on TikTok",
+     "says": "speed on a polygraph would be funny",
+     "shares": true
+    },
+    {
+     "who": "Someone who hates gambling brands",
+     "says": "casino begging the big 3 for attention",
+     "shares": false
+    },
+    {
+     "who": "Marketer at Stake or Shuffle",
+     "says": "lie detector is the most worn-out format in streaming",
+     "shares": false
+    }
+   ],
+   "evidence": [
+    {
+     "text": "Cuffem calls Adin a d___rider for buying Kai a Trackhawk; trio 'pretending to like each other'",
+     "citations": [
+      {
+       "url": "https://x.com/Jay_Clippo/status/2112298519864205437",
+       "title": "Cuffem crashed out on Adin Ross, calling him a d___rider for buying Kai Cenat a Trackhawk back in 2024, when the three streaming goats were acting like they liked each other. \ud83d\ude2d\ud83d\udc80 Whole time, IShowSpeed, Kai Cenat &amp; Adin Ross were just pretending to like each other. \ud83d\udc40\ud83d\ude2d https://t.co/8LOcrxyIDT",
+       "publisher": "@Jay_Clippo",
+       "retrievedAt": "2026-10-20T07:31:17.733Z"
+      }
+     ],
+     "status": "verified"
+    },
+    {
+     "text": "Kai can't sell the Trackhawk Adin gifted him, 693,558 views",
+     "citations": [
+      {
+       "url": "https://x.com/nyrbhimself/status/2112202203020812320",
+       "title": "Kai Cenat REALIZES he can\u2019t sell the Trackhawk Adin Ross gifted him in 2024, saying you\u2019re not supposed to sell gifts, while throwing shots at Reggie for selling the Clover chain Kai gifted him \u2764\ufe0f Hinting at a reunion between Kai Cenat and Adin Ross \u2764\ufe0f\u200d\ud83e\ude79 https://t.co/ZCHC4QmR5q",
+       "publisher": "@nyrbhimself",
+       "retrievedAt": "2026-10-20T07:31:17.733Z"
+      }
+     ],
+     "status": "verified"
+    }
+   ],
+   "scores": {
+    "charge": {
+     "value": 6,
+     "reason": "Tribal but a recycled format."
+    },
+    "spread": {
+     "value": 6,
+     "reason": "Big names, generic hook."
+    },
+    "simplicity": {
+     "value": 8,
+     "reason": "One sentence."
+    },
+    "realness": {
+     "value": 8,
+     "reason": "Easy to post."
+    },
+    "attribution": {
+     "value": 7,
+     "reason": "An offer from Cashy."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "kill",
+     "tests": [
+      {
+       "name": "One-act test",
+       "pass": true,
+       "note": "One offer."
+      },
+      {
+       "name": "Feeling test",
+       "pass": true,
+       "note": "Tribal fake-friends debate."
+      },
+      {
+       "name": "Share test",
+       "pass": false,
+       "note": "Only two would share."
+      },
+      {
+       "name": "Real test",
+       "pass": true,
+       "note": "A deposit and a post."
+      },
+      {
+       "name": "First test",
+       "pass": false,
+       "note": "Lie detector content is already a staple of these exact streamers."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "Cashy's offer."
+      },
+      {
+       "name": "Next-week test",
+       "pass": false,
+       "note": "Lost in a sea of Kai/Adin clips."
+      }
+     ],
+     "reasons": [
+      "The polygraph format isn't a first",
+      "Under three shares",
+      "Speed's young audience is also a compliance worry"
+     ]
+    },
+    "priorArt": null,
+    "redLines": null
+   },
+   "status": "killed",
+   "keyVisualPrompt": "Phone screenshot style shot of a polygraph booking email on a laptop, next to a printed sheet with three blank signature lines, Cashy logo small in the corner",
+   "createdAt": "2026-10-20T07:42:25.562Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "Aim at the villain",
+    "summary": "Do something to the person everyone loves to hate."
+   }
+  },
+  {
+   "id": "idea_mvgdl7a2ntbyd",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "villain",
+   "name": "Cashy offered Kai Cenat double the market value for the Trackhawk Adin gifted him, the day after he said you don't sell gifts.",
+   "oneLiner": "Cashy offered Kai Cenat double the market value for the Trackhawk Adin gifted him, the day after he said you don't sell gifts.",
+   "headline": "Crypto casino offers Kai Cenat double for the Trackhawk he says he'll never sell",
+   "edge": "spicy",
+   "backlash": "Kai fans may call it baiting. That's tribal reach, and no acceptance is ever claimed.",
+   "mechanism": "Cashy gets a dealer valuation screenshot for the same model and year, then posts a signed offer for 2x that figure, valid for 72 hours and payable on title transfer. The condition: the car gets returned to Adin with a bow on it. Cashy tags Kai's public business contact. Whatever he does is the story: he ignores it, refuses on stream, or the offer quietly expires. Cashy never states he accepted. It costs nothing unless accepted, and a day of work.",
+   "borrowedAttention": "Kai's 'you're not supposed to sell gifts' moral stand and the Adin/Kai loyalty debate. Fans want to see if he means it.",
+   "engine": 4,
+   "horizon": "evergreen",
+   "effort": "$0 unless accepted (est. 2x a used Trackhawk value, assumption), 1 day",
+   "attentionMechanic": "deal-twist",
+   "emotion": "tribal",
+   "emotionTarget": "Kai's 'you're not supposed to sell gifts' moral stand and the Adin/Kai loyalty debate. Fans want to see if he means it.",
+   "pulseRef": "Kai Cenat, Adin Ross, IShowSpeed and the Trackhawk",
+   "howItWorks": "Cashy gets a dealer valuation screenshot for the same model and year, then posts a signed offer for 2x that figure, valid for 72 hours and payable on title transfer. The condition: the car gets returned to Adin with a bow on it. Cashy tags Kai's public business contact. Whatever he does is the story: he ignores it, refuses on stream, or the offer quietly expires. Cashy never states he accepted. It costs nothing unless accepted, and a day of work.",
+   "proof": "Screenshot of the dealer valuation beside the signed 2x offer and the 72-hour countdown",
+   "shareMoment": "cashy testing kai's loyalty with a 2x offer on the trackhawk is evil \ud83d\udc80",
+   "whoAmplifies": "The pulse suggests buying something for whoever holds the Trackhawk. This flips it: a real offer that tests the 'never sell gifts' line in public.",
+   "cashyRole": "The cheque would be from Cashy. 'Cashy tried to buy Kai's Trackhawk to give back to Adin' needs the name.",
+   "reactions": [
+    {
+     "who": "Degen, 24",
+     "says": "wait so they buy it to give it back to adin? confused",
+     "shares": false
+    },
+    {
+     "who": "Clip and drama account admin",
+     "says": "a 2x offer is postable, the bow condition loses me",
+     "shares": true
+    },
+    {
+     "who": "19-year-old on TikTok",
+     "says": "huh",
+     "shares": false
+    },
+    {
+     "who": "Someone who hates gambling brands",
+     "says": "whatever",
+     "shares": false
+    },
+    {
+     "who": "Marketer at Stake or Shuffle",
+     "says": "overthought",
+     "shares": false
+    }
+   ],
+   "evidence": [
+    {
+     "text": "Kai realises he can't sell the Trackhawk Adin gifted him, says you're not supposed to sell gifts",
+     "citations": [
+      {
+       "url": "https://x.com/nyrbhimself/status/2112202203020812320",
+       "title": "Kai Cenat REALIZES he can\u2019t sell the Trackhawk Adin Ross gifted him in 2024, saying you\u2019re not supposed to sell gifts, while throwing shots at Reggie for selling the Clover chain Kai gifted him \u2764\ufe0f Hinting at a reunion between Kai Cenat and Adin Ross \u2764\ufe0f\u200d\ud83e\ude79 https://t.co/ZCHC4QmR5q",
+       "publisher": "@nyrbhimself",
+       "retrievedAt": "2026-10-20T07:31:17.733Z"
+      }
+     ],
+     "status": "verified"
+    }
+   ],
+   "scores": {
+    "charge": {
+     "value": 5,
+     "reason": "Diluted."
+    },
+    "spread": {
+     "value": 4,
+     "reason": "Confusing to retell."
+    },
+    "simplicity": {
+     "value": 4,
+     "reason": "Two sentences minimum."
+    },
+    "realness": {
+     "value": 7,
+     "reason": "Doable, risky if accepted."
+    },
+    "attribution": {
+     "value": 7,
+     "reason": "Cashy is the buyer."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "kill",
+     "tests": [
+      {
+       "name": "One-act test",
+       "pass": false,
+       "note": "The return-to-Adin condition needs a second sentence."
+      },
+      {
+       "name": "Feeling test",
+       "pass": true,
+       "note": "Rides the tribal loyalty debate."
+      },
+      {
+       "name": "Share test",
+       "pass": false,
+       "note": "Only one would share."
+      },
+      {
+       "name": "Real test",
+       "pass": true,
+       "note": "An offer post, though a big liability if accepted."
+      },
+      {
+       "name": "First test",
+       "pass": true,
+       "note": "New."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "Cashy's cheque."
+      },
+      {
+       "name": "Next-week test",
+       "pass": false,
+       "note": "Too muddled to stick."
+      }
+     ],
+     "reasons": [
+      "Needs explaining",
+      "The condition undermines the test of his loyalty"
+     ]
+    },
+    "priorArt": null,
+    "redLines": null
+   },
+   "status": "killed",
+   "keyVisualPrompt": "Phone photo of a printed offer letter clipped to a dealership valuation printout on a car hood, '2x' circled, key fob placeholder, small Cashy logo",
+   "createdAt": "2026-10-20T07:42:25.562Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "Aim at the villain",
+    "summary": "Do something to the person everyone loves to hate."
+   }
+  },
+  {
+   "id": "idea_mvgdl7a2mswnu",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "villain",
+   "name": "Cashy tracked down the Clover chain Reggie sold and offered to buy it back to return to Kai Cenat.",
+   "oneLiner": "Cashy tracked down the Clover chain Reggie sold and offered to buy it back to return to Kai Cenat.",
+   "headline": "Crypto casino tries to buy back the chain Kai Cenat says Reggie sold",
+   "edge": "spicy",
+   "backlash": "Reggie's supporters will say it's piling on. That fuels the side-taking. The act is about the chain, not his character.",
+   "mechanism": "Cashy calls the jewellers and resale accounts that deal in streamer pieces to find the current holder of the chain. If found, Cashy makes a public cash offer to that buyer. If not, Cashy posts a public 'wanted' offer with a set price. Either way the plan is to hand it back to Kai with no conditions, and Cashy never claims Kai or Reggie are involved. It's a week of phone calls, and the price is unknown (assumption).",
+   "borrowedAttention": "Selling a gift from a friend, which Kai publicly swiped at. Fans enjoy policing loyalty.",
+   "engine": 4,
+   "horizon": "evergreen",
+   "effort": "A week of calls; chain price unknown (assumption: five figures)",
+   "attentionMechanic": "villain",
+   "emotion": "tribal",
+   "emotionTarget": "Selling a gift from a friend, which Kai publicly swiped at. Fans enjoy policing loyalty.",
+   "pulseRef": "Kai Cenat, Adin Ross, IShowSpeed and the Trackhawk",
+   "howItWorks": "Cashy calls the jewellers and resale accounts that deal in streamer pieces to find the current holder of the chain. If found, Cashy makes a public cash offer to that buyer. If not, Cashy posts a public 'wanted' offer with a set price. Either way the plan is to hand it back to Kai with no conditions, and Cashy never claims Kai or Reggie are involved. It's a week of phone calls, and the price is unknown (assumption).",
+   "proof": "Screen recording of DMs or calls with jewellers, and the public buy-back offer",
+   "shareMoment": "cashy hunting down the chain reggie sold is the pettiest thing a brand has ever done",
+   "whoAmplifies": "Fans argued about the sale. Nobody went looking for the chain.",
+   "cashyRole": "Cashy is the buyer and the one returning it, so the sentence starts with Cashy.",
+   "reactions": [
+    {
+     "who": "Degen, 24",
+     "says": "who's reggie",
+     "shares": false
+    },
+    {
+     "who": "Clip and drama account admin",
+     "says": "only if they actually find it",
+     "shares": false
+    },
+    {
+     "who": "19-year-old on TikTok",
+     "says": "nah",
+     "shares": false
+    },
+    {
+     "who": "Someone who hates gambling brands",
+     "says": "nah",
+     "shares": false
+    },
+    {
+     "who": "Marketer at Stake or Shuffle",
+     "says": "a week of calls for maybe nothing",
+     "shares": false
+    }
+   ],
+   "evidence": [
+    {
+     "text": "Kai throws shots at Reggie for selling the Clover chain Kai gifted him",
+     "citations": [
+      {
+       "url": "https://x.com/nyrbhimself/status/2112202203020812320",
+       "title": "Kai Cenat REALIZES he can\u2019t sell the Trackhawk Adin Ross gifted him in 2024, saying you\u2019re not supposed to sell gifts, while throwing shots at Reggie for selling the Clover chain Kai gifted him \u2764\ufe0f Hinting at a reunion between Kai Cenat and Adin Ross \u2764\ufe0f\u200d\ud83e\ude79 https://t.co/ZCHC4QmR5q",
+       "publisher": "@nyrbhimself",
+       "retrievedAt": "2026-10-20T07:31:17.733Z"
+      }
+     ],
+     "status": "verified"
+    }
+   ],
+   "scores": {
+    "charge": {
+     "value": 3,
+     "reason": "Footnote drama."
+    },
+    "spread": {
+     "value": 2,
+     "reason": "Nobody follows Reggie."
+    },
+    "simplicity": {
+     "value": 5,
+     "reason": "Needs context."
+    },
+    "realness": {
+     "value": 3,
+     "reason": "It may not exist to buy."
+    },
+    "attribution": {
+     "value": 6,
+     "reason": "Cashy's offer."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "kill",
+     "tests": [
+      {
+       "name": "One-act test",
+       "pass": false,
+       "note": "A search with an uncertain outcome isn't one act."
+      },
+      {
+       "name": "Feeling test",
+       "pass": false,
+       "note": "Side drama, weak."
+      },
+      {
+       "name": "Share test",
+       "pass": false,
+       "note": "Nobody shares."
+      },
+      {
+       "name": "Real test",
+       "pass": false,
+       "note": "Unknown holder and unknown price."
+      },
+      {
+       "name": "First test",
+       "pass": true,
+       "note": "Nobody has looked for the chain."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "Cashy is the buyer."
+      },
+      {
+       "name": "Next-week test",
+       "pass": false,
+       "note": "No."
+      }
+     ],
+     "reasons": [
+      "Not doable reliably",
+      "No feeling"
+     ]
+    },
+    "priorArt": null,
+    "redLines": null
+   },
+   "status": "killed",
+   "keyVisualPrompt": "Phone screen showing a DM thread with a jeweller, 'is the clover piece still available', blurred chain photo, Cashy profile picture visible",
+   "createdAt": "2026-10-20T07:42:25.562Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "Aim at the villain",
+    "summary": "Do something to the person everyone loves to hate."
+   }
+  },
+  {
+   "id": "idea_mvgdl7a34fzsv",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "villain",
+   "name": "Cashy mailed Richard Heart a belt.",
+   "oneLiner": "Cashy mailed Richard Heart a belt.",
+   "headline": "Crypto casino mails Richard Heart a belt after arrest report",
+   "edge": "spicy",
+   "backlash": "PulseChain loyalists may be angry, which is tribal reach. Legal should keep it to the public report and not comment on guilt.",
+   "mechanism": "Cashy buys a plain leather belt, gift-wraps it and sends it to his publicly listed business or legal address with a card that just says 'Cashy'. Cashy posts a phone photo of the parcel. There's no claim about the case beyond linking the report. It costs about $40 and a day.",
+   "borrowedAttention": "Richard Heart, a loud, divisive crypto figure reported to have been caught with his pants down during his arrest",
+   "engine": 4,
+   "horizon": "evergreen",
+   "effort": "~$40, 1 day (assumption)",
+   "attentionMechanic": "schadenfreude",
+   "emotion": "schadenfreude",
+   "emotionTarget": "Richard Heart, a loud, divisive crypto figure reported to have been caught with his pants down during his arrest",
+   "pulseRef": "Richard Heart arrest report",
+   "howItWorks": "Cashy buys a plain leather belt, gift-wraps it and sends it to his publicly listed business or legal address with a card that just says 'Cashy'. Cashy posts a phone photo of the parcel. There's no claim about the case beyond linking the report. It costs about $40 and a day.",
+   "proof": "Photo of the wrapped belt and the addressed parcel at the post office",
+   "shareMoment": "cashy sent richard heart a belt i'm crying",
+   "whoAmplifies": "Everyone made the joke. Nobody actually posted the belt.",
+   "cashyRole": "The card says Cashy. It's a sight gag that only exists because a brand sent it.",
+   "reactions": [
+    {
+     "who": "Degen, 24",
+     "says": "lmao a belt, CT will eat this up for an afternoon",
+     "shares": true
+    },
+    {
+     "who": "Clip and drama account admin",
+     "says": "funny, but crypto-niche",
+     "shares": false
+    },
+    {
+     "who": "19-year-old on TikTok",
+     "says": "who",
+     "shares": false
+    },
+    {
+     "who": "Someone who hates gambling brands",
+     "says": "crypto clowns roasting crypto clowns",
+     "shares": false
+    },
+    {
+     "who": "Marketer at Stake or Shuffle",
+     "says": "it's a tweet joke with postage",
+     "shares": false
+    }
+   ],
+   "evidence": [
+    {
+     "text": "Richard Heart caught with his pants down during arrest, report",
+     "citations": [],
+     "status": "unresolved"
+    }
+   ],
+   "scores": {
+    "charge": {
+     "value": 5,
+     "reason": "Mild CT glee."
+    },
+    "spread": {
+     "value": 3,
+     "reason": "Crypto Twitter only."
+    },
+    "simplicity": {
+     "value": 10,
+     "reason": "Five words."
+    },
+    "realness": {
+     "value": 10,
+     "reason": "Trivial."
+    },
+    "attribution": {
+     "value": 7,
+     "reason": "Card says Cashy."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "kill",
+     "tests": [
+      {
+       "name": "One-act test",
+       "pass": true,
+       "note": "One parcel."
+      },
+      {
+       "name": "Feeling test",
+       "pass": true,
+       "note": "Schadenfreude at Richard Heart."
+      },
+      {
+       "name": "Share test",
+       "pass": false,
+       "note": "Only one would share."
+      },
+      {
+       "name": "Real test",
+       "pass": true,
+       "note": "$40."
+      },
+      {
+       "name": "First test",
+       "pass": false,
+       "note": "Everyone already made this joke."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "The card says Cashy."
+      },
+      {
+       "name": "Next-week test",
+       "pass": false,
+       "note": "An afternoon gag."
+      }
+     ],
+     "reasons": [
+      "Too small and too niche",
+      "Just the joke everyone already made"
+     ]
+    },
+    "priorArt": null,
+    "redLines": null
+   },
+   "status": "killed",
+   "keyVisualPrompt": "Close phone shot of a brown leather belt coiled in an open gift box on a post office counter, handwritten card 'from Cashy', fluorescent light",
+   "createdAt": "2026-10-20T07:42:25.562Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "Aim at the villain",
+    "summary": "Do something to the person everyone loves to hate."
+   }
+  },
+  {
+   "id": "idea_mvgdl7a3hxfqe",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "villain",
+   "name": "Cashy offered to pay for Asmongold's new teeth on one condition: he brushes them live on stream every day for a month.",
+   "oneLiner": "Cashy offered to pay for Asmongold's new teeth on one condition: he brushes them live on stream every day for a month.",
+   "headline": "Crypto casino offers to fund Asmongold's teeth if he brushes on stream for 30 days",
+   "edge": "spicy",
+   "backlash": "Some say it mocks a health issue. The tone is about his own public story and the offer is genuinely useful.",
+   "mechanism": "Cashy gets a real quote from a dental clinic for full implants or dentures, then posts it with a one-page offer. Cashy pays the clinic directly once he does 30 consecutive days of on-stream brushing, minimum two minutes, with no cash to him. It goes to his public business email. He is never shown as agreeing. It costs nothing unless accepted, then the clinic quote (assumption: tens of thousands), and a day to set up.",
+   "borrowedAttention": "Asmongold, who says he lost his teeth from years of not brushing and drinking soda. It's gross and funny, and a divisive figure.",
+   "engine": 4,
+   "horizon": "evergreen",
+   "effort": "$0 unless accepted; clinic quote if accepted (assumption), 1 day",
+   "attentionMechanic": "deal-twist",
+   "emotion": "disgust",
+   "emotionTarget": "Asmongold, who says he lost his teeth from years of not brushing and drinking soda. It's gross and funny, and a divisive figure.",
+   "pulseRef": "Asmongold's teeth",
+   "howItWorks": "Cashy gets a real quote from a dental clinic for full implants or dentures, then posts it with a one-page offer. Cashy pays the clinic directly once he does 30 consecutive days of on-stream brushing, minimum two minutes, with no cash to him. It goes to his public business email. He is never shown as agreeing. It costs nothing unless accepted, then the clinic quote (assumption: tens of thousands), and a day to set up.",
+   "proof": "Screenshot of the clinic quote beside the 30-day clause",
+   "shareMoment": "cashy offering asmon free teeth if he brushes on stream is diabolical",
+   "whoAmplifies": "The pulse suggests a dental fund for streamers. This is a single, personal offer with a clause people want to see.",
+   "cashyRole": "The offer is from Cashy and the clinic bill goes to Cashy.",
+   "reactions": [
+    {
+     "who": "Degen, 24",
+     "says": "30 days of asmon brushing on stream is diabolical, he'll react to this for an hour",
+     "shares": true
+    },
+    {
+     "who": "Clip and drama account admin",
+     "says": "Asmon reacting to his own teeth offer is guaranteed engagement",
+     "shares": true
+    },
+    {
+     "who": "19-year-old on TikTok",
+     "says": "bro needs it fr \ud83d\ude2d",
+     "shares": true
+    },
+    {
+     "who": "Someone who hates gambling brands",
+     "says": "gambling site buying a streamer's teeth, dystopian, sharing this",
+     "shares": true
+    },
+    {
+     "who": "Marketer at Stake or Shuffle",
+     "says": "the brushing clause is the joke everyone was already making, damn",
+     "shares": false
+    }
+   ],
+   "evidence": [
+    {
+     "text": "Asmongold says he lost his teeth from not brushing for years and drinking soda",
+     "citations": [],
+     "status": "unresolved"
+    }
+   ],
+   "scores": {
+    "charge": {
+     "value": 8,
+     "reason": "Gross, funny and divisive."
+    },
+    "spread": {
+     "value": 8,
+     "reason": "Asmon's stream, clip accounts, Reddit."
+    },
+    "simplicity": {
+     "value": 9,
+     "reason": "One sentence."
+    },
+    "realness": {
+     "value": 9,
+     "reason": "A quote and a page this week."
+    },
+    "attribution": {
+     "value": 8,
+     "reason": "Cashy's offer, Cashy's bill."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "pass",
+     "tests": [
+      {
+       "name": "One-act test",
+       "pass": true,
+       "note": "One offer with one clause, one sentence."
+      },
+      {
+       "name": "Feeling test",
+       "pass": true,
+       "note": "Disgust and love-hate of Asmon at full strength."
+      },
+      {
+       "name": "Share test",
+       "pass": true,
+       "note": "Four would share."
+      },
+      {
+       "name": "Real test",
+       "pass": true,
+       "note": "A clinic quote and a post, paid only if accepted."
+      },
+      {
+       "name": "First test",
+       "pass": true,
+       "note": "Nobody has made a hygiene clause the deal."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "'Cashy offered Asmon teeth' needs the name."
+      },
+      {
+       "name": "Next-week test",
+       "pass": true,
+       "note": "Asmon will react on stream, and any reply or refusal restarts it."
+      }
+     ],
+     "reasons": [
+      "The clause is the punchline everyone already wants",
+      "The target reacts to everything on a huge stream",
+      "Haters share it as dystopian, which still spreads it"
+     ]
+    },
+    "priorArt": {
+     "found": false,
+     "summary": "Web check skipped on this test run.",
+     "examples": []
+    },
+    "redLines": {
+     "pass": true,
+     "issues": [],
+     "consequences": [
+      "Asmongold is a real person and the offer mocks a health issue (lost teeth). It is a public offer, not a fake endorsement, and he is never shown as agreeing, so it is not a red line. Keep every asset free of any implied acceptance or quote from him.",
+      "Likely read as punching at someone's body and health. Expect backlash from his fans and some press, which is the love-hate distribution. Disability-adjacent framing is a grey area, so keep the target his habits (soda, not brushing) and not his condition.",
+      "He may ignore it, refuse it, or counter-roast Cashy on stream. A public refusal still gives a story, but Cashy loses control of the narrative.",
+      "If he accepts, Cashy owes a real five-figure clinic bill and has to run an ongoing 30-day arrangement. Fix the terms in writing and have legal check the medical-payment and endorsement side before sending.",
+      "Asmongold's audience is largely young men and may include under-18s on stream. Offer and assets must carry 18+ and sit apart from any gambling promotion, so the stunt doesn't appeal to minors.",
+      "Platform risk is low if the offer stays as a plain public offer with no gambling content. If it is dressed up to push casino sign-ups through his stream, that risks the account on Twitch or Kick."
+     ]
+    }
+   },
+   "status": "card",
+   "keyVisualPrompt": "Phone photo of a dental clinic quote printout next to a fresh toothbrush and an empty soda can on a desk, Cashy logo tiny on the offer sheet",
+   "createdAt": "2026-10-20T07:42:25.562Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "Aim at the villain",
+    "summary": "Do something to the person everyone loves to hate."
+   }
+  },
+  {
+   "id": "idea_mvgdl7a3ezpwb",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "villain",
+   "name": "Cashy offered to rent a room with no internet so the game whose public playtest was cancelled over AI cloning fears can still run it, phones locked in a box at the door.",
+   "oneLiner": "Cashy offered to rent a room with no internet so the game whose public playtest was cancelled over AI cloning fears can still run it, phones locked in a box at the door.",
+   "headline": "Crypto casino offers offline bunker to rescue playtest cancelled over AI cloning",
+   "edge": "safe",
+   "backlash": "Some devs may not want a casino attached. The offer can be declined publicly, and that's still the story.",
+   "mechanism": "Cashy publicly offers the cancelled playtest's developer a hired room for a day. The terms: no wifi, phones sealed in pouches at the door, cheap PCs supplied, 30 playtesters off the waitlist. The developer has to accept, and Cashy never claims they did. If they accept, Cashy films the phone pouches and the queue on a phone, with no game footage. It costs about $3k and two weeks (assumption).",
+   "borrowedAttention": "AI cloning, which gamers and devs blame for killing public playtests and closing a decomp community",
+   "engine": 4,
+   "horizon": "evergreen",
+   "effort": "~$3k, 2 weeks (assumption)",
+   "attentionMechanic": "villain",
+   "emotion": "hate",
+   "emotionTarget": "AI cloning, which gamers and devs blame for killing public playtests and closing a decomp community",
+   "pulseRef": "AI cloning killing game playtests",
+   "howItWorks": "Cashy publicly offers the cancelled playtest's developer a hired room for a day. The terms: no wifi, phones sealed in pouches at the door, cheap PCs supplied, 30 playtesters off the waitlist. The developer has to accept, and Cashy never claims they did. If they accept, Cashy films the phone pouches and the queue on a phone, with no game footage. It costs about $3k and two weeks (assumption).",
+   "proof": "Photo of the sealed-pouch phone box at the door and the queue outside",
+   "shareMoment": "a casino is doing more to stop ai cloning than the entire industry lol",
+   "whoAmplifies": "Devs cancelled playtests. Nobody offered a physical room that's AI-proof.",
+   "cashyRole": "Cashy's offer and Cashy's room. 'A casino offered to save the playtest' is the retell.",
+   "reactions": [
+    {
+     "who": "Degen, 24",
+     "says": "nice i guess",
+     "shares": false
+    },
+    {
+     "who": "Clip and drama account admin",
+     "says": "not a reaction post",
+     "shares": false
+    },
+    {
+     "who": "19-year-old on TikTok",
+     "says": "zzz",
+     "shares": false
+    },
+    {
+     "who": "Someone who hates gambling brands",
+     "says": "casino PR stunt",
+     "shares": false
+    },
+    {
+     "who": "Marketer at Stake or Shuffle",
+     "says": "wholesome agency idea",
+     "shares": false
+    }
+   ],
+   "evidence": [
+    {
+     "text": "Revamp public playtest cancelled over AI clone fears",
+     "citations": [
+      {
+       "url": "https://kotaku.com/revamp-public-playtest-cancelled-digital-sun-claude-ai-clones-2000747558",
+       "title": "AI Cloning Threatens To End Public Playtests For Video Games",
+       "publisher": "news",
+       "retrievedAt": "2026-10-19T15:30:36.000Z"
+      }
+     ],
+     "status": "verified"
+    },
+    {
+     "text": "Developer cancels demo over fears AI could copy the game",
+     "citations": [],
+     "status": "unresolved"
+    }
+   ],
+   "scores": {
+    "charge": {
+     "value": 3,
+     "reason": "Polite."
+    },
+    "spread": {
+     "value": 2,
+     "reason": "Dev Twitter at best."
+    },
+    "simplicity": {
+     "value": 4,
+     "reason": "Needs a paragraph."
+    },
+    "realness": {
+     "value": 4,
+     "reason": "Needs the dev to accept."
+    },
+    "attribution": {
+     "value": 6,
+     "reason": "Cashy's offer."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "kill",
+     "tests": [
+      {
+       "name": "One-act test",
+       "pass": false,
+       "note": "Depends on the developer accepting and needs explaining."
+      },
+      {
+       "name": "Feeling test",
+       "pass": false,
+       "note": "Clever, not felt."
+      },
+      {
+       "name": "Share test",
+       "pass": false,
+       "note": "Nobody shares."
+      },
+      {
+       "name": "Real test",
+       "pass": false,
+       "note": "Two weeks and a third party."
+      },
+      {
+       "name": "First test",
+       "pass": true,
+       "note": "New."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "Cashy's room."
+      },
+      {
+       "name": "Next-week test",
+       "pass": false,
+       "note": "No."
+      }
+     ],
+     "bannedPatternHit": "Ideas with no emotion behind them",
+     "reasons": [
+      "Nice, not charged",
+      "Depends on someone else"
+     ]
+    },
+    "priorArt": null,
+    "redLines": null
+   },
+   "status": "killed",
+   "keyVisualPrompt": "Phone shot of a plastic tub full of sealed phone pouches on a folding table by a door, a printed sign 'no internet past this point', small Cashy sticker on the tub",
+   "createdAt": "2026-10-20T07:42:25.562Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "Aim at the villain",
+    "summary": "Do something to the person everyone loves to hate."
+   }
+  },
+  {
+   "id": "idea_mvgdl7a3huavj",
+   "brandId": "cashy",
+   "origin": "lab",
+   "lens": "villain",
+   "name": "Cashy offered banned Kick streamer Lavlune money to stop posting about MoistCr1TiKaL for six months.",
+   "oneLiner": "Cashy offered banned Kick streamer Lavlune money to stop posting about MoistCr1TiKaL for six months.",
+   "headline": "Crypto casino offers banned Kick streamer cash to stop talking about MoistCr1TiKaL",
+   "edge": "wild",
+   "backlash": "People may say it pays someone facing dog abuse allegations. Payment only after six months of silence, and only for that clause, limits it. Legal should review before posting.",
+   "mechanism": "Cashy posts a one-page offer on X and emails his public contact. The terms: six months of no posts about MoistCr1TiKaL, paid in a lump at the end, voided by a single post. Cashy references only his public posts and makes no claims about the allegations. He is never shown as agreeing. It costs nothing unless accepted, then a set sum (assumption: $5k), and a day.",
+   "borrowedAttention": "Lavlune, a banned streamer lashing out at Charlie's looks and hygiene. People enjoy picking Charlie's side.",
+   "engine": 4,
+   "horizon": "evergreen",
+   "effort": "$5k only if accepted (assumption), 1 day",
+   "attentionMechanic": "villain",
+   "emotion": "hate",
+   "emotionTarget": "Lavlune, a banned streamer lashing out at Charlie's looks and hygiene. People enjoy picking Charlie's side.",
+   "pulseRef": "MoistCr1TiKaL vs banned Kick streamer Lavlune",
+   "howItWorks": "Cashy posts a one-page offer on X and emails his public contact. The terms: six months of no posts about MoistCr1TiKaL, paid in a lump at the end, voided by a single post. Cashy references only his public posts and makes no claims about the allegations. He is never shown as agreeing. It costs nothing unless accepted, then a set sum (assumption: $5k), and a day.",
+   "proof": "Screenshot of the offer with the no-mention clause highlighted",
+   "shareMoment": "cashy pulling a jack doherty on lavlune is crazy",
+   "whoAmplifies": "The pay-to-stop move has only been done for posting in general. A clause aimed at one feud is new.",
+   "cashyRole": "Cashy's contract. It only spreads as 'Cashy offered to pay him to stop'.",
+   "reactions": [
+    {
+     "who": "Degen, 24",
+     "says": "another jack doherty knockoff",
+     "shares": false
+    },
+    {
+     "who": "Clip and drama account admin",
+     "says": "Lavlune is banned and nobody cares",
+     "shares": false
+    },
+    {
+     "who": "19-year-old on TikTok",
+     "says": "who",
+     "shares": false
+    },
+    {
+     "who": "Someone who hates gambling brands",
+     "says": "casino paying a guy accused of dog abuse lol",
+     "shares": true
+    },
+    {
+     "who": "Marketer at Stake or Shuffle",
+     "says": "literally our homework",
+     "shares": false
+    }
+   ],
+   "evidence": [
+    {
+     "text": "MoistCr1TiKaL claps back at banned Kick streamer Lavlune over dog abuse allegations",
+     "citations": [],
+     "status": "unresolved"
+    }
+   ],
+   "scores": {
+    "charge": {
+     "value": 4,
+     "reason": "Low heat."
+    },
+    "spread": {
+     "value": 3,
+     "reason": "Kick Reddit only."
+    },
+    "simplicity": {
+     "value": 8,
+     "reason": "One sentence."
+    },
+    "realness": {
+     "value": 9,
+     "reason": "Easy."
+    },
+    "attribution": {
+     "value": 7,
+     "reason": "Cashy's contract."
+    }
+   },
+   "screening": {
+    "critic": {
+     "verdict": "kill",
+     "tests": [
+      {
+       "name": "One-act test",
+       "pass": true,
+       "note": "One offer."
+      },
+      {
+       "name": "Feeling test",
+       "pass": false,
+       "note": "Low stakes."
+      },
+      {
+       "name": "Share test",
+       "pass": false,
+       "note": "Only one would share."
+      },
+      {
+       "name": "Real test",
+       "pass": true,
+       "note": "A page."
+      },
+      {
+       "name": "First test",
+       "pass": false,
+       "note": "A Doherty copy."
+      },
+      {
+       "name": "Attribution test",
+       "pass": true,
+       "note": "Cashy's contract."
+      },
+      {
+       "name": "Next-week test",
+       "pass": false,
+       "note": "No."
+      }
+     ],
+     "reasons": [
+      "A copy of the Shuffle deal",
+      "Small target, and it means paying someone facing abuse allegations"
+     ]
+    },
+    "priorArt": null,
+    "redLines": null
+   },
+   "status": "killed",
+   "keyVisualPrompt": "Phone photo of a one-page contract on a cluttered desk, the clause 'no mention of MoistCr1TiKaL' highlighted yellow, Cashy logo in the corner",
+   "createdAt": "2026-10-20T07:42:25.562Z",
+   "sourceContext": {
+    "kind": "lab",
+    "title": "Aim at the villain",
+    "summary": "Do something to the person everyone loves to hate."
+   }
+  }
+ ],
  "memories": [
   {
    "id": "mem_mvaqtpprdno2x",
@@ -50,6 +1535,244 @@
    "why": "So simple yet effective: one real act (asking strangers for directions in LA with the GTA 5 map), real reactions, zero cost, riding GTA 6 hype.",
    "addedBy": "rob",
    "addedAt": "2026-10-19T07:01:00.169Z"
+  }
+ ],
+ "pulses": [
+  {
+   "id": "pulse_mvgdggue52jhw",
+   "createdAt": "2026-10-20T07:38:44.678Z",
+   "mood": "The internet is in a streamer-drama and 'wtf' mood: Kai, Adin and Speed fake-friendship beef, xQc lashing out over Streamer of the Year, and a reckless biker streamer everyone wants punished. People are also enjoying small absurd wins (Spider-Man kicker, unqualified councilman) and are fed up with AI cloning, overpriced VTuber models and anyone who looks fake.",
+   "villain": "Kanel Joseph, the streamer filmed running red lights and hitting a person and a truck with his bike before fleeing, the top post on LivestreamFail.",
+   "mainCharacter": "Kai Cenat, whose 'can't sell the Trackhawk Adin gifted me' clip pulled almost 700k views and set off the Adin/Kai/Speed reunion-or-fake-friends debate.",
+   "items": [
+    {
+     "subject": "Kanel Joseph reckless biking stream",
+     "happening": "Streamer filmed riding through red lights, blocking traffic, hitting a person and a truck, then fleeing the scene.",
+     "emotion": "outrage",
+     "intensity": 8,
+     "why": "Lets people play the sensible adult demanding consequences and feel superior to a clout-chasing idiot.",
+     "where": "r/LivestreamFail, streamer Twitter",
+     "lifespan": "days, longer if police act",
+     "opening": null,
+     "urls": [
+      "https://www.reddit.com/r/LivestreamFail/comments/1xa6cn5/streamer_kanel_joseph_driving_through_red_lights/"
+     ]
+    },
+    {
+     "subject": "Kai Cenat, Adin Ross, IShowSpeed and the Trackhawk",
+     "happening": "Kai can't sell the Trackhawk Adin gifted him and swipes at Reggie for selling a gifted chain, while Cuffem calls the trio's friendship fake.",
+     "emotion": "tribal",
+     "intensity": 8,
+     "why": "Fans pick sides and enjoy catching the 'streaming goats' pretending to like each other.",
+     "where": "Streamer X, clip accounts, Kick and Twitch communities",
+     "lifespan": "days",
+     "opening": "A brand could do one real, unexpected act aimed at the gift-and-friendship drama, like buying something absurd for whoever ends up holding the Trackhawk.",
+     "urls": [
+      "https://x.com/nyrbhimself/status/2112202203020812320",
+      "https://x.com/Jay_Clippo/status/2112298519864205437",
+      "https://x.com/AdinReports/status/2110581766255759769"
+     ]
+    },
+    {
+     "subject": "xQc vs Joe Bartolozzi over Streamer of the Year",
+     "happening": "xQc snaps at the suggestion that Speed has gotten too big to win, saying nobody said it when he had the most hours for five years.",
+     "emotion": "tribal",
+     "intensity": 7,
+     "why": "Lets fans argue about who deserves the crown and enjoy xQc's bitterness.",
+     "where": "r/LivestreamFail, streamer X",
+     "lifespan": "days, until the Streamer Awards",
+     "opening": "A brand could aim one real act at the awards-snub grudge, such as a trophy for whoever feels robbed.",
+     "urls": [
+      "https://www.reddit.com/r/LivestreamFail/comments/1xadre0/xqc_rejects_joe_bartolozzis_suggestion_that/"
+     ]
+    },
+    {
+     "subject": "Student in Spider-Man suit wins $3M with a field goal",
+     "happening": "A BYU student kicked a field goal on ESPN and won $3 million.",
+     "emotion": "love",
+     "intensity": 7,
+     "why": "Shared because everyone wants to see the underdog win and wishes they'd been there.",
+     "where": "Sports X, TikTok, Reddit",
+     "lifespan": "days",
+     "opening": "A brand could aim one real act at the joy, like dropping a surprise prize on the next absurd long shot.",
+     "urls": [
+      "https://www.dexerto.com/entertainment/student-dressed-as-spider-man-earns-3-million-by-nailing-field-goal-kick-3419708/"
+     ]
+    },
+    {
+     "subject": "Man sells everything for a woman who turned out to be AI",
+     "happening": "A Brazilian man sold all his belongings and travelled 1,200 miles to meet an AI woman.",
+     "emotion": "wtf",
+     "intensity": 7,
+     "why": "Part laugh, part fear that it could be anyone.",
+     "where": "X, Reddit, TikTok",
+     "lifespan": "days",
+     "opening": null,
+     "urls": [
+      "https://www.dexerto.com/entertainment/man-sells-everything-and-travels-1200-miles-for-woman-he-met-online-only-to-find-out-shes-ai-3420014/"
+     ]
+    },
+    {
+     "subject": "Ice Poseidon's Austin safezone event",
+     "happening": "Austin residents say they've had enough of his event.",
+     "emotion": "hate",
+     "intensity": 6,
+     "why": "Gives people the chance to enjoy the local backlash against a long-hated IRL streamer.",
+     "where": "r/LivestreamFail",
+     "lifespan": "days",
+     "opening": null,
+     "urls": [
+      "https://www.reddit.com/r/LivestreamFail/comments/1xaf7rl/austin_texas_residents_have_had_enough_of_ice/"
+     ]
+    },
+    {
+     "subject": "MoistCr1TiKaL vs banned Kick streamer Lavlune",
+     "happening": "Lavlune mocked his looks and hygiene while facing dog abuse allegations, and he fired back.",
+     "emotion": "schadenfreude",
+     "intensity": 6,
+     "why": "Watching a banned streamer lash out is a guilty pleasure, and picking Charlie's side feels easy.",
+     "where": "Kick Reddit, YouTube drama, X",
+     "lifespan": "days",
+     "opening": null,
+     "urls": [
+      "https://www.dexerto.com/youtube/moistcr1tikal-claps-back-at-banned-kick-streamer-over-dog-abuse-allegations-3419642/"
+     ]
+    },
+    {
+     "subject": "TheBurntPeanut and the $27k VTuber model",
+     "happening": "His Best VTuber nomination reignited backlash, he answered with a joke redesign, and Nuki defended her $27,000 model.",
+     "emotion": "outrage",
+     "intensity": 6,
+     "why": "Lets people mock what they see as an undeserved nomination and a ridiculous price tag.",
+     "where": "Twitch X, Streamer Awards discourse",
+     "lifespan": "days, until the awards",
+     "opening": "A brand could aim one real act at the nomination backlash, like sponsoring a model that fixes the tracking.",
+     "urls": [
+      "https://www.dexerto.com/twitch/theburntpeanut-responds-to-vtuber-nomination-backlash-with-major-changes-to-model-3419771/",
+      "https://www.dexerto.com/twitch/vtuber-explains-the-dream-behind-her-27k-model-after-backlash-3419627/"
+     ]
+    },
+    {
+     "subject": "Asmongold's teeth",
+     "happening": "Asmongold says he lost his teeth from years of not brushing and drinking soda.",
+     "emotion": "disgust",
+     "intensity": 6,
+     "why": "It's gross and funny, and people can feel better about their own hygiene.",
+     "where": "Twitch X, Reddit",
+     "lifespan": "days",
+     "opening": "A brand could aim one real act at the soda-and-teeth joke, such as a dental fund for streamers.",
+     "urls": [
+      "https://www.dexerto.com/twitch/asmongold-reveals-he-lost-his-teeth-because-he-didnt-brush-them-for-years-and-just-drank-soda-3420062/"
+     ]
+    },
+    {
+     "subject": "Canadian man wins council seat by admitting he's unqualified",
+     "happening": "His viral signs said he had no idea what he was doing, and he won.",
+     "emotion": "love",
+     "intensity": 6,
+     "why": "A middle finger at polished politicians that people enjoy sharing.",
+     "where": "X, Reddit, TikTok",
+     "lifespan": "days",
+     "opening": "A brand could aim one real act at the anti-politician joke, like backing the next honest-loser candidate.",
+     "urls": [
+      "https://www.dexerto.com/entertainment/man-wins-election-after-telling-voters-hes-unqualified-and-has-no-idea-what-hes-doing-3420022/"
+     ]
+    },
+    {
+     "subject": "Pierre, the French game store employee",
+     "happening": "He went viral for defying rioters and defending his shop.",
+     "emotion": "love",
+     "intensity": 6,
+     "why": "People cheer the ordinary guy standing his ground and gamers claim him as one of their own.",
+     "where": "Gaming X, Kotaku readers, Reddit",
+     "lifespan": "days",
+     "opening": "A brand could aim one real act at Pierre's heroism, like restocking his shop.",
+     "urls": [
+      "https://kotaku.com/french-game-store-employee-pierre-goes-viral-for-defying-rioters-amid-protests-2000747539",
+      "https://www.dexerto.com/entertainment/video-game-store-manager-praised-for-bravely-defending-business-during-french-riots-3419929/"
+     ]
+    },
+    {
+     "subject": "AI cloning killing game playtests",
+     "happening": "Developers are cancelling demos and playtests over fears AI will copy their games, and a decomp hub closed because of AI.",
+     "emotion": "outrage",
+     "intensity": 6,
+     "why": "Lets gamers and devs be angry at AI for ruining something they loved.",
+     "where": "Gaming X, Kotaku, Hacker News",
+     "lifespan": "weeks",
+     "opening": null,
+     "urls": [
+      "https://kotaku.com/revamp-public-playtest-cancelled-digital-sun-claude-ai-clones-2000747558",
+      "https://www.dexerto.com/entertainment/developer-cancels-demo-over-fears-people-could-use-ai-to-copy-game-before-launch-3419600/"
+     ]
+    },
+    {
+     "subject": "Forsen cheats on Nina",
+     "happening": "A clip titled 'Forsen cheats on Nina' is high on LivestreamFail.",
+     "emotion": "wtf",
+     "intensity": 5,
+     "why": "Parasocial gossip that people want a second opinion on.",
+     "where": "r/LivestreamFail, Forsen community",
+     "lifespan": "hours to days",
+     "opening": null,
+     "urls": [
+      "https://www.reddit.com/r/LivestreamFail/comments/1xa9i6l/forsen_cheats_on_nina/"
+     ]
+    },
+    {
+     "subject": "Pokemon $140 mystery skateboards",
+     "happening": "The 30th anniversary skateboards sold out at once and resell for $1,000.",
+     "emotion": "envy",
+     "intensity": 5,
+     "why": "Shows who got lucky and who got scalped, and fuels hatred of resellers.",
+     "where": "Pokemon TCG community, collectors, X",
+     "lifespan": "days",
+     "opening": "A brand could aim one real act at the scalper anger, like giving boards to fans at face value.",
+     "urls": [
+      "https://www.dexerto.com/pokemon/pokemons-140-mystery-tcg-skateboards-immediately-sell-out-and-resell-for-1000-3419783/"
+     ]
+    },
+    {
+     "subject": "Elon Musk promises every US kid a SpaceX share",
+     "happening": "He says every kid in America gets one share in 2027, 'first of many'.",
+     "emotion": "outrage",
+     "intensity": 5,
+     "why": "People split between calling it a stunt and cheering free stock.",
+     "where": "X, finance and crypto Twitter",
+     "lifespan": "days",
+     "opening": null,
+     "urls": [
+      "https://www.dexerto.com/entertainment/elon-musk-promises-to-give-one-spacex-share-to-every-kid-in-america-3419980/"
+     ]
+    },
+    {
+     "subject": "Richard Heart arrest report",
+     "happening": "Report says he was caught with his pants down during his arrest.",
+     "emotion": "schadenfreude",
+     "intensity": 5,
+     "why": "Crypto people enjoy the fall of a loud, divisive figure.",
+     "where": "Crypto Twitter",
+     "lifespan": "days",
+     "opening": null,
+     "urls": [
+      "https://protos.com/richard-heart-caught-with-his-pants-down-during-arrest-report/"
+     ]
+    },
+    {
+     "subject": "MrBeast on Shark Tank",
+     "happening": "He joined Shark Tank and put a quarter million into an AI-powered 'Ball 2'.",
+     "emotion": "tribal",
+     "intensity": 4,
+     "why": "Fans defend him and haters pick at the stunt.",
+     "where": "YouTube X, Kotaku readers",
+     "lifespan": "days",
+     "opening": null,
+     "urls": [
+      "https://kotaku.com/mrbeast-joins-shark-tank-invests-quarter-million-in-ai-powered-ball-2-2000747308"
+     ]
+    }
+   ],
+   "signalCount": 180
   }
  ]
 }

@@ -86,6 +86,24 @@ async function reserve(id: string, estimate: number): Promise<void> {
   reservations.set(id, estimate);
 }
 
+/**
+ * Before a multi-step run (an idea run is five or more calls), check the whole
+ * run fits under the caps, so money is never spent on a run that the cap would
+ * stop halfway. Uses the same worst case as each call's own reservation.
+ */
+export async function preflight(steps: { agent: AgentName; inputChars: number; maxTokens?: number }[], what: string): Promise<void> {
+  const db = await repo.read();
+  const caps = capsFromEnv();
+  const spent = spendFromRuns(Object.entries(db.spendLedger ?? {}).map(([day, costUsd]) => ({ startedAt: day, costUsd })), new Date(), caps.budgetSince);
+  const reserved = [...reservations.values()].reduce((a, b) => a + b, 0);
+  const estimate = steps.reduce((sum, st) => {
+    const model = st.agent === "checker" ? "claude-fable-5-1" : agentConfig(st.agent).model; // checker priced like Fable ($10/$50)
+    return sum + worstCaseCost({ model, inputChars: st.inputChars + 4000, maxOutputTokens: st.maxTokens ?? 32000, fallback: supportsFallback(model) });
+  }, 0);
+  const decision = checkBudget({ ...spent, reserved }, estimate, caps);
+  if (!decision.ok) throw new SpendCapError(`Not starting ${what}: it could cost up to $${estimate.toFixed(2)} and that would pass a cap. ${decision.reason}`);
+}
+
 export async function spendStatus() {
   const db = await repo.read();
   const caps = capsFromEnv();

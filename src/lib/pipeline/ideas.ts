@@ -1,5 +1,5 @@
 import * as z from "zod/v4";
-import { callChecker, callStructured, checkerReady, qualityMax, research, SpendCapError } from "@/lib/adapters/model";
+import { callChecker, callStructured, checkerReady, preflight, qualityMax, research, SpendCapError } from "@/lib/adapters/model";
 import type { BrandId, Claim, Citation, Idea, Moment, Signal, Trend } from "@/lib/domain/types";
 import { AUDIENCE_PANEL, EMOTIONS, MOVES, QUALITY_BAR } from "@/lib/brand/quality-bar";
 import { pulseContext } from "./pulse";
@@ -153,6 +153,23 @@ export async function generateIdeas(opts: {
     `<horizon>\n${HORIZON_BRIEF[horizon]}\n</horizon>`,
     ACCURACY_RULES,
   ].join("\n\n");
+
+  // Check the whole run fits under the caps before spending anything on it.
+  {
+    const ctx = system.length + sourceText.length + pulse.length;
+    await preflight(
+      [
+        ...(qualityMax() ? [{ agent: "planner" as const, inputChars: ctx }, ...(checkerReady() ? [{ agent: "checker" as const, inputChars: ctx, maxTokens: 16000 }] : [])] : []),
+        { agent: "inventor", inputChars: ctx },
+        { agent: "critic", inputChars: ctx + 20_000 },
+        ...(qualityMax() && checkerReady() ? [{ agent: "checker" as const, inputChars: 12_000, maxTokens: 16000 }] : []),
+        { agent: "redLines", inputChars: 8_000, maxTokens: 12_000 },
+        { agent: "redLines", inputChars: 8_000, maxTokens: 12_000 },
+        { agent: "redLines", inputChars: 8_000, maxTokens: 12_000 },
+      ],
+      "this idea run",
+    );
+  }
 
   // Max quality (Marko's setup): a stronger model picks the angles first, the Inventor writes to them.
   let plan = "";
@@ -360,6 +377,8 @@ Find 10 acts Cashy could do on this. First work out what people actually feel ab
 async function checkRedLines(idea: Idea, brandId: BrandId, sourceText: string) {
   return callStructured({
     agent: "redLines",
+    // A short verdict: a lower ceiling keeps the spend cap's worst case realistic.
+    maxTokens: 12_000,
     subject: idea.name,
     schema: RedLinesOut,
     system: [
