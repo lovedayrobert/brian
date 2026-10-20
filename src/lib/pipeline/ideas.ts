@@ -3,7 +3,7 @@ import { callChecker, callStructured, checkerReady, preflight, qualityMax, resea
 import type { BrandId, Claim, Citation, Idea, Moment, Signal, Trend } from "@/lib/domain/types";
 import { AUDIENCE_PANEL, copiesExample, EMOTIONS, MOVES, QUALITY_BAR } from "@/lib/brand/quality-bar";
 import { pulseContext } from "./pulse";
-import { aiTells, offerToFamous, STYLE_RULES } from "@/lib/brand/style";
+import { aiTells, stripDisclaimer, offerToFamous, STYLE_RULES } from "@/lib/brand/style";
 import { ensureLiveBrand, liveBrandContext } from "@/lib/brand/live-brand";
 import { watchTopics } from "@/lib/adapters/sources/x";
 import { toolkitContext } from "./context";
@@ -115,6 +115,9 @@ const HORIZON_BRIEF: Record<Horizon, string> = {
     "These are BIGGER MOVES: one act big enough that people are still talking about it next week, either aimed at a feeling that lasts (a villain people have hated for months, a long-running rivalry) or ready for a big moment people wait weeks for (GTA 6, the World Cup, a holiday). Still one act, still one sentence, still raw. Never a campaign or a series.",
 };
 
+/** Tests that don't apply to a reply, post or meme. */
+const POST_SKIPS = new Set(["first", "speed", "talked-about"]);
+
 const HORIZON_TEST: Record<Horizon, { id: string; name: string; question: string }> = {
   reactive: { id: "speed", name: "Speed test", question: "Can Cashy do it within 48 hours, while the feeling is still hot?" },
   evergreen: { id: "talked-about", name: "Next-week test", question: "Will drama channels, clip accounts and press still be talking about it a week later?" },
@@ -152,7 +155,7 @@ export async function generateIdeas(opts: {
   const memory = await memoryForRun(opts.brandId, `inventing ideas for ${subject}`);
   const system = [
     memory,
-    "You are the Inventor at Brian, the person on Cashy's marketing team with the best ideas. You read the room (the Pulse) and decide where Cashy should show up and how big. Most of the time the right answer is one sharp post, reply or meme, posted today, written out in full. Sometimes a strong feeling deserves a real act: something Cashy actually does in the world that people retell. Almost never a campaign. Start from what people feel (hate, outrage, wtf, schadenfreude, tribal, disgust, love) and match the size to the feeling. Never inflate a small joke into a deal or a campaign. Never make offers, deals, gifts or outreach to famous or rich people: they're millionaires, they'll ignore it and nobody cares. Talk about them, never to them. Only call someone a villain if most people genuinely dislike them. Nobody cares about a casino's strengths, so the product is never the point. Write like a person, not an AI.",
+    "You are the Inventor at Brian, the person on Cashy's marketing team with the best ideas. You read the room (the Pulse) and decide where Cashy should show up and how big. Most of the time the right answer is one sharp post, reply or meme, posted today, written out in full. Sometimes a strong feeling deserves a real act: something Cashy actually does in the world that people retell. Almost never a campaign. Start from what people feel (hate, outrage, wtf, schadenfreude, tribal, disgust, love) and match the size to the feeling. Never inflate a small joke into a deal or a campaign. Never make offers, deals, gifts or outreach to famous or rich people: they're millionaires, they'll ignore it and nobody cares. Talk about them, never to them. Only call someone a villain if most people genuinely dislike them. Nobody cares about a casino's strengths, so the product is never the point. A post has to be Cashy's: it lands harder, or only makes sense, coming from a crypto casino's account (gambling, odds, degens, crypto, being the house). If anyone could post it, it's dead. Don't add 18+ or disclaimers to the words; those are added when the post is packaged. Write like a person, not an AI.",
     STYLE_RULES,
     toolkitContext(opts.brandId, db),
     liveBrandContext(await ensureLiveBrand()),
@@ -262,7 +265,7 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
       brandVoiceContext(opts.brandId),
       qualityBarContext(),
       `<horizon>\n${HORIZON_BRIEF[horizon]}\n</horizon>`,
-      `For each candidate: give the panel's five reactions using ids ${AUDIENCE_PANEL.map((p) => p.id).join(", ")}. Then run all seven tests using these ids: ${[...QUALITY_BAR.tests, HORIZON_TEST[horizon]].map((t) => t.id).join(", ")}. The seventh is the ${HORIZON_TEST[horizon].name}: ${HORIZON_TEST[horizon].question} Fail any test and the idea dies, and so does any idea fewer than three panel members would share. Score from 1 to 10, each with a one-line reason: charge (how strong the feeling is), spread (how far it travels: who reposts it), simplicity (10 = one sentence, nothing to explain), realness (10 = Cashy could do it this week, raw), attribution (10 = impossible to retell without Cashy). Pass at most three.`,
+      `For each candidate: give the panel's five reactions using ids ${AUDIENCE_PANEL.map((p) => p.id).join(", ")}. Then run all seven tests using these ids: ${[...QUALITY_BAR.tests, HORIZON_TEST[horizon]].map((t) => t.id).join(", ")}. The seventh is the ${HORIZON_TEST[horizon].name}: ${HORIZON_TEST[horizon].question} Fail any test and the idea dies. Judge each idea at its own size. For a reply, post or meme: the First test and the seventh test do not apply (pass them with the note "not judged for posts"); a post doesn't need to be a first or last a week, it needs to be funny or sharp, on time, and something people would screenshot or quote today. For a post the Attribution test means: does it land harder, or only make sense, coming from a crypto casino's account? A brand-free observation anyone could post fails. A post needs at least two panel members sharing it; a real act or campaign needs three. Score from 1 to 10, each with a one-line reason: charge (how strong the feeling is), spread (how far it travels: who reposts it), simplicity (10 = one sentence, nothing to explain), realness (10 = Cashy could do it this week, raw), attribution (10 = impossible to retell without Cashy). Judge each candidate on its own; Brian picks the top three afterwards.`,
     ].join("\n\n"),
     prompt: `${pulse}\n${sourceText}\n\n<candidates>\n${candidates.map((c, i) => `${i}. [${c.size}] ${c.move}\nSubject: ${c.subject}. Feeling: ${c.emotion}, aimed at ${c.emotionTarget}\n${c.post ? `The words: ${c.post}\n` : ""}Share line: "${c.shareLine}"\nHow it's done: ${c.howItWorks} (${c.cost})\nWhy it's Cashy's: ${c.cashyRole}\nEdge: ${c.edge}`).join("\n\n")}\n</candidates>`,
   });
@@ -286,7 +289,12 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
     const famous = offerToFamous(`${c.move} ${c.howItWorks}`, publicFigures);
     const copied = copiesExample(`${c.move} ${c.howItWorks} ${c.post ?? ""}`);
     const tells = [...aiTells(c.move, c.post, c.shareLine, c.howItWorks, c.headline), ...(famous ? [`an offer to ${famous}, a famous person`] : [])];
-    const passed = r?.verdict === "pass" && !r.bannedPatternHit && (r.panel ?? []).filter((x) => x.shares).length >= 3 && tells.length === 0 && !copied;
+    const small = c.size === "reply" || c.size === "post" || c.size === "meme";
+    const sharers = (r?.panel ?? []).filter((x) => x.shares).length;
+    // Posts aren't judged on being a first or lasting a week (Rob, 20 Oct): only the tests that fit a post count.
+    const postTestsPass = !!r?.tests?.length && r.tests.filter((t) => !POST_SKIPS.has(t.id)).every((t) => t.pass);
+    const verdictPass = small ? r?.verdict === "pass" || postTestsPass : r?.verdict === "pass";
+    const passed = verdictPass && !r?.bannedPatternHit && sharers >= (small ? 2 : 3) && tells.length === 0 && !copied;
     return {
       id: newId("idea"),
       brandId: opts.brandId,
@@ -299,7 +307,7 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
       size: c.size,
       subject: c.subject,
       madeBy: c.madeBy,
-      post: c.post ?? undefined,
+      post: c.post ? stripDisclaimer(c.post) : undefined,
       headline: c.headline,
       edge: c.edge,
       backlash: c.backlash,

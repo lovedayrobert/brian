@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { aiTells, offerToFamous } from "./style";
+import { aiTells, offerToFamous, stripDisclaimer } from "./style";
 
 describe("AI writing tells", () => {
   it("catches the habits Rob called out", () => {
@@ -21,6 +21,12 @@ describe("offers to famous people", () => {
   });
   it("lets posts about them through", () => {
     expect(offerToFamous("Reply under the Kai Cenat clip: Adin gave him a lease, not a car", names)).toBeNull();
+    // Killed by mistake on 20 Oct: it mentions a gift Kai got, it doesn't offer anyone anything.
+    expect(offerToFamous("Post that a gifted car you can't sell is just a casino bonus with wagering, and Adin is the terms and conditions.", [...names, "Adin"])).toBeNull();
+  });
+  it("drops 18+ from idea drafts", () => {
+    expect(stripDisclaimer("dating apps need an exists filter.  18+")).toBe("dating apps need an exists filter.");
+    expect(stripDisclaimer("no tag here")).toBe("no tag here");
   });
 });
 

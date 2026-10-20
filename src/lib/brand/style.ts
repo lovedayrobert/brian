@@ -33,6 +33,14 @@ const OFFER = /\b(offers?|offered|offering|sponsor(s|ed|ship)?|deal|pays?|paid|p
 /** An offer, deal, gift or payment aimed at a known public figure: always out of touch for Cashy. */
 export function offerToFamous(text: string, names: string[]): string | null {
   if (!OFFER.test(text)) return null;
-  const hit = names.find((n) => n.length > 3 && new RegExp(`\\b${n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(text));
+  // The offer has to be aimed at them: the name within a few words after the offer word ("pays Kai to…", "sends xQc a…").
+  // A post that only mentions a gift someone got ("a gifted car… kai is on a rollover") is talking about them, which is fine.
+  const esc = (n: string) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const hit = names.find((n) => n.length > 3 && new RegExp(`${OFFER.source}(\\W+\\w+){0,3}?\\W+(to\\W+)?${esc(n)}\\b`, "i").test(text));
   return hit ?? null;
+}
+
+/** Idea drafts carry the words only; 18+ and RG lines are added when the post is packaged. */
+export function stripDisclaimer(post: string): string {
+  return post.replace(/\s*(\(?18\+\)?|#18plus|gamble responsibly\.?)\s*$/i, "").trim();
 }
