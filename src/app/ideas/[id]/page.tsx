@@ -50,6 +50,7 @@ export default async function IdeaDetail({ params }: { params: Promise<{ id: str
             {idea.oneLiner !== idea.name && <span className="block">{idea.oneLiner}</span>}
             <span className="mt-1 block text-[13px] text-ink-3">
               {idea.createdBy ? `Asked for by ${personName(db, idea.createdBy)}` : "Made by Brian"}
+              {idea.madeBy ? ` · idea by ${idea.madeBy}` : ""}
               {idea.spark?.text ? ` from the spark “${idea.spark.text.slice(0, 80)}”` : ""}
             </span>
             <span className="mt-3 block">

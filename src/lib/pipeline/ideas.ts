@@ -3,7 +3,8 @@ import { callChecker, callStructured, checkerReady, preflight, qualityMax, resea
 import type { BrandId, Claim, Citation, Idea, Moment, Signal, Trend } from "@/lib/domain/types";
 import { AUDIENCE_PANEL, EMOTIONS, MOVES, QUALITY_BAR } from "@/lib/brand/quality-bar";
 import { pulseContext } from "./pulse";
-import { aiTells, STYLE_RULES } from "@/lib/brand/style";
+import { aiTells, offerToFamous, STYLE_RULES } from "@/lib/brand/style";
+import { watchTopics } from "@/lib/adapters/sources/x";
 import { toolkitContext } from "./context";
 import { currentActor } from "@/lib/actor";
 import { logActivity } from "@/lib/activity";
@@ -151,7 +152,7 @@ export async function generateIdeas(opts: {
   const memory = await memoryForRun(opts.brandId, `inventing ideas for ${subject}`);
   const system = [
     memory,
-    "You are the Inventor at Brian, the person on Cashy's marketing team with the best ideas. You read the room (the Pulse) and decide where Cashy should show up and how big. Most of the time the right answer is one sharp post, reply or meme, posted today, written out in full. Sometimes a strong feeling deserves a real act: something Cashy actually does that people retell, like Shuffle paying Jack Doherty to stop posting or a guy gambling on a kitchen-store fridge. Almost never a campaign. Start from what people feel (hate, outrage, wtf, schadenfreude, tribal, disgust, love) and match the size to the feeling. Never inflate a small joke into a deal or a campaign. Cashy can't rely on anyone famous replying, cooperating or taking a deal: an idea aimed at a public figure must still land if they ignore it. Only call someone a villain if most people genuinely dislike them. Nobody cares about a casino's strengths, so the product is never the point. Write like a person, not an AI.",
+    "You are the Inventor at Brian, the person on Cashy's marketing team with the best ideas. You read the room (the Pulse) and decide where Cashy should show up and how big. Most of the time the right answer is one sharp post, reply or meme, posted today, written out in full. Sometimes a strong feeling deserves a real act: something Cashy actually does that people retell, like Shuffle paying Jack Doherty to stop posting or a guy gambling on a kitchen-store fridge. Almost never a campaign. Start from what people feel (hate, outrage, wtf, schadenfreude, tribal, disgust, love) and match the size to the feeling. Never inflate a small joke into a deal or a campaign. Never make offers, deals, gifts or outreach to famous or rich people: they're millionaires, they'll ignore it and nobody cares. Talk about them, never to them. Only call someone a villain if most people genuinely dislike them. Nobody cares about a casino's strengths, so the product is never the point. Write like a person, not an AI.",
     STYLE_RULES,
     toolkitContext(opts.brandId, db),
     brandVoiceContext(opts.brandId),
@@ -161,15 +162,16 @@ export async function generateIdeas(opts: {
     ACCURACY_RULES,
   ].join("\n\n");
 
+  // Max quality: Fable and GPT-6 Astra both invent, in parallel; Opus judges all of them.
+  const twoInventors = qualityMax() && checkerReady();
   // Check the whole run fits under the caps before spending anything on it.
   {
     const ctx = system.length + sourceText.length + pulse.length;
     await preflight(
       [
-        ...(qualityMax() ? [{ agent: "planner" as const, inputChars: ctx }, ...(checkerReady() ? [{ agent: "checker" as const, inputChars: ctx, maxTokens: 16000 }] : [])] : []),
         { agent: "inventor", inputChars: ctx },
-        { agent: "critic", inputChars: ctx + 20_000 },
-        ...(qualityMax() && checkerReady() ? [{ agent: "checker" as const, inputChars: 12_000, maxTokens: 16000 }] : []),
+        ...(twoInventors ? [{ agent: "checker" as const, inputChars: ctx, maxTokens: 16000 }] : []),
+        { agent: "critic", inputChars: ctx + (twoInventors ? 40_000 : 20_000) },
         { agent: "redLines", inputChars: 8_000, maxTokens: 12_000 },
         { agent: "redLines", inputChars: 8_000, maxTokens: 12_000 },
         { agent: "redLines", inputChars: 8_000, maxTokens: 12_000 },
@@ -180,7 +182,7 @@ export async function generateIdeas(opts: {
 
   // Max quality (Marko's setup): a stronger model picks the angles first, the Inventor writes to them.
   let plan = "";
-  if (qualityMax()) {
+  if (process.env.BRIAN_PLANNER === "1") {
     const p = await callStructured({
       agent: "planner",
       subject,
@@ -206,8 +208,8 @@ export async function generateIdeas(opts: {
     plan = `<plan note="Write the 10 acts across these angles, at least two per angle.">\n${p.angles.map((a, i) => `${i + 1}. ${a.feeling} aimed at ${a.target}, as ${a.move}: ${a.why}`).join("\n")}\nAvoid (too obvious): ${p.avoid.join("; ")}\n</plan>`;
   }
 
-  const inv = await callStructured({
-    agent: "inventor",
+  const inventorArgs = {
+    agent: "inventor" as const,
     subject,
     schema: InventorOut,
     system,
@@ -222,7 +224,19 @@ ${sourceText}
 ${plan}
 
 Give 10 ideas Cashy could do on this. First work out what people actually feel about it and who or what that feeling is aimed at, then pick the smallest response that lands. At least 6 of the 10 should be a reply, post or meme with the exact words written out; acts only where the feeling is strong. Use different angles, not ten versions of one joke. Ground every factual statement in the evidence above and cite its URL; use null where you are reasoning rather than citing.`,
-  });
+  };
+  const fableName = qualityMax() ? "Fable" : "Opus";
+  const [mainRun, astraRun] = await Promise.allSettled([
+    callStructured(inventorArgs),
+    twoInventors ? callChecker({ agent: "astra", subject, schema: InventorOut, system: inventorArgs.system, prompt: inventorArgs.prompt, maxTokens: 16000 }) : Promise.resolve({ candidates: [] }),
+  ]);
+  if (mainRun.status === "rejected" && (astraRun.status === "rejected" || !twoInventors)) throw mainRun.reason;
+  const inv = {
+    candidates: [
+      ...(mainRun.status === "fulfilled" ? mainRun.value.candidates.map((c) => ({ ...c, madeBy: fableName })) : []),
+      ...(astraRun.status === "fulfilled" ? astraRun.value.candidates.map((c) => ({ ...c, madeBy: "GPT-6 Astra" })) : []),
+    ],
+  };
 
   // Spread: at most two ideas on any one subject reach the panel.
   const subjectKey = (x: string) => x.toLowerCase().replace(/[^a-z0-9 ]/g, "").split(/\s+/).filter((w) => w.length > 2).slice(0, 2).join(" ");
@@ -233,14 +247,14 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
       perSubject.set(k, (perSubject.get(k) ?? 0) + 1);
       return perSubject.get(k)! <= 2;
     })
-    .slice(0, 10);
+    .slice(0, twoInventors ? 20 : 10);
   const critic = await callStructured({
     agent: "critic",
     subject,
     schema: CriticOut,
     system: [
       memory,
-      "You are the audience panel at Brian. For every candidate you first react as each panel member, instantly and in their own voice, the way they'd react seeing it on their timeline: would they share it, and what would they feel? Only then do you judge. You are harsh: most ideas die here. Love-hate counts: if haters would share it to condemn it, that's distribution. Automatic kills: a small joke inflated into a deal, stunt or campaign (it should have been a post); anything that only works if a famous person or another brand replies or cooperates; someone cast as a villain who isn't widely disliked; scripted content (POVs, acted skits, series); anything about Cashy's product; anything with no strong feeling behind it; and anything that reads like an ad or an AI wrote it. A sharp one-line post that people would actually share is a pass, not a lesser idea.",
+      "You are the audience panel at Brian. For every candidate you first react as each panel member, instantly and in their own voice, the way they'd react seeing it on their timeline: would they share it, and what would they feel? Only then do you judge. You are harsh: most ideas die here. Love-hate counts: if haters would share it to condemn it, that's distribution. Automatic kills: any offer, deal, gift, bounty or outreach to a famous or rich person (they're millionaires; it's out of touch); a small joke inflated into a deal, stunt or campaign (it should have been a post); anything that only works if a famous person or another brand replies, cooperates or notices; someone cast as a villain who isn't widely disliked; scripted content (POVs, acted skits, series); anything about Cashy's product; anything with no strong feeling behind it; and anything that reads like an ad or an AI wrote it. A sharp one-line post that people would actually share is a pass, not a lesser idea.",
       STYLE_RULES,
       toolkitContext(opts.brandId, db),
       `<panel>\n${AUDIENCE_PANEL.map((p) => `- [${p.id}] ${p.who}`).join("\n")}\n</panel>`,
@@ -252,11 +266,24 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
     prompt: `${pulse}\n${sourceText}\n\n<candidates>\n${candidates.map((c, i) => `${i}. [${c.size}] ${c.move}\nSubject: ${c.subject}. Feeling: ${c.emotion}, aimed at ${c.emotionTarget}\n${c.post ? `The words: ${c.post}\n` : ""}Share line: "${c.shareLine}"\nHow it's done: ${c.howItWorks} (${c.cost})\nWhy it's Cashy's: ${c.cashyRole}\nEdge: ${c.edge}`).join("\n\n")}\n</candidates>`,
   });
 
+  // Public figures Brian knows about right now: Pulse subjects and X watch topics.
+  const publicFigures = [
+    ...(db.pulses?.[0]?.items ?? []).map((i) => i.subject.split(/[,(:]/)[0].trim()),
+    ...[db.pulses?.[0]?.villain, db.pulses?.[0]?.mainCharacter].filter(Boolean).map((v) => v!.split(/[,(:]/)[0].trim()),
+    ...watchTopics().flatMap((g) => g.terms),
+    ...(db.signals ?? []).filter((s) => s.sourceId === "x").map((s) => s.author?.replace(/^@/, "") ?? ""),
+  ]
+    .map((n) => n.replace(/['’]s\b/g, ""))
+    .flatMap((n) => [n, n.split(" ").slice(0, 2).join(" "), n.split(" ")[0]])
+    .filter((n) => /^[A-Z][\w.'-]{3,}/.test(n) && !/^(Cashy|The|This|That|Man|Student|Canadian|French|Pokemon|Spider)$/.test(n));
+
   const now = new Date().toISOString();
   const ideas: Idea[] = candidates.map((c, i) => {
     const r = critic.reviews.find((x) => x.index === i);
-    // Writing that reads like an AI wrote it is killed whatever the panel thought.
-    const tells = aiTells(c.move, c.post, c.shareLine, c.howItWorks, c.headline);
+    // Writing that reads like an AI wrote it is killed whatever the panel thought, and so is any
+    // offer, deal or gift to a famous person (they're millionaires; Cashy has no pull with them).
+    const famous = offerToFamous(`${c.move} ${c.howItWorks}`, publicFigures);
+    const tells = [...aiTells(c.move, c.post, c.shareLine, c.howItWorks, c.headline), ...(famous ? [`an offer to ${famous}, a famous person`] : [])];
     const passed = r?.verdict === "pass" && !r.bannedPatternHit && (r.panel ?? []).filter((x) => x.shares).length >= 3 && tells.length === 0;
     return {
       id: newId("idea"),
@@ -269,6 +296,7 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
       oneLiner: c.move,
       size: c.size,
       subject: c.subject,
+      madeBy: c.madeBy,
       post: c.post ?? undefined,
       headline: c.headline,
       edge: c.edge,
@@ -308,7 +336,7 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
             note: t.note,
           })),
           bannedPatternHit: r?.bannedPatternHit ?? undefined,
-          reasons: [...(tells.length ? [`Reads like an AI wrote it (${tells.join(", ")})`] : []), ...(r?.reasons ?? ["The Critic did not review this candidate."])],
+          reasons: [...(famous ? [`Out of touch: an offer to ${famous}. Famous people won't care and nobody will watch.`] : []), ...(tells.filter((t) => !t.startsWith("an offer")).length ? [`Reads like an AI wrote it (${tells.filter((t) => !t.startsWith("an offer")).join(", ")})`] : []), ...(r?.reasons ?? ["The Critic did not review this candidate."])],
         },
         priorArt: null,
         redLines: null,
@@ -322,7 +350,7 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
   });
 
   // Max quality: GPT-6 Astra gives an independent verdict on what the panel passed. Both must agree.
-  if (qualityMax() && checkerReady()) {
+  if (process.env.BRIAN_SECOND_OPINION === "1" && checkerReady()) {
     const passed = ideas.map((i, n) => ({ i, n })).filter(({ i }) => i.status === "candidate");
     if (passed.length) {
       try {

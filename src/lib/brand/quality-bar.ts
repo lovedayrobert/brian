@@ -120,11 +120,11 @@ export const EMOTIONS: { id: string; name: string; why: string }[] = [
 
 /** The kinds of act that worked. Each lens and each idea is one of these. */
 export const MOVES: { id: string; name: string; how: string; from: string }[] = [
-  { id: "villain", name: "Aim at the villain", how: "Find the person, brand or thing the audience hates right now and do something to it (mute it, pay it to stop, ban it, outbid it, troll it) that lets everyone cheer.", from: "Shuffle and Jack Doherty" },
+  { id: "villain", name: "Say what everyone's thinking", how: "When most people dislike someone or something right now, the post or meme that says what everyone's thinking, so they share it to agree. Never an offer or message to the person.", from: "" },
   { id: "too-far", name: "Too far", how: "Do something offensive, wrong or taboo enough that people share it to condemn it while fans share it because it's funny.", from: "Duel's blackjack" },
   { id: "everywhere", name: "Be everywhere", how: "Put Cashy's name where attention already is, at a scale nobody else bothers with: inside viral videos, memes, clips, game lobbies, streams, comment sections, usernames. The distribution is the idea.", from: "Stake's logo on viral videos" },
   { id: "wrong-place", name: "Wrong place", how: "Do the casino thing somewhere it absolutely shouldn't happen or be possible (a fridge, a car screen, a shop TV, a smart device), for real, filmed raw on a phone.", from: "Gambling on a kitchen-store fridge" },
-  { id: "deal-twist", name: "Deal with a twist", how: "A contract, payment, sponsorship or offer whose terms are the punchline. Real people are the target of an offer, never shown as having agreed.", from: "Shuffle's no-posting clause" },
+  { id: "deal-twist", name: "Offer with a twist", how: "A public offer to our own players or to everyone, whose terms are the joke and tied to what people are talking about. Never an offer to a famous person.", from: "" },
   { id: "main-character", name: "Main character of the day", how: "Do something real to, for or about whatever the internet is obsessed with today, while it's still the only thing anyone talks about.", from: "Oreo in the Super Bowl blackout" },
   { id: "rival-raid", name: "Rival raid", how: "Steal rivals' players, attention or moments in public, cheekily: their streamers, their fans, their bad news.", from: "Housebets reading rivals' wallets" },
   { id: "schadenfreude", name: "Laugh at the fall", how: "Mark someone's public failure (a rival, a public figure, a brand) with a real act that lets people enjoy it together.", from: "" },

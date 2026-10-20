@@ -14,11 +14,11 @@ export interface Lens {
 export const LENSES: Lens[] = [
   {
     id: "villain",
-    name: "Aim at the villain",
-    tagline: "Something for the people sick of whoever everyone's sick of.",
+    name: "Say what everyone's thinking",
+    tagline: "The post people share to agree with.",
     prompt:
-      "Only use someone most people genuinely dislike right now (the Pulse shows how people feel). People with mixed or loyal audiences are not villains: skip them. If nobody fits, give fewer ideas. Usually the right move is a sharp post or reply that says what everyone's thinking; a real act (like Shuffle paying Jack Doherty to stop posting) only when the dislike is huge. It must land even if the person ignores it. Never anyone involved in real harm to others (crashes, assaults, deaths).",
-    examples: ["The post everyone wishes they'd made about them", "A small real act that gives the haters what they want"],
+      "Find what most people genuinely dislike right now (a person's behaviour, a trend, a company, a habit) and write the post, reply or meme that says what everyone's thinking, so they share it to agree. Never an offer, deal, gift or message to the person: famous people won't notice and nobody cares. People with mixed or loyal audiences don't count. Never anyone involved in real harm to others.",
+    examples: ["The reply that gets more likes than the post", "The meme that says it better than anyone"],
   },
   {
     id: "too-far",
@@ -46,11 +46,11 @@ export const LENSES: Lens[] = [
   },
   {
     id: "deal-twist",
-    name: "Deal with a twist",
-    tagline: "Terms that are the punchline.",
+    name: "Offer with a twist",
+    tagline: "A public offer whose terms are the joke.",
     prompt:
-      "Invent a contract, payment, sponsorship or offer whose terms are the joke and the headline: an odd clause, an odd payment, an odd condition, offered publicly to someone the audience has feelings about. Frame real people as the target of an offer, never as having agreed.",
-    examples: ["A clause everyone screenshots", "An offer someone has to answer in public"],
+      "Invent an offer to our own players or to everyone (not to anyone famous) whose terms are the joke and tied to what people are talking about right now. It must be something Cashy can actually honour within its small budget.",
+    examples: ["An offer that is really a joke about this week's story", "Terms people screenshot"],
   },
   {
     id: "main-character",

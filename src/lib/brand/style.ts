@@ -27,3 +27,12 @@ export function aiTells(...texts: (string | undefined | null)[]): string[] {
 export const STYLE_RULES = `<writing>
 Write the way a sharp marketer briefs a colleague: plain words, short sentences, specific details. Never use: ${AI_TELLS.map((t) => t.label).join(", ")}. No "it's not X, it's Y" or "not just X, but Y" constructions. No dramatic em dashes. Don't sell the idea in its own description.
 </writing>`;
+
+const OFFER = /\b(offers?|offered|offering|sponsor(s|ed|ship)?|deal|pays?|paid|paying|gifts?|gifted|bount(y|ies)|sends?|sent|mails?|mailed|ships?|buys? (him|her|them))\b/i;
+
+/** An offer, deal, gift or payment aimed at a known public figure: always out of touch for Cashy. */
+export function offerToFamous(text: string, names: string[]): string | null {
+  if (!OFFER.test(text)) return null;
+  const hit = names.find((n) => n.length > 3 && new RegExp(`\\b${n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(text));
+  return hit ?? null;
+}

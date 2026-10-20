@@ -16,6 +16,7 @@ export type AgentName =
   | "pulse"
   | "planner"
   | "checker"
+  | "astra"
   | "analyst"
   | "inventor"
   | "critic"
@@ -32,6 +33,7 @@ type Effort = "low" | "medium" | "high" | "xhigh" | "max";
 
 export const AGENTS: Record<AgentName, { model: string; effort: Effort; label: string; job: string }> = {
   cartographer: { model: "claude-haiku-5-5", effort: "low", label: "Cartographer", job: "Scores relevance and clusters signals" },
+  astra: { model: "gpt-6-astra", effort: "high", label: "Inventor (GPT-6 Astra)", job: "Max quality: a second inventor from a different model family" },
   checker: { model: "gpt-6-astra", effort: "high", label: "Checker (GPT-6 Astra)", job: "Max quality only: a second model checks the plan and the panel's picks" },
   planner: { model: "claude-opus-5-5", effort: "high", label: "Planner", job: "Max quality only: picks the angles before the Inventor writes" },
   pulse: { model: "claude-sonnet-5-5", effort: "medium", label: "Pulse", job: "Reads what the audience is consuming and the emotion driving it" },
@@ -54,7 +56,8 @@ export const AGENTS: Record<AgentName, { model: string; effort: Effort; label: s
  * so the default stays on Opus and Sonnet. BRIAN_MODEL_<AGENT> (e.g.
  * BRIAN_MODEL_CRITIC=claude-fable-5-1) overrides a single agent either way.
  */
-const MAX_TIER: Partial<Record<AgentName, string>> = { planner: "claude-fable-5-1", critic: "claude-fable-5-1" };
+// Max quality: Fable writes ideas (alongside GPT-6 Astra); Opus stays the audience panel.
+const MAX_TIER: Partial<Record<AgentName, string>> = { planner: "claude-fable-5-1", inventor: "claude-fable-5-1" };
 
 export function qualityMax(): boolean {
   return process.env.BRIAN_QUALITY === "max";
@@ -337,13 +340,13 @@ export function checkerReady(): boolean {
 
 export const checkerModel = () => process.env.BRIAN_CHECKER_MODEL || "gpt-6-astra";
 
-export async function callChecker<S extends z.ZodType>(opts: { system: string; prompt: string; schema: S; subject?: string; maxTokens?: number }): Promise<z.infer<S>> {
+export async function callChecker<S extends z.ZodType>(opts: { system: string; prompt: string; schema: S; subject?: string; maxTokens?: number; agent?: "checker" | "astra" }): Promise<z.infer<S>> {
   const model = checkerModel();
   const price = { input: Number(process.env.OPENAI_PRICE_IN) || 10, output: Number(process.env.OPENAI_PRICE_OUT) || 50 };
   const maxTokens = opts.maxTokens ?? 16000;
   const started = Date.now();
   const run: AgentRun = {
-    id: newId("run"), agent: "checker", model, startedAt: new Date(started).toISOString(),
+    id: newId("run"), agent: opts.agent ?? "checker", model, startedAt: new Date(started).toISOString(),
     durationMs: 0, inputTokens: 0, outputTokens: 0, costUsd: 0, ok: false, subject: opts.subject,
   };
   try {

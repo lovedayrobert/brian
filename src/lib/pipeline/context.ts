@@ -46,9 +46,11 @@ export function qualityBarContext(): string {
   return `
 <what_works>
 The plays that worked for crypto casinos, and what they have in common:
-${STUNTS.map((s) => `- ${s.brand}: ${s.what}\n  Feeling: ${s.emotion}\n  What people said sharing it: "${s.shareLine}"\n  Why: ${s.whyItWorked}`).join("\n")}
+${STUNTS.filter((s) => s.kind !== "villain play" && s.kind !== "contract stunt").map((s) => `- ${s.brand}: ${s.what}\n  Feeling: ${s.emotion}\n  What people said sharing it: "${s.shareLine}"\n  Why: ${s.whyItWorked}`).join("\n")}
 Outside gambling, the same pattern:
 ${REFERENCE_MOVES.map((s) => `- ${s.who}: ${s.what} ${s.emotion}`).join("\n")}
+
+(Deals with famous people, like Shuffle signing Jack Doherty, are left out on purpose: they needed money and access Cashy doesn't have.)
 
 The common thread: each is ONE real act the brand did, not content. Each aims a feeling the audience already has at full strength. Each is one sentence. People share it to say something about themselves. Each is raw and cheap. You can't retell it without the brand's name. Nobody had done it before.
 </what_works>

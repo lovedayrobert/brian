@@ -198,6 +198,8 @@ export interface Idea {
   spark?: { text: string; swipeId?: string };
   /** How big: reply, post, meme, act or campaign */
   size?: "reply" | "post" | "meme" | "act" | "campaign";
+  /** Which model invented it (Opus, Fable, GPT-6 Astra) */
+  madeBy?: string;
   /** Who or what it's about, in a few words */
   subject?: string;
   /** For replies, posts and memes: the exact words */

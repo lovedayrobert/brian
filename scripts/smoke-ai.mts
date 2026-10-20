@@ -15,8 +15,8 @@ results.forEach((r, i) => {
   console.log(`\n=== ${JSON.stringify(subjects[i])}`);
   if (r.status === "rejected") return console.log("FAILED:", (r.reason as Error).message);
   for (const c of r.value.cards)
-    console.log(`  CARD [${c.edge}] [${moveName(c.attentionMechanic ?? "")} / ${emotionName(c.emotion ?? "")}] ${c.name}\n       Shared as: "${c.shareMoment}"\n       How: ${c.howItWorks}\n       Panel: ${(c.reactions ?? []).map((r) => `${r.shares ? "+" : "-"} ${r.who}: ${r.says}`).join("\n              ")}`);
-  for (const k of r.value.killed) console.log(`  kill  ${k.name}: ${k.screening.critic.reasons[0]?.slice(0, 100)}`);
+    console.log(`  CARD [${c.size ?? "?"}] [${c.edge}] [${moveName(c.attentionMechanic ?? "")} / ${emotionName(c.emotion ?? "")}] ${c.name}${c.post ? `\n       Words: ${c.post.replace(/\n/g, " / ")}` : ""}\n       Shared as: "${c.shareMoment}"\n       How: ${c.howItWorks}\n       Panel: ${(c.reactions ?? []).map((r) => `${r.shares ? "+" : "-"} ${r.who}: ${r.says}`).join("\n              ")}`);
+  for (const k of r.value.killed) console.log(`  kill  [${k.size ?? "?"}] ${k.name}${k.post ? ` | ${k.post.replace(/\n/g, " / ").slice(0, 120)}` : ""}\n        why: ${k.screening.critic.reasons[0]?.slice(0, 120)}`);
 });
 const s = await spendStatus();
 console.log(`\n${Math.round((Date.now() - t0) / 1000)}s · spend today $${s.spentToday.toFixed(2)}`);

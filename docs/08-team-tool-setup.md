@@ -92,16 +92,18 @@ Connected: `CRM_SHEET_ID` is the CRM calendar sheet. Brian reads the month tabs 
 
 Only verified Google accounts whose email **and** Workspace domain are on the list get in, so personal Gmail is refused. Once Google is set, passwords stop working unless `BRIAN_ALLOW_PASSWORDS=1`.
 
-## Model setup (Marko's suggestion)
+## Model setup
 
-| Mode | Plans | Writes | Checks | Cost per idea run |
+| Mode | Invents | Judges (audience panel) | Typical cost per idea run | Worst case the cap reserves |
 |---|---|---|---|---|
-| Default | (Opus thinks it through) | Opus 5.5 | Opus 5.5 panel | ~$0.75 |
-| `BRIAN_QUALITY=max` | Fable 5.1, checked by GPT-6 Astra | Opus 5.5 | Fable 5.1 panel, then a GPT-6 Astra second opinion; both must pass | ~$1.50–2 |
+| Default | Opus 5.5 | Opus 5.5 | about $0.65 | about $2.70 |
+| `BRIAN_QUALITY=max` (on) | Fable 5.1 **and** GPT-6 Astra, in parallel, 10 ideas each | Opus 5.5, all 20 together | about $2 | about $4.60 |
 
-- GPT-6 Astra needs `OPENAI_API_KEY`. `BRIAN_CHECKER_MODEL` overrides the model name (default `gpt-6-astra`); `OPENAI_PRICE_IN` / `OPENAI_PRICE_OUT` set its price for the spend cap (default $10 / $50 per million tokens).
-- Any single agent can be pointed at another model with `BRIAN_MODEL_<AGENT>`, e.g. `BRIAN_MODEL_CRITIC=claude-fable-5-1`.
-- Every model, including GPT, counts against the same hard spend cap.
+- Each idea shows which model invented it ("by Fable", "by GPT-6 Astra"), so the team can see which one earns its keep.
+- Astra needs `OPENAI_API_KEY`; `BRIAN_CHECKER_MODEL` overrides the model (default `gpt-6-astra`), priced for the cap at `OPENAI_PRICE_IN` / `OPENAI_PRICE_OUT` (default $10 / $50 per million tokens). If one inventor fails, the run continues with the other.
+- With a $5 daily cap, the live site can start one max-quality run a day.
+- Marko's original planner (Fable picks angles, Astra checks the plan) and Astra's second opinion are still in the code, switched off: `BRIAN_PLANNER=1`, `BRIAN_SECOND_OPINION=1`.
+- Any single agent can be pointed at another model with `BRIAN_MODEL_<AGENT>`.
 
 ## Inspiration (`/ideas/inspiration`)
 
