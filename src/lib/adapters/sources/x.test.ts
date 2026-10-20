@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { allowanceLeft, watchlists } from "./x";
+import { allowanceLeft, culturePair, rivals, watchlists } from "./x";
 import { parseTrends24, topicCurves } from "./xtrends";
 
 describe("X budget", () => {
@@ -15,8 +15,16 @@ describe("X budget", () => {
     expect(allowanceLeft({ ...state, monthUsd: 9 }, now)).toBe(0); // month used up
     expect(allowanceLeft({ ...state, day: "2026-10-19" }, now)).toBeCloseTo(9 / 31, 5); // new day
   });
-  it("reads watchlists", () => {
-    expect(watchlists()[0]).toEqual({ name: "rivals", handles: ["Stake", "shufflecom", "Roobet", "rollbit", "bcgame", "rainbetcom"] });
+  it("puts culture first and keeps rivals separate", () => {
+    expect(watchlists().map((l) => l.name)).toEqual(["viral", "drama", "streamers"]);
+    expect(watchlists().some((l) => l.handles.includes("Stake"))).toBe(false);
+    expect(rivals().handles).toEqual(["Stake", "shufflecom", "Roobet", "rollbit", "bcgame", "rainbetcom"]);
+  });
+  it("rotates two culture accounts per pull through every account", () => {
+    const seen = new Set<string>();
+    for (let i = 0; i < 7; i++) culturePair(i)!.handles.forEach((h) => seen.add(h));
+    expect(seen.size).toBe(watchlists().flatMap((l) => l.handles).length);
+    expect(culturePair(0)!.handles).toEqual(["DailyLoud", "PopBase"]);
   });
 });
 
