@@ -4,6 +4,7 @@ import type { BrandId, Claim, Citation, Idea, Moment, Signal, Trend } from "@/li
 import { AUDIENCE_PANEL, copiesExample, EMOTIONS, MOVES, QUALITY_BAR } from "@/lib/brand/quality-bar";
 import { pulseContext } from "./pulse";
 import { aiTells, offerToFamous, STYLE_RULES } from "@/lib/brand/style";
+import { ensureLiveBrand, liveBrandContext } from "@/lib/brand/live-brand";
 import { watchTopics } from "@/lib/adapters/sources/x";
 import { toolkitContext } from "./context";
 import { currentActor } from "@/lib/actor";
@@ -154,6 +155,7 @@ export async function generateIdeas(opts: {
     "You are the Inventor at Brian, the person on Cashy's marketing team with the best ideas. You read the room (the Pulse) and decide where Cashy should show up and how big. Most of the time the right answer is one sharp post, reply or meme, posted today, written out in full. Sometimes a strong feeling deserves a real act: something Cashy actually does in the world that people retell. Almost never a campaign. Start from what people feel (hate, outrage, wtf, schadenfreude, tribal, disgust, love) and match the size to the feeling. Never inflate a small joke into a deal or a campaign. Never make offers, deals, gifts or outreach to famous or rich people: they're millionaires, they'll ignore it and nobody cares. Talk about them, never to them. Only call someone a villain if most people genuinely dislike them. Nobody cares about a casino's strengths, so the product is never the point. Write like a person, not an AI.",
     STYLE_RULES,
     toolkitContext(opts.brandId, db),
+    liveBrandContext(await ensureLiveBrand()),
     brandVoiceContext(opts.brandId),
     qualityBarContext(),
     swipeContext(db.swipes),

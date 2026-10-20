@@ -5,6 +5,8 @@ import type { SpecialDay } from "@/lib/calendar/days";
 import { newId, repo } from "@/lib/store";
 import { memoryForRun } from "@/lib/memory";
 import { ACCURACY_RULES, brandVoiceContext, qualityBarContext } from "./context";
+import { ensureLiveBrand, liveBrandContext } from "@/lib/brand/live-brand";
+import { STYLE_RULES } from "@/lib/brand/style";
 
 /**
  * Rapid Response (brief §5k). Minutes, not days: three one-sentence takes on a
@@ -50,11 +52,13 @@ export interface RapidResponse {
   createdAt: string;
 }
 
-function system(brandId: BrandId, memory = "") {
+function system(brandId: BrandId, memory = "", live = "") {
   return [
     memory,
-    "You are Rapid Response at Brian. A meme is dead in three days and a breaking moment in hours. You write native, fast, funny reactions that sound like the brand's social team, never like an ad. You understand the joke before you use it.",
+    "You are Rapid Response at Brian. A meme is dead in three days and a breaking moment in hours. You write native, fast, funny reactions that sound like the brand's social team, never like an ad. You understand the joke before you use it. Never offers or messages to famous people: talk about them, not to them.",
     brandVoiceContext(brandId),
+    live,
+    STYLE_RULES,
     qualityBarContext(),
     ACCURACY_RULES,
   ].join("\n\n");
@@ -69,7 +73,7 @@ export async function reactToMoment(momentId: string, brandId: BrandId): Promise
     agent: "rapidResponse",
     subject: m.title,
     schema: TakesOut,
-    system: system(brandId, await memoryForRun(brandId, `reacting to ${m.title}`)),
+    system: system(brandId, await memoryForRun(brandId, `reacting to ${m.title}`), liveBrandContext(await ensureLiveBrand())),
     prompt: `<moment>\n${m.title}\n${m.description}\nSources:\n${(m.sources ?? []).map((s) => `- [${s.outlet}] ${s.title} ${s.url}`).join("\n")}\n</moment>\n\nGive exactly three reactive takes.`,
   });
   const rr: RapidResponse = {
@@ -101,7 +105,7 @@ export async function buildRapidAssets(rapidId: string, takeIndex: number): Prom
     agent: "rapidResponse",
     subject: take.take,
     schema: AssetsOut,
-    system: system(rr.brandId, await memoryForRun(rr.brandId, `writing assets for ${take.take}`)),
+    system: system(rr.brandId, await memoryForRun(rr.brandId, `writing assets for ${take.take}`), liveBrandContext(await ensureLiveBrand())),
     prompt: `<moment>\n${m?.title}\n${m?.description}\n</moment>\n<approved_take>\n${take.take}\nFormat: ${take.format}\n</approved_take>\n\nWrite post-ready assets for every channel, in the moment's real format and our voice. Include 18+ where the platform format allows.`,
   });
   await repo.update((d) => {
@@ -129,7 +133,7 @@ export async function ideasForDay(day: SpecialDay, brandId: BrandId, steer?: str
     agent: "rapidResponse",
     subject: `${day.title} (${day.date})`,
     schema: TakesOut,
-    system: system(brandId, await memoryForRun(brandId, `posts for ${day.title}`)),
+    system: system(brandId, await memoryForRun(brandId, `posts for ${day.title}`), liveBrandContext(await ensureLiveBrand())),
     prompt: `<day date="${day.date}">\n${day.title}\n${day.why}${day.check ? `\nDate note: ${day.check}` : ""}\n</day>\n${steer ? `<steer>${steer}</steer>\n` : ""}\nGive exactly three ideas for what Cashy does on this day. Each is a post or a small real act the social team can make, specific to this day, not a generic greeting. Never "Happy ${day.title}!" energy.`,
   });
   const rr: RapidResponse = { id: newId("rr"), momentId: day.id, moment, brandId, takes: out.takes.slice(0, 3), chosen: null, assets: null, createdAt: new Date().toISOString() };

@@ -38,7 +38,7 @@ export const AGENTS: Record<AgentName, { model: string; effort: Effort; label: s
   planner: { model: "claude-opus-5-5", effort: "high", label: "Planner", job: "Max quality only: picks the angles before the Inventor writes" },
   pulse: { model: "claude-sonnet-5-5", effort: "medium", label: "Pulse", job: "Reads what the audience is consuming and the emotion driving it" },
   analyst: { model: "claude-sonnet-5-5", effort: "medium", label: "Analyst", job: "Why a trend is spreading and who drives it" },
-  inventor: { model: "claude-opus-5-5", effort: "high", label: "Inventor", job: "Finds the one act Cashy can do to a feeling the audience already has" },
+  inventor: { model: "claude-opus-5-5", effort: "high", label: "Inventor", job: "Writes ideas from what people feel right now, sized to the moment: mostly posts and replies" },
   critic: { model: "claude-opus-5-5", effort: "high", label: "Audience panel", job: "Five real-audience reactions; kills anything nobody would share" },
   priorArt: { model: "claude-sonnet-5-5", effort: "medium", label: "Prior Art", job: "Has anyone done it? Searches the web" },
   redLines: { model: "claude-sonnet-5-5", effort: "medium", label: "Red Lines", job: "Legal, minors, real people, RG, data use" },

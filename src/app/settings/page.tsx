@@ -1,8 +1,8 @@
 import clsx from "clsx";
 import { CostPlanner } from "@/components/cost-planner";
-import { Card, Pill, SectionTitle, SourceLink } from "@/components/ui";
+import { Card, Pill, SectionTitle } from "@/components/ui";
 import { SETTINGS_TABS, SectionTabs } from "@/components/section-tabs";
-import { AGENTS, modelReady, spendStatus } from "@/lib/adapters/model";
+import { AGENTS, agentConfig, checkerModel, checkerReady, modelReady, qualityMax, spendStatus, type AgentName } from "@/lib/adapters/model";
 import { authMode } from "@/lib/auth";
 import { imageReady } from "@/lib/adapters/image";
 import { sourceState } from "@/lib/adapters/sources/registry";
@@ -14,6 +14,8 @@ import { relativeTime, usd } from "@/lib/format";
 import { admins, initials, isAdmin } from "@/lib/people";
 import { viewer } from "@/lib/viewer";
 import { ToolkitForm } from "@/components/toolkit-form";
+import { ActionButton } from "@/components/action-button";
+import { ensureLiveBrand, type LiveBrand } from "@/lib/brand/live-brand";
 import { DEFAULT_TOOLKIT } from "@/lib/pipeline/context";
 import { load, spend } from "@/lib/queries";
 
@@ -48,7 +50,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
       )}
 
       {tab === "sources" && <SourcesTab db={db} />}
-      {tab === "brand" && <BrandTab toolkit={db.toolkit?.cashy?.trim() || DEFAULT_TOOLKIT.cashy} canEdit={me.admin} />}
+      {tab === "brand" && <BrandTab toolkit={db.toolkit?.cashy?.trim() || DEFAULT_TOOLKIT.cashy} canEdit={me.admin} live={await ensureLiveBrand()} />}
       {tab === "models" && <ModelsTab db={db} />}
       {tab === "accuracy" && <AccuracyTab db={db} />}
     </>
@@ -102,7 +104,7 @@ function SourcesTab({ db }: { db: Awaited<ReturnType<typeof load>> }) {
   );
 }
 
-function BrandTab({ toolkit, canEdit }: { toolkit: string; canEdit: boolean }) {
+function BrandTab({ toolkit, canEdit, live }: { toolkit: string; canEdit: boolean; live: LiveBrand | null }) {
   const b = BRANDS.cashy;
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -113,46 +115,41 @@ function BrandTab({ toolkit, canEdit }: { toolkit: string; canEdit: boolean }) {
         </p>
         <ToolkitForm brandId="cashy" initial={toolkit} canEdit={canEdit} />
       </Card>
-      <Card className="p-6">
-        <div className="mb-3 flex items-center justify-between">
-          <div className="text-[17px] font-semibold">Cashy brand book</div>
-          {b.placeholderIdentity && <Pill tone="warn">Visual identity is a placeholder</Pill>}
+      <Card className="p-6 lg:col-span-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="text-[17px] font-semibold">How Cashy sounds</div>
+          <ActionButton endpoint="/api/brand/refresh" pending="Reading cashy.com…" variant="secondary" size="sm">
+            Read again
+          </ActionButton>
         </div>
-        <p className="text-[14px] leading-relaxed">{b.positioning}</p>
-        <div className="mt-5 text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">Voice</div>
-        <ul className="mt-1.5 list-disc space-y-1 pl-5 text-[13.5px]">
-          {b.voice.map((v) => (
-            <li key={v}>{v}</li>
-          ))}
-        </ul>
-        <div className="mt-5 text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">Banned phrases</div>
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {b.bannedPhrases.map((p) => (
-            <Pill key={p} tone="bad">{p}</Pill>
-          ))}
-        </div>
-        <div className="mt-5 text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">Colour (placeholder until brand files arrive)</div>
-        <div className="mt-2 flex gap-2">
-          {Object.entries({ primary: b.visual.primary, accent: b.visual.accent, surface: b.visual.surface, ink: b.visual.ink }).map(([k, v]) => (
-            <div key={k} className="text-center">
-              <div className="h-10 w-14 rounded-[10px] border border-line" style={{ background: v }} />
-              <div className="mt-1 text-[11px] text-ink-3">{k}</div>
+        <p className="mb-4 mt-1 max-w-[720px] text-[13.5px] text-ink-2">
+          No brand book: Brian reads Cashy&rsquo;s own website and channels every day and matches that voice. {live ? `Last read ${relativeTime(live.at)}.` : "Not read yet."}
+        </p>
+        {live && (
+          <div className="grid gap-6 md:grid-cols-2">
+            <div>
+              <div className="text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">From {live.site.url.replace(/^https?:\/\//, "").replace(/\/$/, "")}</div>
+              <p className="mt-1.5 text-[14px] font-medium">{live.site.title}</p>
+              <p className="mt-1 text-[13.5px] text-ink-2">{live.site.description}</p>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {live.site.headlines.slice(0, 10).map((h) => (
+                  <Pill key={h}>{h}</Pill>
+                ))}
+              </div>
+              {live.xBio && <p className="mt-3 text-[13px] text-ink-2"><span className="font-medium text-ink">X bio:</span> {live.xBio}</p>}
             </div>
-          ))}
-        </div>
-      </Card>
-      <Card className="p-6">
-        <div className="mb-3 text-[17px] font-semibold">Advantage inventory</div>
-        <ul className="divide-y divide-line">
-          {b.advantages.map((a) => (
-            <li key={a.id} className="flex items-center justify-between gap-3 py-2.5 text-[13.5px]">
-              {a.claim}
-              {a.proof?.url.startsWith("internal:") ? <Pill tone="warn">Proof link needed</Pill> : a.proof ? <SourceLink url={a.proof.url} /> : null}
-            </li>
-          ))}
-        </ul>
-        <div className="mb-2 mt-6 text-[17px] font-semibold">Compliance rules</div>
-        <ul className="list-disc space-y-1 pl-5 text-[13.5px]">
+            <div>
+              <div className="text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">Our latest Telegram posts</div>
+              <ul className="mt-1.5 space-y-2 text-[13px] leading-snug">
+                {live.telegram.slice(-6).map((t) => (
+                  <li key={t} className="rounded-[10px] bg-surface-2 px-3 py-2">{t.slice(0, 220)}{t.length > 220 ? "…" : ""}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+        <div className="mt-6 text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">Compliance (always applies)</div>
+        <ul className="mt-1.5 list-disc space-y-1 pl-5 text-[13px] text-ink-2">
           {b.compliance.map((c) => (
             <li key={c}>{c}</li>
           ))}
@@ -235,6 +232,17 @@ function ModelsTab({ db }: { db: Awaited<ReturnType<typeof load>> }) {
   return (
     <div className="space-y-6">
       <SpendCap />
+      <Card className="p-5 text-[13.5px] leading-relaxed">
+        {qualityMax() ? (
+          <>
+            <span className="font-medium">Max quality is on.</span> Fable 5.1{checkerReady() ? " and GPT-6 Astra" : ""} each write ideas, in parallel; Opus 5.5 runs the audience panel and judges them all. Each idea shows which model made it. About $2 per idea run.
+          </>
+        ) : (
+          <>
+            <span className="font-medium">Standard quality.</span> Opus 5.5 writes and judges ideas. About $0.65 per idea run. Set BRIAN_QUALITY=max for Fable and GPT-6 Astra.
+          </>
+        )}
+      </Card>
       <div className="grid gap-3 sm:grid-cols-3">
         <Card className="p-5">
           <div className="text-[12.5px] text-ink-2">Spend, last 30 days</div>
@@ -262,7 +270,12 @@ function ModelsTab({ db }: { db: Awaited<ReturnType<typeof load>> }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
-            {Object.entries(AGENTS).map(([k, a]) => {
+            {Object.entries(AGENTS)
+              // Only the agents this setup actually uses.
+              .filter(([k]) => (k === "planner" ? process.env.BRIAN_PLANNER === "1" : k === "checker" ? process.env.BRIAN_SECOND_OPINION === "1" && checkerReady() : k === "astra" ? qualityMax() && checkerReady() : true))
+              .map(([k, base]) => {
+              const model = k === "astra" || k === "checker" ? checkerModel() : agentConfig(k as AgentName).model;
+              const a = { ...base, model, label: k === "inventor" && model.includes("fable") ? "Inventor (Fable)" : base.label };
               const u = s.byAgent.get(k);
               return (
                 <tr key={k}>

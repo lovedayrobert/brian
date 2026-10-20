@@ -12,6 +12,7 @@ import type { Comment } from "@/lib/collab-types";
 import type { Publication } from "@/lib/results/publications";
 import type { ChannelSnapshot } from "@/lib/results/channels";
 import type { XState } from "@/lib/adapters/sources/x";
+import type { LiveBrand } from "@/lib/brand/live-brand";
 
 /**
  * Repository interface. The prototype uses a local JSON file so it runs with
@@ -66,6 +67,8 @@ export interface DB {
   channelStats: ChannelSnapshot[];
   /** X API post reads this month, so the bill stays under the limit */
   xUsage?: { month: string; reads: number; lastPull?: string; userId?: string };
+  /** Cashy's voice, read from its website and channels */
+  liveBrand?: LiveBrand;
   /** What each brand can actually do (channels, money, people, limits), edited by admins */
   toolkit?: Record<string, string>;
   /** X API discovery: spend this month and today, and the posts from the last pulls */

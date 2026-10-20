@@ -11,9 +11,7 @@ export function brandVoiceContext(brandId: BrandId): string {
   const b = BRANDS[brandId];
   return `
 <brand name="${b.name}">
-Who we are: a crypto casino brand that wants to be the most talked-about name on crypto Twitter, Kick, TikTok and meme pages. Cashy is the brand that does the act, never the subject of it.
-Voice:
-${b.voice.map((v) => `- ${v}`).join("\n")}
+Who we are: a crypto casino (cashy.com). How we sound comes from our own website and channels (how_cashy_sounds), not a brand book. Cashy is the brand behind the idea, never the subject of it.
 Banned phrases: ${b.bannedPhrases.join(", ")}
 Compliance rules:
 ${b.compliance.map((c) => `- ${c}`).join("\n")}
