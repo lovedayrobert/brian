@@ -3,6 +3,7 @@ import { callChecker, callStructured, checkerReady, preflight, qualityMax, resea
 import type { BrandId, Claim, Citation, Idea, Moment, Signal, Trend } from "@/lib/domain/types";
 import { AUDIENCE_PANEL, copiesExample, EMOTIONS, MOVES, QUALITY_BAR } from "@/lib/brand/quality-bar";
 import { pulseContext } from "./pulse";
+import { capByWorld, WORLD_HINT, WORLDS } from "@/lib/brand/worlds";
 import { aiTells, stripDisclaimer, offerToFamous, STYLE_RULES } from "@/lib/brand/style";
 import { ensureLiveBrand, liveBrandContext } from "@/lib/brand/live-brand";
 import { watchTopics } from "@/lib/adapters/sources/x";
@@ -29,6 +30,7 @@ const InventorOut = z.object({
     z.object({
       move: z.string().describe("The idea in one plain sentence, the way a colleague would say it. No campaign names."),
       size: z.enum(["reply", "post", "meme", "act", "campaign"]).describe("The smallest size that lands. reply = a reply under someone else's post; post = one post from Cashy's account; meme = one image or clip with a caption; act = something Cashy actually does in the world; campaign = rare, several parts"),
+      world: z.enum(WORLDS).describe(WORLD_HINT),
       subject: z.string().describe("Who or what it's about, in 1-4 words, e.g. 'Kai Cenat Trackhawk', 'Spider-Man kicker', 'AI girlfriend scam'"),
       post: z.string().nullable().describe("For reply, post or meme: the exact words (and what the image shows, for a meme), ready to publish. null for acts and campaigns"),
       emotion: z.enum(EMOTIONS.map((e) => e.id) as [string, ...string[]]),
@@ -222,7 +224,7 @@ export async function generateIdeas(opts: {
 ${sourceText}
 ${plan}
 
-Give 10 ideas through this lens, from what people feel right now. Spread them: at least 5 different subjects, at most 2 ideas per subject, and not all from one world (streaming, sport, crypto, gaming, internet culture, news). At least 6 of the 10 should be a reply, post or meme with the exact words written out. If the lens doesn't fit what's happening, give fewer ideas rather than forcing it. Cite evidence URLs where you use a fact; use null where you are reasoning.`
+Give 10 ideas through this lens, from what people feel right now. Spread them: at least 5 different subjects, at most 2 ideas per subject, at most 2 about streamers, and the rest from other worlds (sport, crypto, gaming, internet culture, news, money, celebrity). At least 6 of the 10 should be a reply, post or meme with the exact words written out. If the lens doesn't fit what's happening, give fewer ideas rather than forcing it. Cite evidence URLs where you use a fact; use null where you are reasoning.`
       : `${pulse}
 ${sourceText}
 ${plan}
@@ -245,12 +247,13 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
   // Spread: at most two ideas on any one subject reach the panel.
   const subjectKey = (x: string) => x.toLowerCase().replace(/[^a-z0-9 ]/g, "").split(/\s+/).filter((w) => w.length > 2).slice(0, 2).join(" ");
   const perSubject = new Map<string, number>();
-  const candidates = inv.candidates
-    .filter((c) => {
-      const k = subjectKey(c.subject);
-      perSubject.set(k, (perSubject.get(k) ?? 0) + 1);
-      return perSubject.get(k)! <= 2;
-    })
+  const spread = inv.candidates.filter((c) => {
+    const k = subjectKey(c.subject);
+    perSubject.set(k, (perSubject.get(k) ?? 0) + 1);
+    return perSubject.get(k)! <= 2;
+  });
+  // At most two streamer ideas from each inventor reach the panel, four from any other world (Rob, 20 Oct: too many streamers).
+  const candidates = capByWorld(spread, (c) => `${c.madeBy}:${c.world}`, (k) => (k.endsWith(":streaming") ? 2 : 4))
     .slice(0, twoInventors ? 20 : 10);
   const critic = await callStructured({
     agent: "critic",
@@ -282,6 +285,7 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
     .filter((n) => /^[A-Z][\w.'-]{3,}/.test(n) && !/^(Cashy|The|This|That|Man|Student|Canadian|French|Pokemon|Spider)$/.test(n));
 
   const now = new Date().toISOString();
+  const hardKilled = new Set<string>();
   const ideas: Idea[] = candidates.map((c, i) => {
     const r = critic.reviews.find((x) => x.index === i);
     // Writing that reads like an AI wrote it is killed whatever the panel thought, and so is any
@@ -295,8 +299,10 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
     const postTestsPass = !!r?.tests?.length && r.tests.filter((t) => !POST_SKIPS.has(t.id)).every((t) => t.pass);
     const verdictPass = small ? r?.verdict === "pass" || postTestsPass : r?.verdict === "pass";
     const passed = verdictPass && !r?.bannedPatternHit && sharers >= (small ? 2 : 3) && tells.length === 0 && !copied;
+    const id = newId("idea");
+    if (tells.length || copied || r?.bannedPatternHit) hardKilled.add(id);
     return {
-      id: newId("idea"),
+      id,
       brandId: opts.brandId,
       trendId: trend?.id,
       momentId: moment?.id,
@@ -307,6 +313,7 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
       size: c.size,
       subject: c.subject,
       madeBy: c.madeBy,
+      world: c.world,
       post: c.post ? stripDisclaimer(c.post) : undefined,
       headline: c.headline,
       edge: c.edge,
@@ -395,8 +402,23 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
       if (usedSubjects.has(k)) return false;
       usedSubjects.add(k);
       return true;
-    })
-    .slice(0, 3);
+    });
+  // At most one streamer idea in the final three.
+  const top = capByWorld(survivors, (i) => i.world, (w) => (w === "streaming" ? 1 : 3)).slice(0, 3);
+  // Too harsh to come back empty (Rob, 20 Oct): fill up to three with the panel's best close calls, posts and replies
+  // only, never ones the code killed (AI writing, offers to famous people, copies). Red Lines still checks them.
+  for (const i of ideas
+    .filter((i) => i.status === "killed" && !hardKilled.has(i.id) && (i.size === "reply" || i.size === "post" || i.size === "meme") && (i.reactions ?? []).some((x) => x.shares))
+    .sort((a, b) => totalScore(b) - totalScore(a))) {
+    if (top.length >= 3) break;
+    const k = subjectKey(i.subject ?? i.name);
+    if (usedSubjects.has(k) || (i.world === "streaming" && top.some((t) => t.world === "streaming"))) continue;
+    usedSubjects.add(k);
+    i.status = "candidate";
+    i.closeCall = true;
+    i.screening.critic.reasons.unshift("Close call: the panel was split on this one. Kept so you can judge it yourself.");
+    top.push(i);
+  }
 
   // Save straight after the Critic: the paid work is done, and a later failure must never lose it.
   for (const i of ideas) i.sourceContext = sourceContextFor(i, db);
@@ -416,7 +438,7 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
   await save();
 
   // One at a time, so the spend cap reserves one check's worst case, not three.
-  for (const idea of survivors) {
+  for (const idea of top) {
     try {
       // BRIAN_SKIP_PRIOR_ART=1 drops the web check to save credit on test runs; Red Lines always runs.
       const [red, prior] = await Promise.all([

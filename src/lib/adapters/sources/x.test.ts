@@ -18,7 +18,8 @@ describe("X budget", () => {
   it("puts culture first and keeps rivals separate", () => {
     expect(watchlists().map((l) => l.name)).toEqual(["drama", "crypto", "sports", "viral"]);
     expect(watchlists().some((l) => l.handles.includes("adinross"))).toBe(false); // people are topics, not accounts
-    expect(watchTopics()[0]).toEqual({ name: "streamers", terms: ["Adin Ross", "xQc", "Kai Cenat", "IShowSpeed", "Trainwreck"] });
+    // One streaming group out of seven: streamers were crowding everything else out (Rob, 20 Oct).
+    expect(watchTopics().map((g) => g.name)).toEqual(["streaming drama", "sport drama", "money", "viral", "degen betting", "crypto culture", "gaming"]);
     expect(watchlists().some((l) => l.handles.includes("Stake"))).toBe(false);
     expect(rivals().handles).toEqual(["Stake", "shufflecom", "Roobet", "rollbit", "bcgame", "rainbetcom"]);
   });

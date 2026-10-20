@@ -23,6 +23,7 @@ export function IdeaCard({ idea, keyVisualUrl }: { idea: Idea; keyVisualUrl?: st
           {idea.size && <Pill tone={idea.size === "act" || idea.size === "campaign" ? "accent" : undefined}>{SIZE_NAME[idea.size]}</Pill>}
           {idea.emotion && <Pill tone={["hate", "outrage", "disgust"].includes(idea.emotion) ? "bad" : undefined}>{emotionName(idea.emotion)}</Pill>}
           <EdgeBadge edge={idea.edge} />
+          {idea.closeCall && <Pill>Close call</Pill>}
           {idea.madeBy && <span className="ml-auto text-[11.5px] text-ink-3">by {idea.madeBy}</span>}
           {idea.status === "developing" && <Pill tone="accent">Developing</Pill>}
           {idea.status === "developed" && <Pill tone="good">Package ready</Pill>}

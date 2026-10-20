@@ -200,6 +200,10 @@ export interface Idea {
   size?: "reply" | "post" | "meme" | "act" | "campaign";
   /** Which model invented it (Opus, Fable, GPT-6 Astra) */
   madeBy?: string;
+  /** Which world it's about (streaming, sport, crypto…), for spreading ideas out. */
+  world?: string;
+  /** The panel was split on it, but kept so a run never comes back empty. */
+  closeCall?: boolean;
   /** Who or what it's about, in a few words */
   subject?: string;
   /** For replies, posts and memes: the exact words */
@@ -332,6 +336,7 @@ export type Horizon = "reactive" | "evergreen";
 /** The Pulse: what the audience is consuming right now and the feeling driving it. */
 export interface PulseItem {
   subject: string;
+  world?: string;
   happening: string;
   emotion: string;
   intensity: number;

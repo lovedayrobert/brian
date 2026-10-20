@@ -1,3 +1,4 @@
+import { capByWorld, WORLD_HINT, WORLDS } from "@/lib/brand/worlds";
 import * as z from "zod/v4";
 import { logActivity } from "@/lib/activity";
 import { callStructured } from "@/lib/adapters/model";
@@ -19,6 +20,7 @@ const PulseOut = z.object({
   items: z.array(
     z.object({
       subject: z.string().describe("The person, thing, clip, behaviour or story, named plainly"),
+      world: z.enum(WORLDS).describe(WORLD_HINT),
       happening: z.string().describe("What's going on, in one line"),
       emotion: z.enum(EMOTIONS.map((e) => e.id) as [string, ...string[]]),
       intensity: z.number().describe("1-10: how strongly people feel it"),
@@ -65,7 +67,7 @@ export async function readPulse(brandId = "cashy" as const): Promise<Pulse> {
       "You are the Pulse at Brian. You read the internet the way a sharp 23-year-old who's online all day does: on X above all, crypto Twitter, Kick, streamer drama, betting and degen communities, TikTok. X posts and X trends in the feed carry the most weight: they show what people are saying right now and how they feel about it. Your job is not to list news. It's to say what people are actually watching, sharing and arguing about, and above all WHY: the feeling it lets them have. Who do they love to hate this week? What made them say 'wtf'? Whose downfall are they enjoying? What are they tribal about? Be blunt and specific: name people and things. Ignore corporate, trade and regulation news unless people are genuinely reacting to it. Skip real tragedies, deaths, disasters and anything involving minors (list them with opening null if they dominate). Only cite URLs from the list.",
       `Feelings to tag with:\n${EMOTIONS.map((e) => `- [${e.id}] ${e.name}: ${e.why}`).join("\n")}`,
     ].join("\n\n"),
-    prompt: `<feed note="What the audience is consuming right now, from the latest sweep. Ranks and counts show attention.">\n${text}\n</feed>\n\nRead the room. Give 12-20 items, strongest feeling first. Merge items about the same subject. Cover different worlds (streaming, sport, crypto, gaming, internet culture, news, money): no more than 5 items from any one world, even if one dominates the feed. For each villain, only name people most of the audience genuinely dislikes; anyone involved in real harm to others gets opening null.`,
+    prompt: `<feed note="What the audience is consuming right now, from the latest sweep. Ranks and counts show attention.">\n${text}\n</feed>\n\nRead the room. Give 12-20 items, strongest feeling first. Merge items about the same subject. Cover different worlds (streaming, sport, crypto, gaming, internet culture, news, money): no more than 5 items from any one world and no more than 4 about streamers, even if one dominates the feed. For each villain, only name people most of the audience genuinely dislikes; anyone involved in real harm to others gets opening null.`,
   });
   const pulse: Pulse = {
     id: newId("pulse"),
@@ -73,7 +75,8 @@ export async function readPulse(brandId = "cashy" as const): Promise<Pulse> {
     mood: out.mood,
     villain: out.villain,
     mainCharacter: out.mainCharacter,
-    items: out.items
+    // Streamers are loud in the feed; cap them in code too, the prompt alone didn't hold (9 of 17 on 20 Oct).
+    items: capByWorld(out.items, (i) => i.world, (w) => (w === "streaming" ? 4 : 5))
       .map((i) => ({ ...i, intensity: Math.max(1, Math.min(10, Math.round(i.intensity))), urls: i.urls.filter((u) => urls.has(u)) }))
       .sort((a, b) => b.intensity - a.intensity),
     signalCount: count,
@@ -93,6 +96,6 @@ export function pulseContext(pulses: Pulse[] | undefined): string {
 Mood: ${p.mood}
 Villain of the week: ${p.villain ?? "none stands out"}
 Main character: ${p.mainCharacter ?? "none"}
-${p.items.map((i) => `- ${i.subject} [${i.emotion}, ${i.intensity}/10]: ${i.happening} Why people care: ${i.why} (${i.where}; lasts ${i.lifespan})${i.opening ? ` Opening: ${i.opening}` : ""} ${i.urls.join(" ")}`).join("\n")}
+${p.items.map((i) => `- ${i.subject} [${i.world ? `${i.world}, ` : ""}${i.emotion}, ${i.intensity}/10]: ${i.happening} Why people care: ${i.why} (${i.where}; lasts ${i.lifespan})${i.opening ? ` Opening: ${i.opening}` : ""} ${i.urls.join(" ")}`).join("\n")}
 </pulse>`;
 }

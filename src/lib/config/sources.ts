@@ -93,7 +93,7 @@ export const SOURCES: SourceDef[] = [
     envKeys: [],
     monthlyCost: { low: 0, high: 0 },
     costNote: "Free: Reddit RSS",
-    unlocks: "Today's top posts in the communities this audience lives in: streamer clips and drama (LivestreamFail, Kick), viral TikToks and cringe, wallstreetbets, betting, crypto, memes and public fails. The Pulse reads them for the feeling driving each one.",
+    unlocks: "Today's top posts in the communities this audience lives in: streamer clips and drama (LivestreamFail), football and the NFL, viral TikToks, cringe and wtf moments, wallstreetbets, betting, crypto, memes and public fails. The Pulse reads them for the feeling driving each one.",
     phase: 1,
   },
   {

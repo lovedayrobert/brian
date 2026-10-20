@@ -10,7 +10,9 @@ import type { SourceAdapter } from "./types";
  */
 export const AUDIENCE_SUBS: { name: string; scene: string }[] = [
   { name: "LivestreamFail", scene: "streamer clips and drama" },
-  { name: "KickStreaming", scene: "Kick" },
+  { name: "soccer", scene: "football" },
+  { name: "nfl", scene: "American football" },
+  { name: "interestingasfuck", scene: "viral wtf moments" },
   { name: "TikTokCringe", scene: "viral TikToks, cringe and wtf" },
   { name: "wallstreetbets", scene: "degen trading, loss porn" },
   { name: "sportsbook", scene: "betting, bad beats" },

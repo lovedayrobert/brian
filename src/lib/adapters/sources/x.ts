@@ -48,7 +48,7 @@ export function watchlists(): { name: string; handles: string[] }[] {
  * kind of conversation to watch, not a fixed brief.
  */
 export function watchTopics(): { name: string; terms: string[] }[] {
-  return (process.env.X_WATCH_TOPICS || "streamers:Adin Ross,xQc,Kai Cenat,IShowSpeed,Trainwreck|streaming drama:Kick streamer,Twitch ban,banned on stream|degen betting:parlay,bad beat,slot stream|crypto culture:memecoin,rug pull,rugged|gaming:GTA 6,GTA VI")
+  return (process.env.X_WATCH_TOPICS || "streaming drama:Kick streamer,Twitch ban,banned on stream|sport drama:referee,VAR,blown call,sacked|money:lost everything,scammed,lottery winner|viral:main character,ratioed,went viral|degen betting:parlay,bad beat,slot stream|crypto culture:memecoin,rug pull,rugged|gaming:GTA 6,GTA VI")
     .split("|")
     .map((g) => g.split(":"))
     .filter(([n, t]) => n && t)
