@@ -14,4 +14,11 @@ export async function register() {
       .catch((e) => console.error("Results refresh failed:", (e as Error).message));
   setTimeout(tick, 60_000);
   setInterval(tick, 30 * 60_000);
+
+  // Brian on his own (BRIAN_AUTO=1): reads every few hours, a morning Pulse, ideas on hot days. See src/lib/autopilot.ts.
+  const auto = await import("@/lib/autopilot");
+  if (auto.autoEnabled()) {
+    setTimeout(() => auto.tick(), 120_000);
+    setInterval(() => auto.tick(), 10 * 60_000);
+  }
 }

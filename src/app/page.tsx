@@ -145,6 +145,16 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
           <section>
             <SectionTitle action={<Link href="/radar" className="text-[13px] text-accent-ink hover:underline">Radar</Link>}>The room</SectionTitle>
             <Card className="space-y-3 p-5 text-[13.5px] leading-relaxed">
+              {db.autopilot?.last && (
+                <p className="rounded-[10px] bg-surface-2 px-3 py-2 text-[12.5px] text-ink-2">
+                  <span className="font-medium text-ink">Brian on his own, {relativeTime(db.autopilot.last.at)}:</span> {db.autopilot.last.note}
+                  {!!db.autopilot.last.cards && (
+                    <Link href="/ideas" className="ml-1 text-accent-ink hover:underline">
+                      See them
+                    </Link>
+                  )}
+                </p>
+              )}
               {pulse ? (
                 <>
                   <p className="line-clamp-4">{pulse.mood}</p>

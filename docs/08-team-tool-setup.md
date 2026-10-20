@@ -109,3 +109,12 @@ Only verified Google accounts whose email **and** Workspace domain are on the li
 ## Inspiration (`/ideas/inspiration`)
 
 Paste any post the team finds clever and say why. Brian reads the latest 15 every time it invents, to learn the team's taste. *Riff on this* starts ideas from one. *Get ideas → Start from your own idea* takes a half-idea or "they did this, could we do something like it?".
+
+## Brian on his own (BRIAN_AUTO=1)
+
+Switched on 20 Oct 2026 at Rob's request, so nobody has to press anything for Brian to look for ideas (`src/lib/autopilot.ts`):
+
+- **Every 3 hours** (`BRIAN_AUTO_SWEEP_HOURS`): a sweep. Free sources, X reads inside their own monthly budget, and a Haiku tidy-up (about half a cent).
+- **Each morning from 07:00 UTC** (`BRIAN_AUTO_HOUR`): a fresh sweep, then one Pulse (Sonnet).
+- **Then, only if something in the room scores 8/10 or more for feeling and has an opening**: one idea run on Opus alone (about $0.70), whatever `BRIAN_QUALITY` says. Fable and Astra stay for runs people start. Zero ideas is a fine result: no ideas beats bad ideas.
+- At most one Pulse and one idea run a day; the daily and total spend caps still apply to every call. Home shows what Brian did under The room; Settings → Models says it's on.

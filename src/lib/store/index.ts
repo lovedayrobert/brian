@@ -11,6 +11,7 @@ import type { Activity } from "@/lib/activity";
 import type { Comment } from "@/lib/collab-types";
 import type { Publication } from "@/lib/results/publications";
 import type { ChannelSnapshot } from "@/lib/results/channels";
+import type { AutopilotState } from "@/lib/autopilot-types";
 import type { XState } from "@/lib/adapters/sources/x";
 import type { LiveBrand } from "@/lib/brand/live-brand";
 
@@ -67,6 +68,8 @@ export interface DB {
   channelStats: ChannelSnapshot[];
   /** X API post reads this month, so the bill stays under the limit */
   xUsage?: { month: string; reads: number; lastPull?: string; userId?: string };
+  /** What Brian did on his own: reads, the morning Pulse, and idea runs on hot days */
+  autopilot?: AutopilotState;
   /** Cashy's voice, read from its website and channels */
   liveBrand?: LiveBrand;
   /** What each brand can actually do (channels, money, people, limits), edited by admins */

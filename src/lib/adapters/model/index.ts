@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import * as z from "zod/v4";
@@ -59,8 +60,15 @@ export const AGENTS: Record<AgentName, { model: string; effort: Effort; label: s
 // Max quality: Fable writes ideas (alongside GPT-6 Astra); Opus stays the audience panel.
 const MAX_TIER: Partial<Record<AgentName, string>> = { planner: "claude-fable-5-1", inventor: "claude-fable-5-1" };
 
+const standard = new AsyncLocalStorage<boolean>();
+
+/** Runs fn on the standard models (Opus alone), whatever BRIAN_QUALITY says. Automatic runs use it to stay cheap. */
+export function withStandardQuality<T>(fn: () => T): T {
+  return standard.run(true, fn);
+}
+
 export function qualityMax(): boolean {
-  return process.env.BRIAN_QUALITY === "max";
+  return process.env.BRIAN_QUALITY === "max" && !standard.getStore();
 }
 
 export function agentConfig(agent: AgentName) {

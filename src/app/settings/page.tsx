@@ -1,3 +1,4 @@
+import { autoEnabled, HOT } from "@/lib/autopilot";
 import clsx from "clsx";
 import { CostPlanner } from "@/components/cost-planner";
 import { Card, Pill, SectionTitle } from "@/components/ui";
@@ -240,6 +241,18 @@ function ModelsTab({ db }: { db: Awaited<ReturnType<typeof load>> }) {
         ) : (
           <>
             <span className="font-medium">Standard quality.</span> Opus 5.5 writes and judges ideas. About $0.65 per idea run. Set BRIAN_QUALITY=max for Fable and GPT-6 Astra.
+          </>
+        )}
+      </Card>
+      <Card className="p-5 text-[13.5px] leading-relaxed">
+        {autoEnabled() ? (
+          <>
+            <span className="font-medium">Brian works on his own.</span> He reads every {Number(process.env.BRIAN_AUTO_SWEEP_HOURS) || 3} hours, reads the room each morning from {String(process.env.BRIAN_AUTO_HOUR ?? 7).padStart(2, "0")}:00 UTC (Sonnet), and only when something scores {HOT}/10 or more for feeling does he run ideas, on Opus alone (about $0.70). At most one run a day; nothing hot means no run. Fable{checkerReady() ? " and Astra" : ""} are kept for runs you start.
+            {db.autopilot?.last && <span className="text-ink-3"> Last: {db.autopilot.last.note}</span>}
+          </>
+        ) : (
+          <>
+            <span className="font-medium">Brian only works when someone presses a button.</span> Set BRIAN_AUTO=1 for daily reads, a morning Pulse and ideas on hot days.
           </>
         )}
       </Card>
