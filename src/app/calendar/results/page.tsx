@@ -12,6 +12,7 @@ import { personName } from "@/lib/people";
 import { load } from "@/lib/queries";
 import { AUTO, engagements, type Platform } from "@/lib/results/platforms";
 import { latest, type Publication } from "@/lib/results/publications";
+import { channels } from "@/lib/results/channels";
 
 export const metadata = { title: "Results" };
 
@@ -43,6 +44,7 @@ export default async function Results({ searchParams }: { searchParams: Promise<
   // By task (a campaign = one calendar task; its posts across platforms).
   const byTask = new Map<string, { title: string; taskId: string; date: string | null; ideaId?: string; campaign: string; pubs: Publication[] }>();
   for (const p of pubs) {
+    if (p.taskId.startsWith("channel:")) continue; // channel posts aren't tasks
     const g = byTask.get(p.taskId) ?? { title: p.taskTitle, taskId: p.taskId, date: p.taskDate, ideaId: p.ideaId, campaign: p.campaign, pubs: [] };
     g.pubs.push(p);
     byTask.set(p.taskId, g);
@@ -74,9 +76,17 @@ export default async function Results({ searchParams }: { searchParams: Promise<
   });
   const byDay = group((p) => DAYS[(new Date(p.addedAt).getUTCDay() + 6) % 7]);
 
+  // Followers per channel: now, and the change over the period.
+  const chans = channels().map((c) => {
+    const snaps = (db.channelStats ?? []).filter((x) => x.channel === c.key);
+    const now = snaps[snaps.length - 1];
+    const then = snaps.find((x) => new Date(x.at).getTime() >= since) ?? snaps[0];
+    return { ...c, now, change: now && then ? now.followers - then.followers : 0, since: then?.at };
+  });
+
   const sources: { name: Platform | "GA4"; state: "auto" | "manual" | "needs" }[] = [
     { name: "X", state: "auto" },
-    { name: "Telegram", state: "auto" },
+    { name: "Telegram", state: "auto" }, // every channel post, automatically
     { name: "YouTube", state: process.env.YOUTUBE_API_KEY ? "auto" : "manual" },
     { name: "Instagram", state: "manual" },
     { name: "TikTok", state: "manual" },
@@ -89,7 +99,7 @@ export default async function Results({ searchParams }: { searchParams: Promise<
       <SectionTabs space="Calendar" tabs={CALENDAR_TABS} active="results" />
       <PageHeader
         title="Results"
-        subtitle="How what we published did: every post, every idea, every channel, and what it brought to the website. Paste a post's link into its calendar task and Brian tracks it at 1 hour, 24 hours and 7 days."
+        subtitle="How what we published did: every post, every idea, every channel, and what it brought to the website. Telegram channel posts are tracked automatically; for other posts, paste the link into its calendar task and Brian tracks it at 1 hour, 24 hours and 7 days."
         actions={
           <div className="flex items-center gap-2">
             <div className="flex rounded-full bg-surface p-0.5 shadow-card">
@@ -105,6 +115,21 @@ export default async function Results({ searchParams }: { searchParams: Promise<
           </div>
         }
       />
+
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {chans.map((c) => (
+          <Card key={c.key} className="p-4">
+            <div className="text-[12.5px] text-ink-2">
+              {c.platform === "telegram" ? `Telegram t.me/${c.handle}` : `X @${c.handle}`}
+            </div>
+            <div className="display tabular mt-0.5 text-[26px]">{c.now ? compact(c.now.followers) : "–"}</div>
+            <div className="text-[11.5px] text-ink-3">
+              {c.platform === "telegram" ? "subscribers" : "followers"}
+              {c.now && c.since && c.since !== c.now.at ? ` · ${c.change >= 0 ? "+" : ""}${compact(c.change)} since ${new Date(c.since).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : c.now ? " · tracking started" : " · first reading on the next refresh"}
+            </div>
+          </Card>
+        ))}
+      </div>
 
       <div className="mb-8 flex flex-wrap gap-1.5 text-[12px]">
         {sources.map((s) => (
@@ -148,11 +173,12 @@ export default async function Results({ searchParams }: { searchParams: Promise<
                       <a href={p.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-[14px] font-medium hover:text-accent-ink">
                         {p.taskTitle}
                       </a>
+                      {p.taskId.startsWith("channel:") && <span className="text-[11.5px] text-ink-3">channel post</span>}
                       <span className="text-[13px] tabular">{l?.views !== undefined ? `${compact(l.views)} views` : "no views yet"}</span>
                       {hasEng(l) ? <span className="text-[13px] tabular text-ink-2">{compact(eng(p))} eng.</span> : <span className="text-[12.5px] text-ink-3">{p.platform} doesn&rsquo;t share likes</span>}
                       {l?.views && hasEng(l) ? <span className="text-[12.5px] tabular text-ink-3">{((eng(p) / l.views) * 100).toFixed(1)}%</span> : null}
                       <span className="text-[12px] text-ink-3">
-                        {personName(db, p.addedBy)} · {relativeTime(p.addedAt)}
+                        {p.addedBy === "brian" ? "posted" : personName(db, p.addedBy)} · {relativeTime(p.addedAt)}
                       </span>
                     </div>
                   );

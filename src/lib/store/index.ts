@@ -10,6 +10,7 @@ import type { Person } from "@/lib/people";
 import type { Activity } from "@/lib/activity";
 import type { Comment } from "@/lib/collab-types";
 import type { Publication } from "@/lib/results/publications";
+import type { ChannelSnapshot } from "@/lib/results/channels";
 
 /**
  * Repository interface. The prototype uses a local JSON file so it runs with
@@ -60,9 +61,11 @@ export interface DB {
   prefs: Record<string, { calendarFilters?: unknown; calendarDisplay?: unknown }>;
   /** Published posts for calendar tasks, with their numbers over time */
   publications: Publication[];
+  /** Follower counts for our own channels over time */
+  channelStats: ChannelSnapshot[];
 }
 
-const EMPTY: DB = { signals: [], trends: [], moments: [], ideas: [], packages: [], agentRuns: [], sweeps: [], rapid: [], memories: [], memoryEvents: [], feedback: [], spendLedger: {}, imported: [], reviews: [], pulses: [], swipes: [], calendar: [], calendarMeta: {}, crmSync: null, people: [], activity: [], reactions: {}, comments: [], prefs: {}, publications: [] };
+const EMPTY: DB = { signals: [], trends: [], moments: [], ideas: [], packages: [], agentRuns: [], sweeps: [], rapid: [], memories: [], memoryEvents: [], feedback: [], spendLedger: {}, imported: [], reviews: [], pulses: [], swipes: [], calendar: [], calendarMeta: {}, crmSync: null, people: [], activity: [], reactions: {}, comments: [], prefs: {}, publications: [], channelStats: [] };
 
 const LOCK_STALE_MS = 30_000;
 const LOCK_WAIT_MS = 20_000;
