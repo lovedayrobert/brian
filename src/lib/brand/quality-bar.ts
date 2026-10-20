@@ -148,7 +148,7 @@ export const AUDIENCE_PANEL: { id: string; who: string }[] = [
 
 export const QUALITY_BAR = {
   traits: [
-    "One act, not content: something Cashy actually does in the world (signs, pays, mutes, bans, builds, buys, plays somewhere, puts its name somewhere, asks real people something). The act is the news; any video or post is just the evidence. A real act filmed raw with real people genuinely reacting counts; anything scripted or acted doesn't.",
+    "The right size: the smallest thing that lands. Most moments need one sharp post, reply or meme, written out in full. Only a strong feeling earns a real act (something Cashy actually does: pays, sends, builds, puts its name somewhere, plays somewhere absurd). Campaigns almost never. A joke that works as a tweet must stay a tweet.",
     "It aims a feeling the audience already has, at full strength: hate, outrage, wtf, schadenfreude, tribalism, disgust, love. Cashy doesn't create the feeling; it points it.",
     "One sentence, retold with no explanation: 'Shuffle paid Jack Doherty to stop posting.' If it needs a second sentence, it's dead.",
     "People share it to say something about themselves: 'finally', 'this is so wrong lmao', 'wait, is that real?'. Write that line.",
@@ -166,10 +166,10 @@ export const QUALITY_BAR = {
     "Ideas with no emotion behind them: clever, nice or interesting isn't enough",
   ],
   tests: [
-    { id: "one-act", name: "One-act test", question: "Is it a single real thing Cashy does in the world, with real people reacting for real (not a scripted post, series, POV, skit or campaign), and can it be retold in one sentence with no explanation?" },
+    { id: "size", name: "Right-size test", question: "Is it the smallest thing that lands: a post, reply or meme for a small joke, a real act only for a strong feeling, never a joke inflated into a campaign? Can it be retold in one sentence?" },
     { id: "feeling", name: "Feeling test", question: "Does it aim a strong feeling the audience already has (hate, outrage, wtf, schadenfreude, tribal, disgust, love) at full strength?" },
     { id: "share", name: "Share test", question: "Would the panel share it? Count love-hate: haters sharing to condemn it is a pass." },
-    { id: "real", name: "Real test", question: "Can Cashy actually do it, raw and cheaply, within a couple of weeks?" },
+    { id: "real", name: "Real test", question: "Can Cashy do it on its own, cheaply and soon, with no famous person or other brand having to cooperate or reply?" },
     { id: "first", name: "First test", question: "Has nobody done this? Would a rival marketer be jealous?" },
     { id: "attribution", name: "Attribution test", question: "Can you retell it without saying Cashy? If yes, it fails." },
   ],

@@ -196,6 +196,12 @@ export interface Idea {
   /** Who asked Brian for it, and the spark it started from */
   createdBy?: string;
   spark?: { text: string; swipeId?: string };
+  /** How big: reply, post, meme, act or campaign */
+  size?: "reply" | "post" | "meme" | "act" | "campaign";
+  /** Who or what it's about, in a few words */
+  subject?: string;
+  /** For replies, posts and memes: the exact words */
+  post?: string;
   /** Engine 4: the act, the feeling it aims and the reaction it gets */
   emotion?: string;
   emotionTarget?: string;

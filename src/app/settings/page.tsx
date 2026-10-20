@@ -12,6 +12,9 @@ import { QUALITY_BAR, STUNTS } from "@/lib/brand/quality-bar";
 import { CAMPAIGN_COST, PRESETS, RADAR_COSTS, SOURCES } from "@/lib/config/sources";
 import { relativeTime, usd } from "@/lib/format";
 import { admins, initials, isAdmin } from "@/lib/people";
+import { viewer } from "@/lib/viewer";
+import { ToolkitForm } from "@/components/toolkit-form";
+import { DEFAULT_TOOLKIT } from "@/lib/pipeline/context";
 import { load, spend } from "@/lib/queries";
 
 export const metadata = { title: "Settings" };
@@ -21,6 +24,7 @@ export const metadata = { title: "Settings" };
 export default async function Settings({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const { tab = "coverage" } = await searchParams;
   const db = await load();
+  const me = await viewer();
 
   return (
     <>
@@ -44,7 +48,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
       )}
 
       {tab === "sources" && <SourcesTab db={db} />}
-      {tab === "brand" && <BrandTab />}
+      {tab === "brand" && <BrandTab toolkit={db.toolkit?.cashy?.trim() || DEFAULT_TOOLKIT.cashy} canEdit={me.admin} />}
       {tab === "models" && <ModelsTab db={db} />}
       {tab === "accuracy" && <AccuracyTab db={db} />}
     </>
@@ -98,10 +102,17 @@ function SourcesTab({ db }: { db: Awaited<ReturnType<typeof load>> }) {
   );
 }
 
-function BrandTab() {
+function BrandTab({ toolkit, canEdit }: { toolkit: string; canEdit: boolean }) {
   const b = BRANDS.cashy;
   return (
     <div className="grid gap-6 lg:grid-cols-2">
+      <Card className="p-6 lg:col-span-2">
+        <div className="text-[17px] font-semibold">What Cashy can actually do</div>
+        <p className="mb-3 mt-1 max-w-[720px] text-[13.5px] text-ink-2">
+          Brian kills any idea that needs more than this: our real channels, money, people and limits. Add creators or partners you genuinely have, and what you can spend. {canEdit ? "" : "Only admins can change it."}
+        </p>
+        <ToolkitForm brandId="cashy" initial={toolkit} canEdit={canEdit} />
+      </Card>
       <Card className="p-6">
         <div className="mb-3 flex items-center justify-between">
           <div className="text-[17px] font-semibold">Cashy brand book</div>

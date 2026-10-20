@@ -15,10 +15,10 @@ export const LENSES: Lens[] = [
   {
     id: "villain",
     name: "Aim at the villain",
-    tagline: "Do something to the person everyone loves to hate.",
+    tagline: "Something for the people sick of whoever everyone's sick of.",
     prompt:
-      "Find who or what the audience hates most right now (the Pulse names the villain of the week; the context has more) and invent the one act Cashy can do to them that lets everyone cheer: pay them to stop, mute them, ban them, outbid them, troll them, give their haters something. Shuffle paying Jack Doherty not to post is the benchmark. Public behaviour of public figures only; real people are the target of an offer, never shown as having agreed.",
-    examples: ["Paying the villain to disappear", "Giving the haters exactly what they want"],
+      "Only use someone most people genuinely dislike right now (the Pulse shows how people feel). People with mixed or loyal audiences are not villains: skip them. If nobody fits, give fewer ideas. Usually the right move is a sharp post or reply that says what everyone's thinking; a real act (like Shuffle paying Jack Doherty to stop posting) only when the dislike is huge. It must land even if the person ignores it. Never anyone involved in real harm to others (crashes, assaults, deaths).",
+    examples: ["The post everyone wishes they'd made about them", "A small real act that gives the haters what they want"],
   },
   {
     id: "too-far",

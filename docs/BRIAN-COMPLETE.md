@@ -340,6 +340,16 @@ See doc 4 for sources and ranking. The Cartographer step is skipped without a ke
 Each run accepts an optional steer ("under $5k", "for fight night").
 
 
+## Idea size, spread and reality (21 Oct 2026)
+
+After Rob's review of the first engine-4 run:
+- **Right size.** Every idea says how big it is: reply, post, meme, real act or campaign. At least 6 of 10 should be a reply, post or meme with the exact words written out. A small joke inflated into a deal or campaign is an automatic kill.
+- **Spread.** At most 2 ideas per subject reach the panel, at most 1 per subject in the final three, and ideas should span different worlds (streaming, sport, crypto, gaming, internet culture, news).
+- **Reality.** "What Cashy can actually do" (Settings → Brand, admins edit) is part of every run. Ideas that need a famous person or another brand to cooperate or reply die. Villains must be people most of the audience genuinely dislikes.
+- **Writing.** `src/lib/brand/style.ts` lists AI writing habits ("ship", "it's not X, it's Y", "diabolical", em dashes, forced slang). They're banned in the prompts and any idea containing them is killed in code.
+- **Budget.** An idea run only starts if its worst case (about $2.70) fits under every cap, so money is never spent on a run the cap would stop halfway.
+
+
 ---
 
 # 4. Sources, accuracy and forecasting

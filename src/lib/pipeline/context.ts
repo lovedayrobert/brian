@@ -121,3 +121,21 @@ export function resolveUrl(url: string | null, allowed: Citation[]): Citation | 
   const norm = (u: string) => u.replace(/[#?].*$/, "").replace(/\/$/, "");
   return allowed.find((a) => norm(a.url) === norm(url)) ?? null;
 }
+
+/**
+ * What the brand can actually do on its own: its channels, money, people and
+ * limits. Ideas that need more than this die. Admins edit it in Settings → Brand;
+ * until then a deliberately cautious default applies.
+ */
+export const DEFAULT_TOOLKIT: Record<string, string> = {
+  cashy: `- Our own channels are small: X @PlayCashy (about 650 followers), Telegram t.me/playcashy (about 800 subscribers), cashy.com and its blog, and CRM email and push to existing players. An idea can't rely on our own following: meme pages, clip accounts or creators have to want to pass it on.
+- Money: assume a few hundred dollars per idea at most, unless the team says otherwise.
+- People: no signed streamers, celebrities or creators. Assume no access to anyone famous. Nobody owes us a reply.
+- The team can post every day, make simple images and short clips, buy and send small physical things, and build a simple web page.
+- No paid ads. Nothing aimed at minors. Nothing in markets where we can't take players.`,
+};
+
+export function toolkitContext(brandId: BrandId, db: { toolkit?: Record<string, string> }): string {
+  const t = db.toolkit?.[brandId]?.trim() || DEFAULT_TOOLKIT[brandId] || "";
+  return t ? `<what_we_can_actually_do note="Hard limits. An idea that needs more than this is dead.">\n${t}\n</what_we_can_actually_do>` : "";
+}

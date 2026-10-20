@@ -3,6 +3,8 @@ import { callChecker, callStructured, checkerReady, preflight, qualityMax, resea
 import type { BrandId, Claim, Citation, Idea, Moment, Signal, Trend } from "@/lib/domain/types";
 import { AUDIENCE_PANEL, EMOTIONS, MOVES, QUALITY_BAR } from "@/lib/brand/quality-bar";
 import { pulseContext } from "./pulse";
+import { aiTells, STYLE_RULES } from "@/lib/brand/style";
+import { toolkitContext } from "./context";
 import { currentActor } from "@/lib/actor";
 import { logActivity } from "@/lib/activity";
 import { specialDayById } from "@/lib/calendar/days";
@@ -23,14 +25,17 @@ const ClaimOut = z.object({ text: z.string(), url: z.string().nullable() });
 const InventorOut = z.object({
   candidates: z.array(
     z.object({
-      move: z.string().describe("The act, in one sentence, the way people will retell it: 'Cashy paid X to …', 'Cashy put its logo on …', 'A guy gambled on Cashy using …'. No campaign names."),
+      move: z.string().describe("The idea in one plain sentence, the way a colleague would say it. No campaign names."),
+      size: z.enum(["reply", "post", "meme", "act", "campaign"]).describe("The smallest size that lands. reply = a reply under someone else's post; post = one post from Cashy's account; meme = one image or clip with a caption; act = something Cashy actually does in the world; campaign = rare, several parts"),
+      subject: z.string().describe("Who or what it's about, in 1-4 words, e.g. 'Kai Cenat Trackhawk', 'Spider-Man kicker', 'AI girlfriend scam'"),
+      post: z.string().nullable().describe("For reply, post or meme: the exact words (and what the image shows, for a meme), ready to publish. null for acts and campaigns"),
       archetype: z.enum(MOVES.map((m) => m.id) as [string, ...string[]]),
       emotion: z.enum(EMOTIONS.map((e) => e.id) as [string, ...string[]]),
       emotionTarget: z.string().describe("Who or what the feeling is aimed at, and why the audience already feels it"),
       pulseRef: z.string().nullable().describe("The Pulse item or signal it rides, named, or null"),
       shareLine: z.string().describe("The exact words people type when they share it, in their voice, lower case if that's how they'd write it"),
       reactions: z.array(z.object({ who: z.string(), says: z.string() })).describe("Three gut reactions from different corners of the internet, in their own words"),
-      howItWorks: z.string().describe("How Cashy actually does it: who, where, what's needed, what it costs, how long. Raw, not polished."),
+      howItWorks: z.string().describe("How Cashy does it, in two or three plain sentences: where it goes, what's needed, how long. For a post, just where and when to post it."),
       proof: z.string().describe("What gets filmed or screenshotted as evidence it happened"),
       headline: z.string().describe("The title a drama channel, clip account or press would give it"),
       cashyRole: z.string().describe("Why you can't retell it without saying Cashy"),
@@ -146,7 +151,9 @@ export async function generateIdeas(opts: {
   const memory = await memoryForRun(opts.brandId, `inventing ideas for ${subject}`);
   const system = [
     memory,
-    "You are the Inventor at Brian. You think like the person at Shuffle who had the idea of paying Jack Doherty to stop posting, the person at Duel who put the host in that costume, and the person at Stake who put the logo on every viral video. You don't make content and you don't run campaigns. You find ONE act Cashy can do in the real world that aims a feeling the audience already has (hate, outrage, wtf, schadenfreude, tribalism, disgust, love) at full strength, so they share it to say something about themselves. Start from the feeling, never from the brand: who do they hate right now, what would make them say 'they actually did that', where would a casino be absurd. Every idea is one sentence a 20-year-old would retell. Nobody cares about a casino's strengths, so Cashy's product is never the point. If it sounds like an ad agency, an AI, a TikTok series or a marketing plan, throw it away.",
+    "You are the Inventor at Brian, the person on Cashy's marketing team with the best ideas. You read the room (the Pulse) and decide where Cashy should show up and how big. Most of the time the right answer is one sharp post, reply or meme, posted today, written out in full. Sometimes a strong feeling deserves a real act: something Cashy actually does that people retell, like Shuffle paying Jack Doherty to stop posting or a guy gambling on a kitchen-store fridge. Almost never a campaign. Start from what people feel (hate, outrage, wtf, schadenfreude, tribal, disgust, love) and match the size to the feeling. Never inflate a small joke into a deal or a campaign. Cashy can't rely on anyone famous replying, cooperating or taking a deal: an idea aimed at a public figure must still land if they ignore it. Only call someone a villain if most people genuinely dislike them. Nobody cares about a casino's strengths, so the product is never the point. Write like a person, not an AI.",
+    STYLE_RULES,
+    toolkitContext(opts.brandId, db),
     brandVoiceContext(opts.brandId),
     qualityBarContext(),
     swipeContext(db.swipes),
@@ -209,35 +216,48 @@ export async function generateIdeas(opts: {
 ${sourceText}
 ${plan}
 
-Find 10 acts through this lens. Read the pulse first: aim at feelings people have right now, at the people and things they're actually reacting to. Each act is one sentence, real, raw and a first. Write the line people type when they share it. Nothing from the banned list: no posts, series, POVs, skits or campaigns. Cite evidence URLs where you use a fact; use null where you are reasoning.`
+Give 10 ideas through this lens, from what people feel right now. Spread them: at least 5 different subjects, at most 2 ideas per subject, and not all from one world (streaming, sport, crypto, gaming, internet culture, news). At least 6 of the 10 should be a reply, post or meme with the exact words written out. If the lens doesn't fit what's happening, give fewer ideas rather than forcing it. Cite evidence URLs where you use a fact; use null where you are reasoning.`
       : `${pulse}
 ${sourceText}
 ${plan}
 
-Find 10 acts Cashy could do on this. First work out what people actually feel about it (hate, outrage, wtf, schadenfreude, tribal, love) and who or what that feeling is aimed at; then find the act that points it. Use at least 4 different kinds of move across the 10. Each act is one sentence, real, raw and a first. Write the line people type when they share it. Nothing from the banned list: no posts, series, POVs, skits or campaigns. Ground every factual statement in the evidence above and cite its URL; use null where you are reasoning rather than citing.`,
+Give 10 ideas Cashy could do on this. First work out what people actually feel about it and who or what that feeling is aimed at, then pick the smallest response that lands. At least 6 of the 10 should be a reply, post or meme with the exact words written out; acts only where the feeling is strong. Use different angles, not ten versions of one joke. Ground every factual statement in the evidence above and cite its URL; use null where you are reasoning rather than citing.`,
   });
 
-  const candidates = inv.candidates.slice(0, 10);
+  // Spread: at most two ideas on any one subject reach the panel.
+  const subjectKey = (x: string) => x.toLowerCase().replace(/[^a-z0-9 ]/g, "").split(/\s+/).filter((w) => w.length > 2).slice(0, 2).join(" ");
+  const perSubject = new Map<string, number>();
+  const candidates = inv.candidates
+    .filter((c) => {
+      const k = subjectKey(c.subject);
+      perSubject.set(k, (perSubject.get(k) ?? 0) + 1);
+      return perSubject.get(k)! <= 2;
+    })
+    .slice(0, 10);
   const critic = await callStructured({
     agent: "critic",
     subject,
     schema: CriticOut,
     system: [
       memory,
-      "You are the audience panel at Brian. For every candidate you first react as each panel member, instantly and in their own voice, the way they'd react seeing it on their timeline: would they share it, and what would they feel? Only then do you judge. You are harsh: most ideas die here. Love-hate counts: if haters would share it to condemn it, that's distribution. Automatic kills: scripted content dressed up as an idea (POVs, acted skits, series, threads, memes; a real act filmed with real people reacting is fine), campaigns, polished agency stunts, anything about Cashy's product, anything with no strong feeling behind it, and anything that sounds like an ad or an AI wrote it.",
+      "You are the audience panel at Brian. For every candidate you first react as each panel member, instantly and in their own voice, the way they'd react seeing it on their timeline: would they share it, and what would they feel? Only then do you judge. You are harsh: most ideas die here. Love-hate counts: if haters would share it to condemn it, that's distribution. Automatic kills: a small joke inflated into a deal, stunt or campaign (it should have been a post); anything that only works if a famous person or another brand replies or cooperates; someone cast as a villain who isn't widely disliked; scripted content (POVs, acted skits, series); anything about Cashy's product; anything with no strong feeling behind it; and anything that reads like an ad or an AI wrote it. A sharp one-line post that people would actually share is a pass, not a lesser idea.",
+      STYLE_RULES,
+      toolkitContext(opts.brandId, db),
       `<panel>\n${AUDIENCE_PANEL.map((p) => `- [${p.id}] ${p.who}`).join("\n")}\n</panel>`,
       brandVoiceContext(opts.brandId),
       qualityBarContext(),
       `<horizon>\n${HORIZON_BRIEF[horizon]}\n</horizon>`,
       `For each candidate: give the panel's five reactions using ids ${AUDIENCE_PANEL.map((p) => p.id).join(", ")}. Then run all seven tests using these ids: ${[...QUALITY_BAR.tests, HORIZON_TEST[horizon]].map((t) => t.id).join(", ")}. The seventh is the ${HORIZON_TEST[horizon].name}: ${HORIZON_TEST[horizon].question} Fail any test and the idea dies, and so does any idea fewer than three panel members would share. Score from 1 to 10, each with a one-line reason: charge (how strong the feeling is), spread (how far it travels: who reposts it), simplicity (10 = one sentence, nothing to explain), realness (10 = Cashy could do it this week, raw), attribution (10 = impossible to retell without Cashy). Pass at most three.`,
     ].join("\n\n"),
-    prompt: `${pulse}\n${sourceText}\n\n<candidates>\n${candidates.map((c, i) => `${i}. ${c.move}\nMove: ${c.archetype}. Feeling: ${c.emotion}, aimed at ${c.emotionTarget}\nShare line: "${c.shareLine}"\nHow it's done: ${c.howItWorks} (${c.cost})\nProof: ${c.proof}\nWhy it's Cashy's: ${c.cashyRole}\nWhy it's a first: ${c.firstness}\nEdge: ${c.edge}`).join("\n\n")}\n</candidates>`,
+    prompt: `${pulse}\n${sourceText}\n\n<candidates>\n${candidates.map((c, i) => `${i}. [${c.size}] ${c.move}\nSubject: ${c.subject}. Feeling: ${c.emotion}, aimed at ${c.emotionTarget}\n${c.post ? `The words: ${c.post}\n` : ""}Share line: "${c.shareLine}"\nHow it's done: ${c.howItWorks} (${c.cost})\nWhy it's Cashy's: ${c.cashyRole}\nEdge: ${c.edge}`).join("\n\n")}\n</candidates>`,
   });
 
   const now = new Date().toISOString();
   const ideas: Idea[] = candidates.map((c, i) => {
     const r = critic.reviews.find((x) => x.index === i);
-    const passed = r?.verdict === "pass" && !r.bannedPatternHit && (r.panel ?? []).filter((x) => x.shares).length >= 3;
+    // Writing that reads like an AI wrote it is killed whatever the panel thought.
+    const tells = aiTells(c.move, c.post, c.shareLine, c.howItWorks, c.headline);
+    const passed = r?.verdict === "pass" && !r.bannedPatternHit && (r.panel ?? []).filter((x) => x.shares).length >= 3 && tells.length === 0;
     return {
       id: newId("idea"),
       brandId: opts.brandId,
@@ -247,6 +267,9 @@ Find 10 acts Cashy could do on this. First work out what people actually feel ab
       lens: opts.lens,
       name: c.move,
       oneLiner: c.move,
+      size: c.size,
+      subject: c.subject,
+      post: c.post ?? undefined,
       headline: c.headline,
       edge: c.edge,
       backlash: c.backlash,
@@ -285,7 +308,7 @@ Find 10 acts Cashy could do on this. First work out what people actually feel ab
             note: t.note,
           })),
           bannedPatternHit: r?.bannedPatternHit ?? undefined,
-          reasons: r?.reasons ?? ["The Critic did not review this candidate."],
+          reasons: [...(tells.length ? [`Reads like an AI wrote it (${tells.join(", ")})`] : []), ...(r?.reasons ?? ["The Critic did not review this candidate."])],
         },
         priorArt: null,
         redLines: null,
@@ -325,9 +348,17 @@ Find 10 acts Cashy could do on this. First work out what people actually feel ab
     }
   }
 
+  // The final three: best first, and never two on the same subject.
+  const usedSubjects = new Set<string>();
   const survivors = ideas
     .filter((i) => i.status === "candidate")
     .sort((a, b) => totalScore(b) - totalScore(a))
+    .filter((i) => {
+      const k = subjectKey(i.subject ?? i.name);
+      if (usedSubjects.has(k)) return false;
+      usedSubjects.add(k);
+      return true;
+    })
     .slice(0, 3);
 
   // Save straight after the Critic: the paid work is done, and a later failure must never lose it.

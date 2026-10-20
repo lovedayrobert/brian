@@ -13,6 +13,7 @@ import { scoreSet } from "@/lib/scores";
 import { horizonFor } from "@/lib/horizon";
 import { emotionName, moveName } from "@/lib/brand/quality-bar";
 import { Comments } from "@/components/comments";
+import { SIZE_NAME } from "@/components/idea-card";
 import { Reactions } from "@/components/reactions";
 import { personName } from "@/lib/people";
 import { nameMap, reactionIds, viewer } from "@/lib/viewer";
@@ -97,12 +98,21 @@ export default async function IdeaDetail({ params }: { params: Promise<{ id: str
       {idea.sample && <SampleBanner />}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
-          <Card className="overflow-hidden">
-            <KeyVisual line={idea.name} imageUrl={keyVisualFor(idea.id, db.packages)} className="aspect-[16/9] w-full" />
-          </Card>
+          {keyVisualFor(idea.id, db.packages) && (
+            <Card className="overflow-hidden">
+              <KeyVisual line={idea.name} imageUrl={keyVisualFor(idea.id, db.packages)} className="aspect-[16/9] w-full" />
+            </Card>
+          )}
+          {idea.post && (
+            <Card className="p-6">
+              <div className="text-[12px] font-medium uppercase tracking-[0.05em] text-ink-3">{idea.size ? SIZE_NAME[idea.size] : "Post"}: the words</div>
+              <p className="mt-2 whitespace-pre-line text-[18px] leading-snug">{idea.post}</p>
+            </Card>
+          )}
 
           <Card className="p-6">
             <div className="flex flex-wrap items-center gap-1.5">
+              {idea.size && <Pill tone={idea.size === "act" || idea.size === "campaign" ? "accent" : undefined}>{SIZE_NAME[idea.size]}</Pill>}
               {idea.attentionMechanic && <Pill>{moveName(idea.attentionMechanic)}</Pill>}
               {idea.emotion && <Pill tone={["hate", "outrage", "disgust"].includes(idea.emotion) ? "bad" : "accent"}>{emotionName(idea.emotion)}</Pill>}
             </div>

@@ -66,6 +66,8 @@ export interface DB {
   channelStats: ChannelSnapshot[];
   /** X API post reads this month, so the bill stays under the limit */
   xUsage?: { month: string; reads: number; lastPull?: string; userId?: string };
+  /** What each brand can actually do (channels, money, people, limits), edited by admins */
+  toolkit?: Record<string, string>;
   /** X API discovery: spend this month and today, and the posts from the last pulls */
   xState?: XState;
 }
