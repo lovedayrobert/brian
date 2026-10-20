@@ -2,7 +2,7 @@ import clsx from "clsx";
 import Link from "next/link";
 
 /**
- * The four spaces (Home, Radar, Ideas, Calendar) are the whole app. Pages
+ * The five spaces (Home, Radar, Ideas, Calendar) are the whole app. Pages
  * inside a space are tabs, never new sidebar items. See CLAUDE.md.
  */
 export const RADAR_TABS = [
@@ -41,10 +41,4 @@ export const SETTINGS_TABS = [
   { id: "models", href: "/settings?tab=models", label: "Models" },
   { id: "memory", href: "/memory", label: "What Brian has learned" },
   { id: "accuracy", href: "/settings?tab=accuracy", label: "Accuracy" },
-  { id: "results", href: "/results", label: "Results" },
-];
-
-export const CALENDAR_TABS = [
-  { id: "calendar", href: "/calendar", label: "Calendar" },
-  { id: "results", href: "/calendar/results", label: "Results" },
 ];

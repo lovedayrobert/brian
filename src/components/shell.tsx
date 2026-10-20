@@ -1,14 +1,14 @@
 "use client";
 
 import clsx from "clsx";
-import { Brain, CalendarRange, ChevronDown, Home, Lightbulb, Menu, Radar, Settings, X } from "lucide-react";
+import { BarChart3, Brain, CalendarRange, ChevronDown, Home, Lightbulb, Menu, Radar, Settings, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { relativeTime } from "@/lib/format";
 
 /**
- * The whole app is four spaces. New features go inside one of them (as a tab,
+ * The whole app is five spaces. New features go inside one of them (as a tab,
  * a panel or a section), never as a new item here. See CLAUDE.md.
  */
 const NAV = [
@@ -16,6 +16,7 @@ const NAV = [
   { href: "/radar", label: "Radar", hint: "What's happening out there", icon: Radar, also: [] },
   { href: "/ideas", label: "Ideas", hint: "Get ideas, review Brian's", icon: Lightbulb, also: ["/develop", "/mockups", "/review"] },
   { href: "/calendar", label: "Calendar", hint: "Plan and track the work", icon: CalendarRange, also: [] },
+  { href: "/results", label: "Results", hint: "How what we published did", icon: BarChart3, also: [] },
 ];
 
 export interface ShellStatus {
@@ -86,10 +87,10 @@ export function Shell({ children, status }: { children: React.ReactNode; status:
           href="/settings"
           className={clsx(
             "flex items-center gap-2.5 rounded-[9px] px-3 py-[7px] text-[13.5px] transition-colors",
-            isActive("/settings", ["/memory", "/results"]) ? "bg-surface text-ink shadow-card font-medium" : "text-ink-2 hover:bg-surface-3/70 hover:text-ink",
+            isActive("/settings", ["/memory"]) ? "bg-surface text-ink shadow-card font-medium" : "text-ink-2 hover:bg-surface-3/70 hover:text-ink",
           )}
         >
-          <Settings className={clsx("h-4 w-4", isActive("/settings", ["/memory", "/results"]) ? "text-accent" : "text-ink-3")} strokeWidth={1.9} />
+          <Settings className={clsx("h-4 w-4", isActive("/settings", ["/memory"]) ? "text-accent" : "text-ink-3")} strokeWidth={1.9} />
           Settings
         </Link>
         <SystemStatus status={status} />

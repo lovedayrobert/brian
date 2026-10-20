@@ -29,14 +29,14 @@ const SOURCE_NAME: Record<Task["source"], string> = { linear: "Linear", brian: "
 const STATUS_NAME: Record<Task["status"]["type"], string> = { backlog: "Backlog / idea", unstarted: "Planned", started: "In progress", completed: "Done", canceled: "Cancelled" };
 
 export function matches(t: Task, f: Filters): boolean {
+  // CRM sends are always on the calendar, like special days: no filter or search hides them (Rob's call).
+  if (t.source === "crm-sheet") return true;
   if (f.q) {
     const q = f.q.toLowerCase();
     if (![t.title, t.identifier, t.description, t.assignee?.name, t.project?.name, ...t.labels.map((l) => l.name)].some((x) => x?.toLowerCase().includes(q))) return false;
   }
   if (f.sources.length && !f.sources.includes(t.source)) return false;
   if (f.needsSocial && !t.needsSocial) return false;
-  // CRM sends are a layer, like special days: Linear filters (team, label, project, assignee, status) don't hide them.
-  if (t.source === "crm-sheet") return true;
   if (f.teams.length && !(t.team && f.teams.includes(t.team.key))) return false;
   if (f.projects.length && !(t.project && f.projects.includes(t.project.name))) return false;
   if (f.labels.length && !t.labels.some((l) => f.labels.includes(l.name))) return false;
@@ -46,7 +46,7 @@ export function matches(t: Task, f: Filters): boolean {
   return true;
 }
 
-type Key = Exclude<keyof Filters, "q" | "needsSocial">;
+type Key = Exclude<keyof Filters, "q" | "needsSocial" | "dayKinds">;
 
 export function FilterBar({ data, filters, setFilters }: { data: CalendarData; filters: Filters; setFilters: (f: Filters | ((f: Filters) => Filters)) => void }) {
   const [open, setOpen] = useState<Key | "menu" | null>(null);
@@ -62,8 +62,7 @@ export function FilterBar({ data, filters, setFilters }: { data: CalendarData; f
       statuses: { label: "Status", values: (Object.keys(STATUS_NAME) as Task["status"]["type"][]).filter((s) => s !== "canceled").map((s) => ({ value: s, name: STATUS_NAME[s] })) },
       assignees: { label: "Assignee", values: uniq([{ value: "Unassigned", name: "Unassigned" }, ...(lin?.users.map((u) => ({ value: u.name, name: u.name })) ?? []), ...all.flatMap((t) => (t.assignee ? [{ value: t.assignee.name, name: t.assignee.name }] : []))]) },
       channels: { label: "Channel", values: CHANNELS.map((c) => ({ value: c, name: c })) },
-      sources: { label: "Source", values: (Object.keys(SOURCE_NAME) as Task["source"][]).map((s) => ({ value: s, name: SOURCE_NAME[s] })) },
-      dayKinds: { label: "Special days", values: (Object.keys(DAY_KIND) as DayKind[]).map((k) => ({ value: k, name: `${DAY_KIND[k].icon} ${DAY_KIND[k].name}` })) },
+      sources: { label: "Source", values: (Object.keys(SOURCE_NAME) as Task["source"][]).filter((s) => s !== "crm-sheet").map((s) => ({ value: s, name: SOURCE_NAME[s] })) },
     };
   }, [data.linear, all]);
 

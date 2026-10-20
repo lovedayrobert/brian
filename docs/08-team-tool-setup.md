@@ -4,13 +4,14 @@ Everything below is built and switched on by setting variables in Railway (or `.
 
 ## How the app is organised
 
-Four spaces plus Settings, and nothing else in the sidebar (see the product rule in `CLAUDE.md`):
+Five spaces plus Settings, and nothing else in the sidebar (see the product rule in `CLAUDE.md`):
 
 - **Home**: what to do today: due and overdue tasks, ideas waiting, the room in three lines, special days coming up.
 - **Radar**: what's happening: The room (Pulse), Breaking, Trends, Rivals.
 - **Ideas**: Brian's ideas, Get ideas, Inspiration. Packages and mockups open from their idea.
-- **Calendar**: Linear tasks, the CRM sheet, special days, ideas for any day.
-- **Settings**: coverage and cost, sources, brand, models, what Brian has learned, accuracy, results.
+- **Calendar**: Linear tasks, the CRM sheet and special days (these two always show, whatever the filters), ideas for any day.
+- **Results**: how what we published did, by post, idea and channel, plus the website.
+- **Settings**: coverage and cost, sources, brand, models, what Brian has learned, accuracy.
 
 ## Working together
 
@@ -30,12 +31,12 @@ Four spaces plus Settings, and nothing else in the sidebar (see the product rule
 - **Special days** are filled in automatically: holidays, crypto anniversaries (Bitcoin Pizza Day, Genesis Block, whitepaper day…), internet and gaming days, Black Friday, Friday the 13ths, Super Bowl, Kentucky Derby, GTA 6. Add more in `src/lib/calendar/days.ts`.
 - **Brian inside the calendar:** open any day for *Post ideas* (three ideas, about $0.10), *A bigger move* (the full engine, about $0.75) or *Plan it myself*. Every idea has *Add as task*, which opens the editor filled in. On any idea page, *Add to calendar* does the same.
 
-## Results (Calendar → Results)
+## Results (its own space in the sidebar)
 
 - **Published:** on any calendar task, paste the link to each post once it's out. Brian reads X and Telegram posts by itself (YouTube too with `YOUTUBE_API_KEY`) when added and again at about 1 hour, 24 hours and 7 days, and every day for the first month. Instagram, TikTok and Discord numbers are entered on the task until their access is connected. On Linear tasks the post link is also attached to the issue.
 - **Our channels:** `BRIAN_CHANNELS` (default `telegram:playcashy,x:playcashy`). Brian records followers twice a day, and picks up every Telegram channel post by itself (views at 1 hour, 24 hours, 7 days), so nobody pastes those. X posts still need their link pasted until an X feed is connected.
 - **Tracking links:** every task has a campaign name and a link per channel (`utm_source`, `utm_medium`, `utm_campaign`, `utm_content`). Use those links in posts, newsletters and creator briefs so GA4 can tie visits and sign-ups to the task. The default destination is `https://cashy.com` (`NEXT_PUBLIC_BRIAN_DEFAULT_LINK` changes it).
-- **Results tab:** posts tracked, views, engagements, website visits and key events from them; top posts; a table by task and idea with Brian's prediction alongside; what works by channel, type of idea and day (once there are 3+ posts per group); and the website from GA4: sessions, users, key events, top sources, every campaign, top blog pages.
+- **Results page:** posts tracked, views, engagements, website visits and key events from them; top posts; a table by task and idea with Brian's prediction alongside; what works by channel, type of idea and day (once there are 3+ posts per group); and the website from GA4: sessions, users, key events, top sources, every campaign, top blog pages.
 
 **AI budget.** `BRIAN_BUDGET_USD` from `BRIAN_BUDGET_SINCE` (YYYY-MM-DD) is a hard total: no AI call runs if it would pass it, on top of `BRIAN_DAILY_CAP_USD`. The sidebar shows what's left. Local copies of Brian keep their own ledger, so give them a separate small budget and keep the two under the credit you bought.
 

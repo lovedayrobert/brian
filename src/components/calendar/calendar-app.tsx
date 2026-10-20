@@ -165,7 +165,7 @@ export function CalendarApp({
     return () => window.removeEventListener("keydown", onKey);
   }, [drawer, dayPanel, step, anchor]);
 
-  const visible = useMemo(() => data.tasks.filter((t) => matches(t, filters) && (display.completed || t.status.type !== "completed")), [data.tasks, filters, display.completed]);
+  const visible = useMemo(() => data.tasks.filter((t) => matches(t, filters) && (display.completed || t.source === "crm-sheet" || t.status.type !== "completed")), [data.tasks, filters, display.completed]);
   const byDay = useMemo(() => {
     const m = new Map<string, Task[]>();
     for (const t of visible) if (t.date) m.set(t.date, [...(m.get(t.date) ?? []), t]);
@@ -174,9 +174,10 @@ export function CalendarApp({
   }, [visible]);
   const daysByDate = useMemo(() => {
     const m = new Map<string, SpecialDay[]>();
-    if (display.days) for (const d of data.days) if (!filters.dayKinds.length || filters.dayKinds.includes(d.kind)) m.set(d.date, [...(m.get(d.date) ?? []), d]);
+    // Special days always show on their date, whatever the filters (Rob's call).
+    for (const d of data.days) m.set(d.date, [...(m.get(d.date) ?? []), d]);
     return m;
-  }, [data.days, display.days, filters.dayKinds]);
+  }, [data.days]);
 
   /** Optimistic update, then the server's answer. */
   const patch = useCallback(
@@ -478,7 +479,6 @@ function DisplayMenu({ display, setDisplay, onClose }: { display: Display; setDi
           [
             ["weekends", "Show weekends"],
             ["completed", "Show completed"],
-            ["days", "Show special days"],
             ["compact", "Compact cards"],
           ] as const
         ).map(([k, l]) => (

@@ -14,17 +14,18 @@ Brian is Cashy's AI marketing engine (Next.js 16, TypeScript, Anthropic SDK). If
 8. `docs/08-team-tool-setup.md`: calendar, Linear, CRM sheet, Google sign-in, model setup
 9. `docs/09-roadmap.md`: what comes next
 
-## Product rule: four spaces, no new top-level pages
+## Product rule: five spaces, no new top-level pages
 
-Brian is for a marketing team, so it has to stay obvious. The whole app is four spaces plus Settings, and that's fixed:
+Brian is for a marketing team, so it has to stay obvious. The whole app is five spaces plus Settings, and that's fixed:
 
 | Space | The question it answers | What lives in it |
 |---|---|---|
 | Home `/` | What do I do today? | Due and overdue tasks, ideas waiting, the room in three lines, coming-up days |
 | Radar `/radar` | What's happening out there? | Tabs: The room (Pulse), Breaking, Trends, Rivals |
 | Ideas `/ideas` | Give me ideas, show me Brian's | Tabs: Brian's ideas, Get ideas, Inspiration. Packages and mockups open from their idea |
-| Calendar `/calendar` | What are we doing, and when? | Linear tasks, the CRM sheet, special days, ideas for any day |
-| Settings `/settings` | Admin | Coverage, sources, brand, models, what Brian has learned, accuracy, results |
+| Calendar `/calendar` | What are we doing, and when? | Linear tasks, the CRM sheet and special days (always shown, whatever the filters), ideas for any day |
+| Results `/results` | How did what we published do? | Posts, ideas, channels and the website (Rob moved it out of Calendar, 2026-10-20) |
+| Settings `/settings` | Admin | Coverage, sources, brand, models, what Brian has learned, accuracy |
 
 **Never add a sidebar item or a new top-level page.** A new feature goes inside one of the spaces: as a tab (`src/components/section-tabs.tsx`), a panel, a section or a button on an existing page. If a feature doesn't clearly belong in one space, that's a sign it isn't needed yet. Ask before building it. Old URLs are redirected in `next.config.ts`; keep them working when moving things.
 

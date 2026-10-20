@@ -1,10 +1,77 @@
-# Brian: complete documentation
 
-Generated from the `docs/` folder of the Brian repository, combined into one file so it can be read in a single pass.
+<!-- CLAUDE.md -->
+# Guide for AI assistants reviewing Brian
 
+Brian is Cashy's AI marketing engine (Next.js 16, TypeScript, Anthropic SDK). If you've been asked to review or explain it, start here.
 
----
+## Read first
 
+1. `docs/01-overview.md`: what it does and its current state
+2. `docs/02-architecture.md`: code layout, data model, request flows
+3. `docs/03-agents-and-pipelines.md`: every agent and pipeline
+4. `docs/04-sources-and-accuracy.md`: sources, ranking, accuracy enforcement, lifecycle model and backtest
+5. `docs/05-memory.md`: learning from feedback
+6. `docs/06-operations.md`: setup, login, spend cap, costs, known limits, roadmap
+7. `docs/07-data-import.md`: format for partner data feeds
+8. `docs/08-team-tool-setup.md`: calendar, Linear, CRM sheet, Google sign-in, model setup
+9. `docs/09-roadmap.md`: what comes next
+
+## Product rule: five spaces, no new top-level pages
+
+Brian is for a marketing team, so it has to stay obvious. The whole app is five spaces plus Settings, and that's fixed:
+
+| Space | The question it answers | What lives in it |
+|---|---|---|
+| Home `/` | What do I do today? | Due and overdue tasks, ideas waiting, the room in three lines, coming-up days |
+| Radar `/radar` | What's happening out there? | Tabs: The room (Pulse), Breaking, Trends, Rivals |
+| Ideas `/ideas` | Give me ideas, show me Brian's | Tabs: Brian's ideas, Get ideas, Inspiration. Packages and mockups open from their idea |
+| Calendar `/calendar` | What are we doing, and when? | Linear tasks, the CRM sheet and special days (always shown, whatever the filters), ideas for any day |
+| Results `/results` | How did what we published do? | Posts, ideas, channels and the website (Rob moved it out of Calendar, 2026-10-20) |
+| Settings `/settings` | Admin | Coverage, sources, brand, models, what Brian has learned, accuracy |
+
+**Never add a sidebar item or a new top-level page.** A new feature goes inside one of the spaces: as a tab (`src/components/section-tabs.tsx`), a panel, a section or a button on an existing page. If a feature doesn't clearly belong in one space, that's a sign it isn't needed yet. Ask before building it. Old URLs are redirected in `next.config.ts`; keep them working when moving things.
+
+Before adding anything, check it can be used without explanation by someone on the marketing team who has never seen Brian, and that an existing feature doesn't already do the job.
+
+## Where the important code is
+
+| Concern | File |
+|---|---|
+| Data model | `src/lib/domain/types.ts` |
+| Agent config, model calls, cost logging | `src/lib/adapters/model/index.ts` |
+| Idea pipeline (Inventor, Critic, Red Lines, Prior Art) | `src/lib/pipeline/ideas.ts` |
+| Campaign package pipeline | `src/lib/pipeline/develop.ts`, `src/lib/pipeline/package-schemas.ts` |
+| Discovery sweep and ranking | `src/lib/pipeline/sweep.ts` |
+| Pure maths (tested) | `src/lib/engine/` |
+| Data sources | `src/lib/adapters/sources/` |
+| Memory | `src/lib/memory.ts` |
+| Brand book, quality bar, Lab lenses | `src/lib/brand/` |
+
+## Verify claims yourself
+
+```bash
+npm install
+npm test            # 98 unit tests
+npm run typecheck
+npm run lint
+npm run build
+```
+
+## Honest status
+
+- Discovery runs on live data from free sources. The AI agents have been run end to end against the API (ideas, Lab, a full 11-section package); they need `ANTHROPIC_API_KEY`.
+- The lifecycle forecaster's backtest is reported as is: 74% of launch-window calls right versus 77% for naive momentum on the same data.
+- Storage is a local JSON file; the Postgres schema for the hosted build is in `supabase/migrations/`.
+- The sample package loaded by `npm run demo` is hand-written to show the format and is labelled as such in the app.
+
+## Conventions for anyone changing the code
+
+- Next.js 16 has breaking changes from older versions; read `node_modules/next/dist/docs/` before changing framework code (see `AGENTS.md`).
+- Anything that produces a number belongs in `src/lib/engine/` with a test.
+- Every external service sits behind an adapter; missing keys must switch features off, not break the app.
+- Never let a model write a URL that isn't in the evidence; never let a model do arithmetic.
+
+<!-- docs/01-overview.md -->
 # 1. Overview
 
 Brian is Cashy's AI marketing engine. It runs a team of specialised AI agents that watch internet culture, invent ideas only Cashy could run, and develop the chosen idea into a complete, agency-grade campaign package with a fully briefed project for the team.
@@ -60,9 +127,7 @@ This folder is the full documentation. Start here, then read in order:
 
 A clearly labelled sample package (*The Win Cap Bounty*) can be loaded with `npm run demo` to show the output format before the AI key is connected.
 
-
----
-
+<!-- docs/02-architecture.md -->
 # 2. Architecture
 
 ## Stack
@@ -183,9 +248,7 @@ Each section saves as it finishes. Steering (`POST /api/develop/:id/steer`) mark
 | Auth | None (local) | Supabase Auth, team roles |
 | Hosting | `next dev` | Vercel (check the host's policy for gambling-related content) |
 
-
----
-
+<!-- docs/03-agents-and-pipelines.md -->
 # 3. Agents and pipelines
 
 Most of Brian's "agents" are typed pipeline steps: one model call with a role, a brief and a validated output schema. This is cheaper, faster and more auditable than open-ended agent loops, and every step is logged with tokens, cost and latency. Configuration lives in `src/lib/adapters/model/index.ts`.
@@ -357,9 +420,7 @@ Rob's examples (Shuffle and Jack Doherty, Duel, Stake's logo, the kitchen-store 
 - A **code check** (`copiesExample`) kills ideas that reuse an example's signature (appliances, logos on viral videos, paying someone to stop posting, game maps in real streets…).
 - Ideas are no longer forced into template types named after the examples; the "Get ideas" types are written as principles.
 
-
----
-
+<!-- docs/04-sources-and-accuracy.md -->
 # 4. Sources, accuracy and forecasting
 
 ## Sources
@@ -468,9 +529,7 @@ On free attention data alone, the rules don't yet beat simple momentum. This is 
 - `scaleBudget()` scales spend and only the paid share of reach (for steering like "cut the budget in half")
 - `allocateBudget()` splits a total by weight using the largest-remainder method so parts always sum exactly
 
-
----
-
+<!-- docs/05-memory.md -->
 # 5. Memory
 
 Brian learns the owner's taste and applies it to every agent. Code: `src/lib/memory.ts`. Screen: **Memory**.
@@ -513,9 +572,7 @@ Every memory can be edited, paused (left out of briefs) or forgotten (deleted). 
 
 `scripts/memory-smoke.mts` runs nine checks against a temporary copy of the data (bare thumbs wait, reasoned verdicts are learned, one steer is ignored but two are learned, overrules are learned, memories reach briefs, usage is counted, paused memories are excluded, forgetting removes and logs).
 
-
----
-
+<!-- docs/06-operations.md -->
 # 6. Operations
 
 ## Requirements
@@ -638,9 +695,7 @@ Claude pricing used: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 p
 | Then | Reddit, Kick, TikTok via vendor; competitor tracking; creator shortlists from live data; video storyboards; Figma export; comments and versions UI; BitStarz |
 | Later | Analytics integration, live campaign dashboards, forecast versus actual, recalibration of the forecaster |
 
-
----
-
+<!-- docs/07-data-import.md -->
 # 7. Importing data (Brian Signal Format v1)
 
 Any feed that already runs elsewhere (X, Exa, Google Trends history, Telegram, anything else) gets into Brian through one format. Brian doesn't need to know how the data was collected.
@@ -705,22 +760,21 @@ Put `.jsonl` files in the `inbox` folder inside Brian's data directory (`.data/i
 - Don't include personal data Brian doesn't need (private messages, phone numbers, emails). Public posts, public channels and aggregate counts are what it uses
 - Prefer one record per post or message; Brian does the clustering
 
-
----
-
+<!-- docs/08-team-tool-setup.md -->
 # 8. Team tool: calendar, Linear, CRM sheet, Google sign-in, model setup
 
 Everything below is built and switched on by setting variables in Railway (or `.env.local` locally). Nothing needs code changes.
 
 ## How the app is organised
 
-Four spaces plus Settings, and nothing else in the sidebar (see the product rule in `CLAUDE.md`):
+Five spaces plus Settings, and nothing else in the sidebar (see the product rule in `CLAUDE.md`):
 
 - **Home**: what to do today: due and overdue tasks, ideas waiting, the room in three lines, special days coming up.
 - **Radar**: what's happening: The room (Pulse), Breaking, Trends, Rivals.
 - **Ideas**: Brian's ideas, Get ideas, Inspiration. Packages and mockups open from their idea.
-- **Calendar**: Linear tasks, the CRM sheet, special days, ideas for any day.
-- **Settings**: coverage and cost, sources, brand, models, what Brian has learned, accuracy, results.
+- **Calendar**: Linear tasks, the CRM sheet and special days (these two always show, whatever the filters), ideas for any day.
+- **Results**: how what we published did, by post, idea and channel, plus the website.
+- **Settings**: coverage and cost, sources, brand, models, what Brian has learned, accuracy.
 
 ## Working together
 
@@ -740,12 +794,12 @@ Four spaces plus Settings, and nothing else in the sidebar (see the product rule
 - **Special days** are filled in automatically: holidays, crypto anniversaries (Bitcoin Pizza Day, Genesis Block, whitepaper day…), internet and gaming days, Black Friday, Friday the 13ths, Super Bowl, Kentucky Derby, GTA 6. Add more in `src/lib/calendar/days.ts`.
 - **Brian inside the calendar:** open any day for *Post ideas* (three ideas, about $0.10), *A bigger move* (the full engine, about $0.75) or *Plan it myself*. Every idea has *Add as task*, which opens the editor filled in. On any idea page, *Add to calendar* does the same.
 
-## Results (Calendar → Results)
+## Results (its own space in the sidebar)
 
 - **Published:** on any calendar task, paste the link to each post once it's out. Brian reads X and Telegram posts by itself (YouTube too with `YOUTUBE_API_KEY`) when added and again at about 1 hour, 24 hours and 7 days, and every day for the first month. Instagram, TikTok and Discord numbers are entered on the task until their access is connected. On Linear tasks the post link is also attached to the issue.
 - **Our channels:** `BRIAN_CHANNELS` (default `telegram:playcashy,x:playcashy`). Brian records followers twice a day, and picks up every Telegram channel post by itself (views at 1 hour, 24 hours, 7 days), so nobody pastes those. X posts still need their link pasted until an X feed is connected.
 - **Tracking links:** every task has a campaign name and a link per channel (`utm_source`, `utm_medium`, `utm_campaign`, `utm_content`). Use those links in posts, newsletters and creator briefs so GA4 can tie visits and sign-ups to the task. The default destination is `https://cashy.com` (`NEXT_PUBLIC_BRIAN_DEFAULT_LINK` changes it).
-- **Results tab:** posts tracked, views, engagements, website visits and key events from them; top posts; a table by task and idea with Brian's prediction alongside; what works by channel, type of idea and day (once there are 3+ posts per group); and the website from GA4: sessions, users, key events, top sources, every campaign, top blog pages.
+- **Results page:** posts tracked, views, engagements, website visits and key events from them; top posts; a table by task and idea with Brian's prediction alongside; what works by channel, type of idea and day (once there are 3+ posts per group); and the website from GA4: sessions, users, key events, top sources, every campaign, top blog pages.
 
 **AI budget.** `BRIAN_BUDGET_USD` from `BRIAN_BUDGET_SINCE` (YYYY-MM-DD) is a hard total: no AI call runs if it would pass it, on top of `BRIAN_DAILY_CAP_USD`. The sidebar shows what's left. Local copies of Brian keep their own ledger, so give them a separate small budget and keep the two under the credit you bought.
 
@@ -819,9 +873,7 @@ Only verified Google accounts whose email **and** Workspace domain are on the li
 
 Paste any post the team finds clever and say why. Brian reads the latest 15 every time it invents, to learn the team's taste. *Riff on this* starts ideas from one. *Get ideas → Start from your own idea* takes a half-idea or "they did this, could we do something like it?".
 
-
----
-
+<!-- docs/09-roadmap.md -->
 # 9. Roadmap: making Brian the marketing team's daily tool
 
 Built so far: discovery (Live, Pulse, Trends), idea engine 4 with the audience panel, the swipe file and sparks, campaign packages with visuals, the marketing calendar on Linear, the CRM sheet, Google sign-in.
@@ -848,4 +900,3 @@ Built so far: discovery (Live, Pulse, Trends), idea engine 4 with the audience p
 - Run on Marko's Max or Team plan credits (an API key from that Console organisation) instead of a personal key.
 - Rotate the API keys pasted in chat earlier.
 - Move from the JSON file to Postgres (schema already in `supabase/migrations/`) once more than a handful of people use Brian daily.
-

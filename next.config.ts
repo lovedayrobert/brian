@@ -23,6 +23,7 @@ const nextConfig: NextConfig = {
       { source: "/develop", destination: "/ideas", permanent: false },
       { source: "/mockups", destination: "/ideas", permanent: false },
       { source: "/campaigns", destination: "/calendar", permanent: false },
+      { source: "/calendar/results", destination: "/results", permanent: false },
     ];
   },
 };
