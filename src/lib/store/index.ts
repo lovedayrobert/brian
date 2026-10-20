@@ -11,6 +11,7 @@ import type { Activity } from "@/lib/activity";
 import type { Comment } from "@/lib/collab-types";
 import type { Publication } from "@/lib/results/publications";
 import type { ChannelSnapshot } from "@/lib/results/channels";
+import type { XState } from "@/lib/adapters/sources/x";
 
 /**
  * Repository interface. The prototype uses a local JSON file so it runs with
@@ -65,6 +66,8 @@ export interface DB {
   channelStats: ChannelSnapshot[];
   /** X API post reads this month, so the bill stays under the limit */
   xUsage?: { month: string; reads: number; lastPull?: string; userId?: string };
+  /** X API discovery: spend this month and today, and the posts from the last pulls */
+  xState?: XState;
 }
 
 const EMPTY: DB = { signals: [], trends: [], moments: [], ideas: [], packages: [], agentRuns: [], sweeps: [], rapid: [], memories: [], memoryEvents: [], feedback: [], spendLedger: {}, imported: [], reviews: [], pulses: [], swipes: [], calendar: [], calendarMeta: {}, crmSync: null, people: [], activity: [], reactions: {}, comments: [], prefs: {}, publications: [], channelStats: [] };

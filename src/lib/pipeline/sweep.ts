@@ -70,7 +70,7 @@ export async function runSweep(log: (m: string) => void = console.log): Promise<
   return run;
 }
 
-const EVIDENCE_SOURCES = new Set(["press", "youtube", "googletrends"]);
+const EVIDENCE_SOURCES = new Set(["press", "youtube", "googletrends", "x"]);
 // External feeds without a daily curve (X posts, Telegram messages, Exa results) behave like articles;
 // ones with a curve (e.g. Google Trends history) become trends.
 const isArticle = (s: Signal) =>
@@ -115,7 +115,9 @@ export function buildTrends(signals: Signal[], now: Date): Trend[] {
       sourceIds: [...new Set([...(s.sourceId === "search" ? ["Google Trends", "wikipedia"] : [s.sourceId]), ...linked.map((l) => l.author ?? l.sourceId)])],
       series: s.series ?? [],
       seriesLabel:
-        s.sourceId === "wikipedia" || s.sourceId === "search"
+        s.sourceId === "xtrends"
+          ? "X trend strength by hour (top of the list = 50)"
+          : s.sourceId === "wikipedia" || s.sourceId === "search"
           ? "Daily Wikipedia views"
           : s.sourceId === "gdelt"
             ? "Daily news articles"

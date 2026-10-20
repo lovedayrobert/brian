@@ -96,3 +96,51 @@ export async function xOwnPosts(userId: string, max: number): Promise<XPost[]> {
     clicks: t.non_public_metrics?.url_link_clicks,
   }));
 }
+
+/** App-only reads (search) need just the app's Bearer Token. */
+export function xSearchReady(): boolean {
+  return !!process.env.X_BEARER_TOKEN;
+}
+
+export interface XSearchPost extends XPost {
+  author: string;
+  authorName: string;
+  followers?: number;
+}
+
+/**
+ * Recent search, top results first. `max` (10-100) is the number of post
+ * reads it costs. Bills per post returned under X's pay-per-use pricing.
+ */
+export async function xSearch(query: string, max: number, sort: "relevancy" | "recency" = "relevancy"): Promise<XSearchPost[]> {
+  type Tweet = { id: string; text: string; created_at: string; author_id: string; public_metrics: { retweet_count: number; reply_count: number; like_count: number; quote_count: number; bookmark_count?: number; impression_count?: number } };
+  type User = { id: string; username: string; name: string; public_metrics?: { followers_count: number } };
+  const params = new URLSearchParams({
+    query,
+    max_results: String(Math.max(10, Math.min(100, max))),
+    sort_order: sort,
+    "tweet.fields": "created_at,public_metrics,author_id",
+    expansions: "author_id",
+    "user.fields": "username,name,public_metrics",
+  });
+  const res = await fetch(`https://api.x.com/2/tweets/search/recent?${params}`, { headers: { Authorization: `Bearer ${process.env.X_BEARER_TOKEN}` }, signal: AbortSignal.timeout(20_000) });
+  const j = (await res.json().catch(() => ({}))) as { data?: Tweet[]; includes?: { users?: User[] }; detail?: string; title?: string };
+  if (!res.ok) throw new Error(`X API ${res.status}: ${j.detail ?? j.title ?? "error"}`);
+  const users = new Map((j.includes?.users ?? []).map((u) => [u.id, u]));
+  return (j.data ?? []).map((t) => {
+    const u = users.get(t.author_id);
+    return {
+      id: t.id,
+      text: t.text,
+      createdAt: t.created_at,
+      views: t.public_metrics.impression_count,
+      likes: t.public_metrics.like_count,
+      reposts: t.public_metrics.retweet_count + t.public_metrics.quote_count,
+      replies: t.public_metrics.reply_count,
+      saves: t.public_metrics.bookmark_count,
+      author: u?.username ?? t.author_id,
+      authorName: u?.name ?? "",
+      followers: u?.public_metrics?.followers_count,
+    };
+  });
+}

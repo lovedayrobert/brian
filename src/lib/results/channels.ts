@@ -99,7 +99,8 @@ export async function snapshotChannels(): Promise<void> {
             d.channelStats = [...(d.channelStats ?? []), { at: now, channel: c.key, followers: x.followers, posts: x.posts }];
           });
         }
-        if (xReady()) await readOwnXPosts(c.key);
+        // Our own posts through the API only if asked: links pasted on tasks are read free.
+        if (xReady() && process.env.X_TRACK_OWN === "1") await readOwnXPosts(c.key);
       }
     } catch (e) {
       console.error(`Channel ${c.key}:`, (e as Error).message);

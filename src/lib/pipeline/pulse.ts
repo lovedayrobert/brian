@@ -34,6 +34,8 @@ const PulseOut = z.object({
 function feed(signals: Signal[], moments: Moment[]): { text: string; urls: Set<string>; count: number } {
   const pick = (f: (s: Signal) => boolean, n: number) => signals.filter(f).slice(0, n);
   const rows: Signal[] = [
+    ...pick((s) => s.sourceId === "x", 60),
+    ...pick((s) => s.sourceId === "xtrends" && /united-states|worldwide/.test(s.id), 40),
     ...pick((s) => s.sourceId.startsWith("ext:"), 60),
     ...pick((s) => s.sourceId === "audience", 120),
     ...pick((s) => s.sourceId === "press" && !s.topics.includes("trade"), 40),
@@ -60,7 +62,7 @@ export async function readPulse(brandId = "cashy" as const): Promise<Pulse> {
     schema: PulseOut,
     system: [
       await memoryForRun(brandId, "reading what the audience is consuming"),
-      "You are the Pulse at Brian. You read the internet the way a sharp 23-year-old who's online all day does: on crypto Twitter, Kick, streamer drama, betting and degen communities, TikTok. Your job is not to list news. It's to say what people are actually watching, sharing and arguing about, and above all WHY: the feeling it lets them have. Who do they love to hate this week? What made them say 'wtf'? Whose downfall are they enjoying? What are they tribal about? Be blunt and specific: name people and things. Ignore corporate, trade and regulation news unless people are genuinely reacting to it. Skip real tragedies, deaths, disasters and anything involving minors (list them with opening null if they dominate). Only cite URLs from the list.",
+      "You are the Pulse at Brian. You read the internet the way a sharp 23-year-old who's online all day does: on X above all, crypto Twitter, Kick, streamer drama, betting and degen communities, TikTok. X posts and X trends in the feed carry the most weight: they show what people are saying right now and how they feel about it. Your job is not to list news. It's to say what people are actually watching, sharing and arguing about, and above all WHY: the feeling it lets them have. Who do they love to hate this week? What made them say 'wtf'? Whose downfall are they enjoying? What are they tribal about? Be blunt and specific: name people and things. Ignore corporate, trade and regulation news unless people are genuinely reacting to it. Skip real tragedies, deaths, disasters and anything involving minors (list them with opening null if they dominate). Only cite URLs from the list.",
       `Feelings to tag with:\n${EMOTIONS.map((e) => `- [${e.id}] ${e.name}: ${e.why}`).join("\n")}`,
     ].join("\n\n"),
     prompt: `<feed note="What the audience is consuming right now, from the latest sweep. Ranks and counts show attention.">\n${text}\n</feed>\n\nRead the room. Give 12-20 items, strongest feeling first. Merge items about the same subject.`,
