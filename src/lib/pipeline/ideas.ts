@@ -439,12 +439,18 @@ function labContext(moments: Moment[], signals: Signal[], lensId: string, steer?
   const coins = signals.filter((s) => s.sourceId === "trenches" && s.narrative?.kind === "culture");
   const builds = signals.filter((s) => s.sourceId === "builds");
   const posts = signals.filter((s) => s.sourceId.startsWith("ext:"));
+  // X: the most engaged posts first (what people are actually saying), and what's trending right now.
+  const xPosts = signals.filter((s) => s.sourceId === "x").sort((a, b) => (b.metric?.value ?? 0) - (a.metric?.value ?? 0));
+  const xTrends = signals
+    .filter((s) => s.sourceId === "xtrends" && /united-states|worldwide|united-kingdom/.test(s.id))
+    .sort((a, b) => (b.series?.at(-1)?.value ?? 0) + (b.metric?.value ?? 0) * 2 - ((a.series?.at(-1)?.value ?? 0) + (a.metric?.value ?? 0) * 2));
   const rivals = signals.filter((s) => s.sourceId === "press" && /\b(stake|shuffle|rollbit|roobet|bc\.game|rainbet|duel)\b/i.test(`${s.title} ${s.summary ?? ""}`));
 
   const evidence: Signal[] = [
     ...(lensId === "wrong-place" || lensId === "everywhere" ? pick(builds, 12) : pick(builds, 4)),
     ...(lensId === "main-character" ? pick(coins, 8) : pick(coins, 3)),
     ...pick(signals.filter((s) => s.sourceId === "audience"), lensId === "blank-page" || lensId === "main-character" || lensId === "villain" ? 40 : 20),
+    ...pick(xPosts, lensId === "main-character" || lensId === "villain" || lensId === "schadenfreude" || lensId === "blank-page" ? 40 : 25),
     ...pick(posts, 25),
     ...pick(rivals, lensId === "rival-raid" ? 15 : 3),
   ];
@@ -461,6 +467,9 @@ ${steer ? `\n<steer>\nThe campaign owner adds: ${steer}\n</steer>\n` : ""}
 <context note="What is happening right now, for awareness. You are not required to use any of it.">
 Culture right now:
 ${culture.slice(0, lensId === "main-character" || lensId === "villain" || lensId === "schadenfreude" ? 25 : 12).map((m) => `- ${m.title} ${m.sourceUrl ?? ""}`).join("\n")}
+
+Trending on X right now (hours in the top 50 of the last 24):
+${[...new Map(xTrends.map((t) => [t.title.toLowerCase(), t])).values()].slice(0, 25).map((t) => `- ${t.title} (${t.metric?.value ?? 0}h)`).join("\n")}
 
 Coming up:
 ${calendar.slice(0, 8).map((m) => `- ${m.date.slice(0, 10)} ${m.title} ${m.sourceUrl ?? ""}`).join("\n")}
