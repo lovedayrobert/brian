@@ -1,19 +1,19 @@
 "use client";
 
 import clsx from "clsx";
-import { BarChart3, Brain, GraduationCap, CalendarRange, ChevronDown, Home, Lightbulb, Menu, Radar, Settings, X } from "lucide-react";
+import { ArrowLeft, BarChart3, Brain, CalendarRange, ChevronDown, Home, Lightbulb, Menu, Radar, Settings, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { relativeTime } from "@/lib/format";
 
 /**
- * The whole app is six spaces. New features go inside one of them (as a tab,
- * a panel or a section), never as a new item here. See CLAUDE.md.
+ * Brian himself is the home screen (/) with no sidebar. This sidebar is only
+ * for the team tools behind him. New features go inside an existing tool,
+ * never as a new item here. See CLAUDE.md.
  */
 const NAV = [
-  { href: "/", label: "Home", hint: "What to do today", icon: Home, also: [] as string[] },
-  { href: "/learning", label: "Learning", hint: "What worked, and why", icon: GraduationCap, also: ["/memory"] },
+  { href: "/home", label: "Today", hint: "Tasks and what's coming up", icon: Home, also: [] as string[] },
   { href: "/radar", label: "Radar", hint: "What's happening out there", icon: Radar, also: [] },
   { href: "/ideas", label: "Ideas", hint: "Get ideas, review Brian's", icon: Lightbulb, also: ["/develop", "/mockups", "/review"] },
   { href: "/calendar", label: "Calendar", hint: "Plan and track the work", icon: CalendarRange, also: [] },
@@ -40,6 +40,8 @@ export function Shell({ children, status }: { children: React.ReactNode; status:
   const setOpen = (v: boolean) => setOpenOn(v ? pathname : null);
 
   if (pathname === "/login") return <main className="px-4">{children}</main>;
+  // Brian's own screen has no sidebar: it is the product. The team tools sit behind it.
+  if (pathname === "/") return <>{children}</>;
 
   const isActive = (href: string, also: string[] = []) => (href === "/" ? pathname === "/" : [href, ...also].some((h) => pathname.startsWith(h)));
 
@@ -55,6 +57,10 @@ export function Shell({ children, status }: { children: React.ReactNode; status:
         </div>
       </div>
 
+      <Link href="/" className="mb-3 flex items-center gap-2 rounded-[9px] px-3 py-[7px] text-[13px] text-ink-2 hover:bg-surface-3/70 hover:text-ink">
+        <ArrowLeft className="h-4 w-4" /> Back to Brian
+      </Link>
+      <div className="px-3 pb-1 text-[11px] font-medium uppercase tracking-[0.06em] text-ink-3">Team tools</div>
       <BrandSwitcher />
 
       <div className="mt-4 flex-1 space-y-5 overflow-y-auto scrollbar-none">
@@ -88,10 +94,10 @@ export function Shell({ children, status }: { children: React.ReactNode; status:
           href="/settings"
           className={clsx(
             "flex items-center gap-2.5 rounded-[9px] px-3 py-[7px] text-[13.5px] transition-colors",
-            isActive("/settings") ? "bg-surface text-ink shadow-card font-medium" : "text-ink-2 hover:bg-surface-3/70 hover:text-ink",
+            isActive("/settings", ["/memory"]) ? "bg-surface text-ink shadow-card font-medium" : "text-ink-2 hover:bg-surface-3/70 hover:text-ink",
           )}
         >
-          <Settings className={clsx("h-4 w-4", isActive("/settings") ? "text-accent" : "text-ink-3")} strokeWidth={1.9} />
+          <Settings className={clsx("h-4 w-4", isActive("/settings", ["/memory"]) ? "text-accent" : "text-ink-3")} strokeWidth={1.9} />
           Settings
         </Link>
         <SystemStatus status={status} />

@@ -1,5 +1,5 @@
 import { BrainCircuit, BookOpen, Eye, Lightbulb, Pause, Pencil, Sparkles, ThumbsDown, ThumbsUp, Trash2, Wand2 } from "lucide-react";
-import { LEARNING_TABS, SectionTabs } from "@/components/section-tabs";
+import { SETTINGS_TABS, SectionTabs } from "@/components/section-tabs";
 import Link from "next/link";
 import { ActionButton } from "@/components/action-button";
 import { MemoryItem, TeachBox } from "@/components/memory-controls";
@@ -32,7 +32,7 @@ export default async function MemoryPage({ searchParams }: { searchParams: Promi
 
   return (
     <>
-      <SectionTabs space="Learning" tabs={LEARNING_TABS} active="memory" />
+      <SectionTabs space="Settings" tabs={SETTINGS_TABS} active="memory" />
       <PageHeader
         eyebrow={
           <span className="inline-flex items-center gap-1.5">
