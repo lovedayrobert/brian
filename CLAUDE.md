@@ -50,7 +50,7 @@ Before adding anything, check it can be used without explanation by someone on t
 
 ```bash
 npm install
-npm test            # 107 unit tests
+npm test            # 112 unit tests
 npm run typecheck
 npm run lint
 npm run build

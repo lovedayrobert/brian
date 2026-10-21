@@ -1,3 +1,4 @@
+import { ideaVerdict } from "@/lib/brain";
 import { learnFromBehaviour, recordFeedback } from "@/lib/memory";
 import { repo } from "@/lib/store";
 import { fail, requireUser , setActor } from "../_util";
@@ -26,6 +27,8 @@ export async function POST(req: Request) {
     } else {
       await recordFeedback({ target, sentiment, reason });
     }
+    // The verdict flows back into the brain pieces the idea was built on.
+    if (target.type === "idea") await ideaVerdict(target.id, reject || sentiment === "down" ? "rejected" : "liked");
     return Response.json({ id: target.id });
   } catch (e) {
     return fail(e);

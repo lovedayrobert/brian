@@ -15,16 +15,6 @@ import { repo } from "@/lib/store";
  * one to rebuild the identity (about $0.10).
  */
 
-const BreakdownOut = z.object({
-  whatHappened: z.string().describe("What the brand actually did, in one or two plain sentences"),
-  feeling: z.string().describe("The feeling it used (hate, hype, disbelief, envy, schadenfreude, love...) and who already had it"),
-  whySpread: z.string().describe("Why people shared it: what sharing it let them say about themselves"),
-  whyBrand: z.string().describe("Why the brand got the credit: why it can't be retold without the brand's name"),
-  timing: z.string().describe("What it rode: an event, a season, a moment, a conversation. 'None' if it was timeless"),
-  lesson: z.string().describe("The one reusable lesson, in one sentence, abstract enough to apply to a completely different idea"),
-  dontCopy: z.string().describe("The surface to never reuse: the object, format, target or joke"),
-  unsure: z.string().nullable().describe("What you can't tell from the link (e.g. it's a video you can't watch, no numbers). null if nothing"),
-});
 
 const TEACHER = [
   "You are the Teacher at Brian, the marketing brain of Cashy, a crypto casino. The team links campaigns and posts they think worked (theirs, rivals', anyone's), and you explain why, like a sharp marketer briefing a colleague. You're after the mechanism, not a summary: the feeling it used, why people shared it, why the brand got the credit, what it rode. The lesson must transfer to a completely different idea; the surface (object, format, target, joke) is what must never be copied.",
@@ -32,38 +22,14 @@ const TEACHER = [
   STYLE_RULES,
 ].join("\n\n");
 
-function describe(s: Swipe): string {
-  const metrics = s.metrics && Object.keys(s.metrics).length ? Object.entries(s.metrics).map(([k, v]) => `${v.toLocaleString("en-US")} ${k}`).join(", ") : "no numbers";
-  return [
-    `Link: ${s.url} (${s.platform}${s.author ? `, ${s.author}` : ""}${s.owner ? `, ${s.owner === "ours" ? "Cashy's own" : s.owner === "competitor" ? "a competitor's" : "someone else's"}` : ""})`,
-    s.event ? `Made for: ${s.event}` : "",
-    `Numbers: ${metrics}`,
-    `What it says:\n${(s.text || s.title).slice(0, 6000)}`,
-    s.why ? `Why the team likes it: ${s.why}` : "The team didn't say why. Work it out.",
-    ...(s.feedback ?? []).map((f) => `The team said your last explanation was ${f.verdict}${f.note ? `: ${f.note}` : "."}`),
-    s.breakdown ? `Your last explanation: ${JSON.stringify({ ...s.breakdown, at: undefined })}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
 
+/** Digests the example into Brian's brain; the explanation on the card comes from the same call. */
 export async function breakDown(id: string): Promise<Breakdown> {
+  const { digest } = await import("@/lib/brain");
+  await digest(id);
   const s = (await repo.read()).swipes?.find((x) => x.id === id);
-  if (!s) throw new Error("That example is gone.");
-  const out = await callStructured({
-    agent: "teacher",
-    subject: s.title.slice(0, 60),
-    schema: BreakdownOut,
-    maxTokens: 4000,
-    system: TEACHER,
-    prompt: `${describe(s)}\n\n${s.breakdown ? "Rewrite your explanation using the team's feedback." : "Explain why it worked."}`,
-  });
-  const breakdown: Breakdown = { at: new Date().toISOString(), ...out, unsure: out.unsure ?? undefined };
-  await repo.update((d) => {
-    const x = d.swipes?.find((y) => y.id === id);
-    if (x) x.breakdown = breakdown;
-  });
-  return breakdown;
+  if (!s?.breakdown) throw new Error("Brian couldn't digest that one.");
+  return s.breakdown;
 }
 
 /** The team's verdict on Brian's explanation. A note means Brian rewrites it. */

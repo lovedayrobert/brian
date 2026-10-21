@@ -11,6 +11,7 @@ import { toolkitContext } from "./context";
 import { currentActor } from "@/lib/actor";
 import { logActivity } from "@/lib/activity";
 import { specialDayById } from "@/lib/calendar/days";
+import { brainContext, industryContext, recordUses } from "@/lib/brain";
 import { learningContext } from "@/lib/learning";
 import { swipeLine } from "@/lib/swipe";
 import type { DB } from "@/lib/store";
@@ -32,6 +33,7 @@ const InventorOut = z.object({
       move: z.string().describe("The idea in one plain sentence, the way a colleague would say it. No campaign names."),
       size: z.enum(["reply", "post", "meme", "act", "campaign"]).describe("The smallest size that lands. reply = a reply under someone else's post; post = one post from Cashy's account; meme = one image or clip with a caption; act = something Cashy actually does in the world; campaign = rare, several parts"),
       world: z.enum(WORLDS).describe(WORLD_HINT),
+      builtOn: z.array(z.string()).describe("Ids from brian_brain this idea is built on: at least one truth and one mechanic when the brain has them. Empty only if the brain is empty"),
       subject: z.string().describe("Who or what it's about, in 1-4 words, e.g. 'Kai Cenat Trackhawk', 'Spider-Man kicker', 'AI girlfriend scam'"),
       post: z.string().nullable().describe("For reply, post or meme: the exact words (and what the image shows, for a meme), ready to publish. null for acts and campaigns"),
       emotion: z.enum(EMOTIONS.map((e) => e.id) as [string, ...string[]]),
@@ -164,6 +166,7 @@ export async function generateIdeas(opts: {
     liveBrandContext(await ensureLiveBrand()),
     brandVoiceContext(opts.brandId),
     qualityBarContext(),
+    brainContext(db.brain),
     learningContext(db.swipes, db.identity, opts.dayId ? specialDayById(opts.dayId)?.title : undefined),
     `<horizon>\n${HORIZON_BRIEF[horizon]}\n</horizon>`,
     ACCURACY_RULES,
@@ -265,6 +268,7 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
       "You are the audience panel at Brian. For every candidate you first react as each panel member, instantly and in their own voice, the way they'd react seeing it on their timeline: would they share it, and what would they feel? Only then do you judge. You are harsh: most ideas die here. Love-hate counts: if haters would share it to condemn it, that's distribution. Automatic kills: anything that reuses the concept, object, format or target of an idea in already_done (learning why it worked is the point; copying it is not); any offer, deal, gift, bounty or outreach to a famous or rich person (they're millionaires; it's out of touch); a small joke inflated into a deal, stunt or campaign (it should have been a post); anything that only works if a famous person or another brand replies, cooperates or notices; someone cast as a villain who isn't widely disliked; scripted content (POVs, acted skits, series); anything about Cashy's product; anything with no strong feeling behind it; and anything that reads like an ad or an AI wrote it. A sharp one-line post that people would actually share is a pass, not a lesser idea.",
       STYLE_RULES,
       toolkitContext(opts.brandId, db),
+      industryContext(db.brain),
       `<panel>\n${AUDIENCE_PANEL.map((p) => `- [${p.id}] ${p.who}`).join("\n")}\n</panel>`,
       brandVoiceContext(opts.brandId),
       qualityBarContext(),
@@ -312,6 +316,7 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
       size: c.size,
       subject: c.subject,
       madeBy: c.madeBy,
+      builtOn: c.builtOn?.filter((id) => (db.brain ?? []).some((n) => n.id === id)),
       world: c.world,
       post: c.post ? stripDisclaimer(c.post) : undefined,
       headline: c.headline,
@@ -413,6 +418,8 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
       d.ideas = [...ideas, ...d.ideas.filter((i) => !ids.has(i.id))];
       if (log) {
         const kept = ideas.filter((i) => i.status === "card");
+        // Ideas that reach the team remember what they were built on, so their verdict can flow back.
+        for (const k of kept) if (k.builtOn?.length) recordUses(d.brain ?? [], k.id, k.builtOn, new Date().toISOString());
         logActivity(d, {
           type: "idea.generated",
           text: `got ${ideas.length} ideas from ${subject}; the panel kept ${kept.length}`,

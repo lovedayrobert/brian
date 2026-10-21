@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { dataDir } from "@/lib/paths";
-import type { AgentRun, CalendarItem, Idea, Moment, Package, Pulse, Signal, Swipe, SweepRun, Trend, Identity } from "@/lib/domain/types";
+import type { AgentRun, CalendarItem, Idea, Moment, Package, Pulse, Signal, Swipe, SweepRun, Trend, Identity, BrainNode, BrainQuestion, Digest } from "@/lib/domain/types";
 import type { RapidResponse } from "@/lib/pipeline/rapid";
 import type { BacktestResult } from "@/lib/engine/backtest";
 import type { Feedback, Memory, MemoryEvent } from "@/lib/memory";
@@ -70,6 +70,10 @@ export interface DB {
   xUsage?: { month: string; reads: number; lastPull?: string; userId?: string };
   /** What Brian did on his own: reads, the morning Pulse, and idea runs on hot days */
   autopilot?: AutopilotState;
+  /** Brian's brain: truths, mechanics and industry memory, with evidence */
+  brain?: BrainNode[];
+  brainQuestions?: BrainQuestion[];
+  digests?: Digest[];
   /** Who Cashy is, built from the team's Learning examples and feedback */
   identity?: Identity;
   /** Cashy's voice, read from its website and channels */

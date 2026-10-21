@@ -200,6 +200,8 @@ export interface Idea {
   size?: "reply" | "post" | "meme" | "act" | "campaign";
   /** Which model invented it (Opus, Fable, GPT-6 Astra) */
   madeBy?: string;
+  /** The brain pieces (truths and mechanics) it was built on */
+  builtOn?: string[];
   /** Which world it's about (streaming, sport, crypto…), for spreading ideas out. */
   world?: string;
   /** Who or what it's about, in a few words */
@@ -392,6 +394,51 @@ export interface Breakdown {
   dontCopy: string;
   /** What Brian couldn't tell from the link (e.g. it's a video he can't watch) */
   unsure?: string;
+}
+
+/**
+ * Brian's brain: what he knows, as truths about the audience, mechanics of why
+ * things spread, and memory of what the industry has done. Each piece keeps
+ * its evidence, what the team said, and whether ideas built on it worked.
+ */
+export type BrainKind = "truth" | "mechanic" | "industry";
+
+export interface BrainNode {
+  id: string;
+  kind: BrainKind;
+  /** The truth or mechanic in one sentence; for industry: what was done */
+  text: string;
+  /** Why it's true or why it works; for industry: how it landed */
+  detail: string;
+  /** Industry only: whose it was, and what could have been better (the gap) */
+  brand?: string;
+  gap?: string;
+  /** Examples that back it (or argue against it) */
+  evidence: { swipeId: string; note: string; supports: boolean; at: string }[];
+  /** The team's direct verdicts on this piece */
+  team: { by: string; at: string; agree: boolean; note?: string }[];
+  /** Ideas built on it, and how the team judged them */
+  uses: { ideaId: string; at: string; verdict?: "liked" | "rejected" }[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Something Brian can't square from what he's been taught. Answers become rules. */
+export interface BrainQuestion {
+  id: string;
+  text: string;
+  nodeIds: string[];
+  swipeId?: string;
+  createdAt: string;
+  answer?: { by: string; at: string; text: string };
+}
+
+/** Brian's thinking while digesting one example, kept so it can be shown. */
+export interface Digest {
+  swipeId: string;
+  at: string;
+  thinking: { step: string; thought: string }[];
+  touched: { nodeId: string; change: "new" | "stronger" | "weaker" }[];
 }
 
 /** Who Cashy is, built from everything the team has taught Brian. */
