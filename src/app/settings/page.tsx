@@ -236,7 +236,7 @@ function ModelsTab({ db }: { db: Awaited<ReturnType<typeof load>> }) {
       <Card className="p-5 text-[13.5px] leading-relaxed">
         {qualityMax() ? (
           <>
-            <span className="font-medium">Max quality is on.</span> {astraOn() ? "Fable 5.1 and GPT-6 Astra each write ideas, in parallel; Opus 5.5 runs the audience panel and judges them all. Each idea shows which model made it. About $2 per idea run." : "Fable 5.1 writes ideas; Opus 5.5 runs the audience panel. About $1.50 per idea run. GPT-6 Astra is off (BRIAN_ASTRA=0)."}
+            <span className="font-medium">Max quality is on.</span> {astraOn() ? "Fable 5.1 and GPT-6 Astra each write ideas, in parallel; Opus 5.5 runs the audience panel and judges them all. Each idea shows which model made it. About $2 per idea run." : "Fable 5.1 writes ideas; Opus 5.5 runs the audience panel. About $1.50 per idea run. GPT-6 Astra is off (BRIAN_ASTRA=1 turns it back on)."}
           </>
         ) : (
           <>
@@ -247,7 +247,7 @@ function ModelsTab({ db }: { db: Awaited<ReturnType<typeof load>> }) {
       <Card className="p-5 text-[13.5px] leading-relaxed">
         {autoEnabled() ? (
           <>
-            <span className="font-medium">Brian works on his own.</span> He reads every {Number(process.env.BRIAN_AUTO_SWEEP_HOURS) || 3} hours, reads the room each morning from {String(process.env.BRIAN_AUTO_HOUR ?? 7).padStart(2, "0")}:00 UTC (Sonnet), and only when something scores {HOT}/10 or more for feeling does he run ideas, on Opus alone (about $0.70). At most one run a day; nothing hot means no run. {autoIdeas() ? "" : "Automatic idea runs are paused (BRIAN_AUTO_IDEAS=0) while the team teaches Brian in Learning."}
+            <span className="font-medium">Brian works on his own.</span> He reads every {Number(process.env.BRIAN_AUTO_SWEEP_HOURS) || 3} hours, reads the room each morning from {String(process.env.BRIAN_AUTO_HOUR ?? 7).padStart(2, "0")}:00 UTC (Sonnet), and only when something scores {HOT}/10 or more for feeling does he run ideas, on Opus alone (about $0.70). At most one run a day; nothing hot means no run. {autoIdeas() ? "" : "Automatic idea runs are paused (BRIAN_AUTO_IDEAS=1 resumes them) while the team teaches Brian in Learning."}
             {db.autopilot?.last && <span className="text-ink-3"> Last: {db.autopilot.last.note}</span>}
           </>
         ) : (

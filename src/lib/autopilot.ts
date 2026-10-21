@@ -15,9 +15,9 @@ import { repo } from "@/lib/store";
  */
 export const HOT = 8;
 
-/** Automatic idea runs. Paused since 21 Oct (BRIAN_AUTO_IDEAS=0) while the team teaches Brian; reads and the Pulse carry on. */
+/** Automatic idea runs. Paused since 21 Oct (set BRIAN_AUTO_IDEAS=1 to resume) while the team teaches Brian; reads and the Pulse carry on. */
 export function autoIdeas(): boolean {
-  return process.env.BRIAN_AUTO_IDEAS !== "0";
+  return process.env.BRIAN_AUTO_IDEAS === "1";
 }
 
 export function autoEnabled(): boolean {
