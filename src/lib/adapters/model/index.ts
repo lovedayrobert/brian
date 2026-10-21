@@ -73,6 +73,11 @@ export function qualityMax(): boolean {
   return process.env.BRIAN_QUALITY === "max" && !standard.getStore();
 }
 
+/** GPT-6 Astra writing ideas alongside Fable. Off since 21 Oct (BRIAN_ASTRA=0): its ideas were the weakest and it doubled the cost. */
+export function astraOn(): boolean {
+  return qualityMax() && checkerReady() && process.env.BRIAN_ASTRA !== "0";
+}
+
 export function agentConfig(agent: AgentName) {
   const base = AGENTS[agent];
   const override = process.env[`BRIAN_MODEL_${agent.replace(/[A-Z]/g, (c) => `_${c}`).toUpperCase()}`];

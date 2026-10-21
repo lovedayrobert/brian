@@ -15,6 +15,11 @@ import { repo } from "@/lib/store";
  */
 export const HOT = 8;
 
+/** Automatic idea runs. Paused since 21 Oct (BRIAN_AUTO_IDEAS=0) while the team teaches Brian; reads and the Pulse carry on. */
+export function autoIdeas(): boolean {
+  return process.env.BRIAN_AUTO_IDEAS !== "0";
+}
+
 export function autoEnabled(): boolean {
   return process.env.BRIAN_AUTO === "1";
 }
@@ -70,7 +75,7 @@ export async function tick(now = new Date()): Promise<void> {
         await readPulse();
         return;
       }
-      if (todo.ideas) {
+      if (todo.ideas && autoIdeas()) {
         await setState({ ideasDay: day(now) });
         const pulse = db.pulses?.[0];
         const hot = hotItems(pulse?.items ?? []);

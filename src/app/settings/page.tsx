@@ -1,9 +1,9 @@
-import { autoEnabled, HOT } from "@/lib/autopilot";
+import { autoEnabled, autoIdeas, HOT } from "@/lib/autopilot";
 import clsx from "clsx";
 import { CostPlanner } from "@/components/cost-planner";
 import { Card, Pill, SectionTitle } from "@/components/ui";
 import { SETTINGS_TABS, SectionTabs } from "@/components/section-tabs";
-import { AGENTS, agentConfig, checkerModel, checkerReady, modelReady, qualityMax, spendStatus, type AgentName } from "@/lib/adapters/model";
+import { AGENTS, agentConfig, checkerModel, checkerReady, modelReady, qualityMax, spendStatus, type AgentName, astraOn } from "@/lib/adapters/model";
 import { authMode } from "@/lib/auth";
 import { imageReady } from "@/lib/adapters/image";
 import { sourceState } from "@/lib/adapters/sources/registry";
@@ -236,7 +236,7 @@ function ModelsTab({ db }: { db: Awaited<ReturnType<typeof load>> }) {
       <Card className="p-5 text-[13.5px] leading-relaxed">
         {qualityMax() ? (
           <>
-            <span className="font-medium">Max quality is on.</span> Fable 5.1{checkerReady() ? " and GPT-6 Astra" : ""} each write ideas, in parallel; Opus 5.5 runs the audience panel and judges them all. Each idea shows which model made it. About $2 per idea run.
+            <span className="font-medium">Max quality is on.</span> {astraOn() ? "Fable 5.1 and GPT-6 Astra each write ideas, in parallel; Opus 5.5 runs the audience panel and judges them all. Each idea shows which model made it. About $2 per idea run." : "Fable 5.1 writes ideas; Opus 5.5 runs the audience panel. About $1.50 per idea run. GPT-6 Astra is off (BRIAN_ASTRA=0)."}
           </>
         ) : (
           <>
@@ -247,7 +247,7 @@ function ModelsTab({ db }: { db: Awaited<ReturnType<typeof load>> }) {
       <Card className="p-5 text-[13.5px] leading-relaxed">
         {autoEnabled() ? (
           <>
-            <span className="font-medium">Brian works on his own.</span> He reads every {Number(process.env.BRIAN_AUTO_SWEEP_HOURS) || 3} hours, reads the room each morning from {String(process.env.BRIAN_AUTO_HOUR ?? 7).padStart(2, "0")}:00 UTC (Sonnet), and only when something scores {HOT}/10 or more for feeling does he run ideas, on Opus alone (about $0.70). At most one run a day; nothing hot means no run. Fable{checkerReady() ? " and Astra" : ""} are kept for runs you start.
+            <span className="font-medium">Brian works on his own.</span> He reads every {Number(process.env.BRIAN_AUTO_SWEEP_HOURS) || 3} hours, reads the room each morning from {String(process.env.BRIAN_AUTO_HOUR ?? 7).padStart(2, "0")}:00 UTC (Sonnet), and only when something scores {HOT}/10 or more for feeling does he run ideas, on Opus alone (about $0.70). At most one run a day; nothing hot means no run. {autoIdeas() ? "" : "Automatic idea runs are paused (BRIAN_AUTO_IDEAS=0) while the team teaches Brian in Learning."}
             {db.autopilot?.last && <span className="text-ink-3"> Last: {db.autopilot.last.note}</span>}
           </>
         ) : (
@@ -285,7 +285,7 @@ function ModelsTab({ db }: { db: Awaited<ReturnType<typeof load>> }) {
           <tbody className="divide-y divide-line">
             {Object.entries(AGENTS)
               // Only the agents this setup actually uses.
-              .filter(([k]) => (k === "planner" ? process.env.BRIAN_PLANNER === "1" : k === "checker" ? process.env.BRIAN_SECOND_OPINION === "1" && checkerReady() : k === "astra" ? qualityMax() && checkerReady() : true))
+              .filter(([k]) => (k === "planner" ? process.env.BRIAN_PLANNER === "1" : k === "checker" ? process.env.BRIAN_SECOND_OPINION === "1" && checkerReady() : k === "astra" ? astraOn() : true))
               .map(([k, base]) => {
               const model = k === "astra" || k === "checker" ? checkerModel() : agentConfig(k as AgentName).model;
               const a = { ...base, model, label: k === "inventor" && model.includes("fable") ? "Inventor (Fable)" : base.label };

@@ -1,5 +1,5 @@
 import * as z from "zod/v4";
-import { callChecker, callStructured, checkerReady, preflight, qualityMax, research, SpendCapError } from "@/lib/adapters/model";
+import { callChecker, callStructured, checkerReady, preflight, qualityMax, research, SpendCapError, astraOn } from "@/lib/adapters/model";
 import type { BrandId, Claim, Citation, Idea, Moment, Signal, Trend } from "@/lib/domain/types";
 import { AUDIENCE_PANEL, copiesExample, EMOTIONS, MOVES, QUALITY_BAR } from "@/lib/brand/quality-bar";
 import { pulseContext } from "./pulse";
@@ -170,7 +170,7 @@ export async function generateIdeas(opts: {
   ].join("\n\n");
 
   // Max quality: Fable and GPT-6 Astra both invent, in parallel; Opus judges all of them.
-  const twoInventors = qualityMax() && checkerReady();
+  const twoInventors = astraOn();
   // Check the whole run fits under the caps before spending anything on it.
   {
     const ctx = system.length + sourceText.length + pulse.length;
