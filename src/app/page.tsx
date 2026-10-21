@@ -7,12 +7,14 @@ import { load } from "@/lib/queries";
 export const metadata = { title: "Brian" };
 
 /** Brian himself: teach him, see his brain, answer his questions. The team tools sit behind him. */
-export default async function BrianPage() {
+export default async function BrianPage({ searchParams }: { searchParams: Promise<{ brain?: string }> }) {
+  const { brain } = await searchParams;
   const db = await load();
   const swipes = db.swipes ?? [];
   const title = (id: string) => swipes.find((s) => s.id === id)?.title ?? "An example that was removed";
   const view: BrainView = {
     ai: modelReady(),
+    preview: brain !== undefined && !Number.isNaN(Number(brain)) ? Math.max(0, Math.min(1, Number(brain))) : undefined,
     nodes: (db.brain ?? []).map((n) => ({
       id: n.id,
       kind: n.kind,

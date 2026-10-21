@@ -1,11 +1,12 @@
 "use client";
 
 import clsx from "clsx";
-import { ArrowLeft, BarChart3, Brain, CalendarRange, ChevronDown, Home, Lightbulb, Menu, Radar, Settings, X } from "lucide-react";
+import { ArrowLeft, BarChart3, CalendarRange, ChevronDown, Home, Lightbulb, Menu, Radar, Settings, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { relativeTime } from "@/lib/format";
+import { BrianMark } from "./brain/brian-mark";
 
 /**
  * Brian himself is the home screen (/) with no sidebar. This sidebar is only
@@ -48,9 +49,7 @@ export function Shell({ children, status }: { children: React.ReactNode; status:
   const nav = (
     <nav className="flex h-full flex-col">
       <div className="flex items-center gap-2.5 px-3 pb-5 pt-1">
-        <div className="grid h-8 w-8 place-items-center rounded-[10px] bg-ink text-bg">
-          <Brain className="h-[18px] w-[18px]" strokeWidth={2} />
-        </div>
+        <BrianMark size={30} className="text-ink" />
         <div className="leading-tight">
           <div className="text-[15px] font-semibold tracking-tight">Brian</div>
           <div className="text-[11px] text-ink-2">Marketing brain</div>
@@ -127,9 +126,7 @@ export function Shell({ children, status }: { children: React.ReactNode; status:
       {/* Mobile top bar */}
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-bg/80 px-4 backdrop-blur-xl lg:hidden">
         <Link href="/" className="flex items-center gap-2">
-          <div className="grid h-7 w-7 place-items-center rounded-[8px] bg-ink text-bg">
-            <Brain className="h-4 w-4" />
-          </div>
+          <BrianMark size={26} className="text-ink" />
           <span className="text-[15px] font-semibold tracking-tight">Brian</span>
         </Link>
         <button aria-label="Open menu" onClick={() => setOpen(true)} className="grid h-9 w-9 place-items-center rounded-full hover:bg-surface-3">

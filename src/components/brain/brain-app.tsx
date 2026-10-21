@@ -4,12 +4,15 @@ import clsx from "clsx";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { BrainMesh, type MeshLink, type MeshPoint } from "./brain-mesh";
+import { BrianLogo } from "./brian-mark";
+import { BrainMesh, FULL_BRAIN, type MeshLink, type MeshPoint } from "./brain-mesh";
 
 type Kind = "truth" | "mechanic" | "industry";
 
 export interface BrainView {
   ai: boolean;
+  /** ?brain=0..1 shows the brain at a given stage of growth, to preview it (the knowledge shown stays real) */
+  preview?: number;
   nodes: {
     id: string;
     kind: Kind;
@@ -124,7 +127,7 @@ export function BrainApp({ view }: { view: BrainView }) {
   return (
     <div className="min-h-dvh bg-white font-[family-name:var(--font-geist)] text-[#141414] antialiased">
       <header className="sticky top-0 z-30 flex items-center justify-between bg-white/90 px-6 py-6 backdrop-blur sm:px-10">
-        <span className="text-[26px] font-light leading-none tracking-[-0.04em]">B</span>
+        <BrianLogo />
         <Link href="/home" className={clsx(MONO, "text-[12px] hover:opacity-60")}>
           Team tools
         </Link>
@@ -132,7 +135,7 @@ export function BrainApp({ view }: { view: BrainView }) {
 
       <main className="mx-auto max-w-[1180px] px-6 pb-32 sm:px-10">
         <section className="relative mx-auto h-[min(60vh,540px)] w-full max-w-[760px]">
-          <BrainMesh points={points} links={links} highlight={hover ?? (selected?.type === "node" ? selected.id : null)} pulse={pulse} />
+          <BrainMesh formation={view.preview ?? view.nodes.length / FULL_BRAIN} points={points} links={links} highlight={hover ?? (selected?.type === "node" ? selected.id : null)} pulse={pulse} />
         </section>
 
         <section className="mx-auto max-w-[760px] text-center">
