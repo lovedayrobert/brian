@@ -1,10 +1,10 @@
 "use client";
 
 import clsx from "clsx";
-import { ArrowRight, ArrowUpRight, Check, Loader2, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { BrainMesh, type MeshLink, type MeshPoint } from "./brain-mesh";
 
 type Kind = "truth" | "mechanic" | "industry";
 
@@ -32,56 +32,30 @@ export interface BrainView {
 type Node = BrainView["nodes"][number];
 type Digest = { swipeId: string; thinking: { step: string; thought: string }[]; touched: { nodeId: string; change: "new" | "stronger" | "weaker" }[] };
 
-const KIND: Record<Kind, { name: string; plural: string; color: string; soft: string }> = {
-  truth: { name: "Audience truth", plural: "What our audience feels", color: "#f5b75b", soft: "rgba(245,183,91,0.14)" },
-  mechanic: { name: "Mechanic", plural: "Why things spread", color: "#9d8cff", soft: "rgba(157,140,255,0.14)" },
-  industry: { name: "Industry memory", plural: "What's been done", color: "#5fd4c4", soft: "rgba(95,212,196,0.12)" },
+const KIND: Record<Kind, { name: string; plural: string }> = {
+  truth: { name: "Audience truth", plural: "What our audience feels" },
+  mechanic: { name: "Mechanic", plural: "Why things spread" },
+  industry: { name: "Industry memory", plural: "What's been done" },
 };
 const ORDER: Kind[] = ["truth", "mechanic", "industry"];
-const W = 1200;
-
-const COLS = 2;
-const ROW = 150;
-
-/** Height of the map: tall enough for the busiest region. */
-function mapHeight(nodes: Node[]) {
-  const rows = Math.max(1, ...ORDER.map((k) => Math.ceil(nodes.filter((n) => n.kind === k).length / COLS)));
-  return 110 + rows * ROW;
-}
-
-/** Each kind gets its own region; strongest first, two per row, so labels never collide. */
-function layout(nodes: Node[]) {
-  const pos = new Map<string, { x: number; y: number; r: number }>();
-  ORDER.forEach((k, col) => {
-    const list = nodes.filter((n) => n.kind === k).sort((a, b) => b.strength - a.strength);
-    const cx = (W / 3) * col + W / 6;
-    list.forEach((n, i) => {
-      const row = Math.floor(i / COLS);
-      const inRow = Math.min(COLS, list.length - row * COLS);
-      const slot = i % COLS;
-      const x = cx + (inRow === 1 ? 0 : slot === 0 ? -95 : 95);
-      pos.set(n.id, { x, y: 120 + row * ROW + (slot === 1 ? 24 : 0), r: Math.min(42, 18 + n.strength * 5) });
-    });
-  });
-  return pos;
-}
-
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+const MONO = "font-[family-name:var(--font-fira)] uppercase tracking-[0.14em]";
 
-function wrap(text: string, max = 26, lines = 3): string[] {
-  const out: string[] = [];
-  let cur = "";
-  for (const w of text.split(/\s+/)) {
-    if ((cur + " " + w).trim().length > max) {
-      out.push(cur.trim());
-      cur = w;
-      if (out.length === lines) break;
-    } else cur = `${cur} ${w}`;
-  }
-  if (out.length < lines && cur.trim()) out.push(cur.trim());
-  const used = out.join(" ").length;
-  if (used < text.length - 1 && out.length) out[out.length - 1] = `${out[out.length - 1].replace(/[.,;:]$/, "")}…`;
-  return out;
+/** Small uppercase monospace label: the voice of the interface. */
+function Label({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <div className={clsx(MONO, "text-[11.5px] text-[#8a8a8a]", className)}>{children}</div>;
+}
+
+/** Strength as a row of ticks, like a reading on an instrument. */
+function Ticks({ value, max = 8 }: { value: number; max?: number }) {
+  const on = Math.max(0, Math.min(max, Math.round(value)));
+  return (
+    <span className="inline-flex gap-[3px]" aria-label={`Strength ${value}`}>
+      {Array.from({ length: max }, (_, i) => (
+        <span key={i} className={clsx("h-[9px] w-[3px]", i < on ? "bg-[#141414]" : "bg-[#e2e2e2]")} />
+      ))}
+    </span>
+  );
 }
 
 export function BrainApp({ view }: { view: BrainView }) {
@@ -95,10 +69,10 @@ export function BrainApp({ view }: { view: BrainView }) {
   const [selected, setSelected] = useState<{ type: "node" | "example"; id: string } | null>(null);
   const [hover, setHover] = useState<string | null>(null);
 
-  // Reveal Brian's notes one at a time, then light up what changed in his brain.
+  // Reveal Brian's notes one at a time, then what changed in his brain.
   useEffect(() => {
     if (!digest || shown > digest.thinking.length) return;
-    const t = setTimeout(() => setShown((s) => s + 1), shown === 0 ? 200 : 900);
+    const t = setTimeout(() => setShown((s) => s + 1), shown === 0 ? 200 : 1000);
     return () => clearTimeout(t);
   }, [digest, shown]);
 
@@ -108,21 +82,27 @@ export function BrainApp({ view }: { view: BrainView }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const pos = useMemo(() => layout(view.nodes), [view.nodes]);
-  const H = useMemo(() => mapHeight(view.nodes), [view.nodes]);
-  const edges = useMemo(() => {
-    const out: [string, string][] = [];
+  const { points, links } = useMemo(() => {
+    const max = Math.max(4, ...view.nodes.map((n) => n.strength));
+    const points: MeshPoint[] = [
+      ...view.nodes.map((n) => ({ id: n.id, weight: n.strength / max, group: n.kind })),
+      ...view.examples.map((x) => ({ id: x.id, weight: 0.15, group: "example" })),
+    ];
+    const links: MeshLink[] = [];
+    for (const n of view.nodes) for (const e of n.evidence) links.push({ a: n.id, b: e.swipeId, w: e.supports ? 0.5 : 0.2 });
     for (let i = 0; i < view.nodes.length; i++)
       for (let j = i + 1; j < view.nodes.length; j++) {
         const a = view.nodes[i];
         const b = view.nodes[j];
-        if (a.evidence.some((e) => e.supports && b.evidence.some((f) => f.supports && f.swipeId === e.swipeId))) out.push([a.id, b.id]);
+        if (a.evidence.some((e) => b.evidence.some((f) => f.swipeId === e.swipeId))) links.push({ a: a.id, b: b.id, w: 1 });
       }
-    return out;
-  }, [view.nodes]);
-  const lit = new Set(digest && shown > digest.thinking.length ? digest.touched.map((t) => t.nodeId) : []);
-  const focus = selected?.type === "node" ? selected.id : hover;
+    return { points, links };
+  }, [view.nodes, view.examples]);
+
+  const pulse = useMemo(() => (busy ? points.map((p) => p.id) : digest && shown > digest.thinking.length ? digest.touched.map((t) => t.nodeId) : []), [busy, points, digest, shown]);
   const counts = Object.fromEntries(ORDER.map((k) => [k, view.nodes.filter((n) => n.kind === k).length])) as Record<Kind, number>;
+  const node = selected?.type === "node" ? view.nodes.find((n) => n.id === selected.id) : undefined;
+  const example = selected?.type === "example" ? view.examples.find((x) => x.id === selected.id) : undefined;
 
   async function teach(e: React.FormEvent) {
     e.preventDefault();
@@ -134,120 +114,95 @@ export function BrainApp({ view }: { view: BrainView }) {
     const res = await fetch("/api/brain/teach", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url, why }) });
     const json = await res.json().catch(() => ({}));
     setBusy(false);
-    if (!res.ok) return setError(json.error ?? "Brian couldn't read that one.");
+    if (!res.ok) return setError(json.error ?? "I couldn't read that one.");
     setUrl("");
     setWhy("");
     setDigest(json.digest);
     router.refresh();
   }
 
-  const node = selected?.type === "node" ? view.nodes.find((n) => n.id === selected.id) : undefined;
-  const example = selected?.type === "example" ? view.examples.find((x) => x.id === selected.id) : undefined;
-
   return (
-    <div className="brain-screen min-h-dvh bg-[#07070b] text-[#ececf1] antialiased">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_50%_-10%,rgba(157,140,255,0.16),transparent_55%)]" />
-
-      <header className="relative z-10 flex items-center justify-between px-6 py-5 sm:px-10">
-        <div className="flex items-center gap-3">
-          <span className="relative flex h-3 w-3">
-            <span className={clsx("absolute inline-flex h-full w-full rounded-full bg-[#9d8cff] opacity-60", busy ? "animate-ping" : "animate-[breathe_4s_ease-in-out_infinite]")} />
-            <span className="relative inline-flex h-3 w-3 rounded-full bg-[#9d8cff]" />
-          </span>
-          <span className="text-[17px] font-semibold tracking-tight">Brian</span>
-          <span className="hidden text-[13px] text-white/40 sm:inline">Cashy&rsquo;s marketing brain</span>
-        </div>
-        <Link href="/home" className="group flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] text-white/50 ring-1 ring-white/10 transition hover:text-white hover:ring-white/25">
-          Team tools <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+    <div className="min-h-dvh bg-white font-[family-name:var(--font-geist)] text-[#141414] antialiased">
+      <header className="sticky top-0 z-30 flex items-center justify-between bg-white/90 px-6 py-6 backdrop-blur sm:px-10">
+        <span className="text-[26px] font-light leading-none tracking-[-0.04em]">B</span>
+        <Link href="/home" className={clsx(MONO, "text-[12px] hover:opacity-60")}>
+          Team tools
         </Link>
       </header>
 
-      <main className="relative z-10 mx-auto max-w-[1240px] px-6 pb-24 sm:px-10">
-        <section className="mx-auto mt-10 max-w-[760px] text-center sm:mt-16">
-          <h1 className="mx-auto max-w-[720px] text-balance text-[32px] font-semibold leading-[1.12] tracking-[-0.025em] sm:text-[44px]">
-            {view.nodes.length ? (
-              <>
-                I know <span className="text-[#f5b75b]">{plural(counts.truth, "truth")}</span> about our audience and{" "}
-                <span className="text-[#9d8cff]">{plural(counts.mechanic, "reason")}</span> things spread.
-              </>
-            ) : (
-              <>Teach me what good looks like.</>
-            )}
+      <main className="mx-auto max-w-[1180px] px-6 pb-32 sm:px-10">
+        <section className="relative mx-auto h-[min(60vh,540px)] w-full max-w-[760px]">
+          <BrainMesh points={points} links={links} highlight={hover ?? (selected?.type === "node" ? selected.id : null)} pulse={pulse} />
+        </section>
+
+        <section className="mx-auto max-w-[760px] text-center">
+          <Label>Cashy&rsquo;s marketing brain</Label>
+          <h1 className="mt-6 text-balance text-[30px] font-light leading-[1.2] tracking-[-0.02em] sm:text-[40px]">
+            {view.nodes.length
+              ? `I know ${plural(counts.truth, "truth")} about our audience and ${plural(counts.mechanic, "reason")} things spread.`
+              : "Teach me what good looks like."}
           </h1>
-          <p className="mx-auto mt-4 max-w-[560px] text-[15.5px] leading-relaxed text-white/50">
-            Give me a campaign or post that worked. I&rsquo;ll work out why, file it with everything I know, and build ideas from it. Never copies.
+          <p className="mx-auto mt-5 max-w-[520px] text-[16px] font-light leading-relaxed text-[#6b6b6b]">
+            Give me a campaign or post that worked. I&rsquo;ll work out why, connect it to everything I know, and build ideas from it. Never copies.
           </p>
 
-          <form onSubmit={teach} className="mx-auto mt-9 max-w-[640px] text-left">
-            <div className="rounded-[26px] bg-white/[0.05] p-1.5 ring-1 ring-white/10 transition focus-within:ring-[#9d8cff]/60">
-              <div className="flex items-center gap-2">
-                <input
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  disabled={busy}
-                  placeholder="Paste a link: X, TikTok, YouTube, an article"
-                  className="h-12 min-w-0 flex-1 bg-transparent px-4 text-[15px] outline-none placeholder:text-white/30"
-                />
-                <button
-                  type="submit"
-                  disabled={busy || !url.trim() || !view.ai}
-                  className="flex h-11 shrink-0 items-center gap-2 rounded-full bg-[#9d8cff] px-5 text-[14px] font-medium text-[#0b0b12] transition hover:bg-[#b0a2ff] disabled:opacity-30"
-                >
-                  {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                  {busy ? "Thinking" : "Teach Brian"}
-                </button>
-              </div>
-              {url.trim() && !busy && (
-                <input
-                  value={why}
-                  onChange={(e) => setWhy(e.target.value)}
-                  placeholder="Why do you rate it? (optional, but I learn most from this)"
-                  className="mt-1 h-11 w-full animate-[rise_.25s_ease-out] rounded-[20px] bg-white/[0.04] px-4 text-[14px] outline-none placeholder:text-white/30"
-                />
-              )}
+          <form onSubmit={teach} className="mx-auto mt-12 max-w-[620px] text-left">
+            <div className="flex items-end gap-4 border-b border-[#141414] pb-2">
+              <input
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                disabled={busy}
+                placeholder="Paste a link that worked"
+                className="min-w-0 flex-1 bg-transparent py-2 text-[18px] font-light outline-none placeholder:text-[#b5b5b5]"
+              />
+              <button type="submit" disabled={busy || !url.trim() || !view.ai} className={clsx(MONO, "pb-2 text-[12.5px] disabled:opacity-30")}>
+                {busy ? "Thinking…" : "Teach →"}
+              </button>
             </div>
-            {error && <p className="mt-3 text-center text-[13px] text-[#ff7a6b]">{error}</p>}
+            {url.trim() && !busy && (
+              <input
+                value={why}
+                onChange={(e) => setWhy(e.target.value)}
+                placeholder="Why do you rate it? (optional, but I learn most from this)"
+                className="mt-5 w-full border-b border-[#dcdcdc] bg-transparent py-2 text-[15px] font-light outline-none placeholder:text-[#b5b5b5] focus:border-[#141414]"
+              />
+            )}
+            {error && <p className="mt-4 text-[14px]">{error}</p>}
           </form>
         </section>
 
         {(busy || digest) && (
-          <section className="mx-auto mt-10 max-w-[760px] rounded-[24px] bg-white/[0.035] p-6 ring-1 ring-white/[0.08] sm:p-8">
-            {busy && (
-              <div className="space-y-4">
-                <p className="text-[14px] text-white/60">Reading it, and comparing it with everything I know…</p>
-                {[78, 92, 64].map((w, i) => (
-                  <div key={i} className="h-3 animate-pulse rounded-full bg-white/[0.06]" style={{ width: `${w}%`, animationDelay: `${i * 150}ms` }} />
-                ))}
-              </div>
-            )}
+          <section className="mx-auto mt-20 max-w-[760px]">
+            <Label className="mb-6">{busy ? "Reading it, comparing it with everything I know" : "How I filed it"}</Label>
+            {busy && <div className="h-px w-full animate-pulse bg-[#141414]/30" />}
             {digest && (
-              <ol className="space-y-5">
+              <ol>
                 {digest.thinking.slice(0, shown).map((t, i) => (
-                  <li key={i} className="grid animate-[rise_.5s_ease-out] grid-cols-[110px_1fr] gap-4 sm:grid-cols-[150px_1fr]">
-                    <span className="pt-0.5 text-[12.5px] font-medium uppercase tracking-[0.06em] text-[#9d8cff]">{t.step}</span>
-                    <span className="text-[15px] leading-relaxed text-white/85">{t.thought}</span>
+                  <li key={i} className="grid animate-[rise_.5s_ease-out] grid-cols-1 gap-2 border-t border-[#ececec] py-5 sm:grid-cols-[180px_1fr] sm:gap-6">
+                    <Label className="pt-1 text-[#141414]">{t.step}</Label>
+                    <p className="text-[16px] font-light leading-relaxed">{t.thought}</p>
                   </li>
                 ))}
                 {shown > digest.thinking.length && (
-                  <li className="animate-[rise_.5s_ease-out] border-t border-white/[0.08] pt-5">
-                    <p className="mb-3 text-[12.5px] font-medium uppercase tracking-[0.06em] text-white/40">What changed in my brain</p>
-                    <div className="flex flex-wrap gap-2">
+                  <li className="animate-[rise_.5s_ease-out] border-t border-[#141414] pt-6">
+                    <Label className="mb-4">What changed in my brain</Label>
+                    <ul className="space-y-3">
                       {digest.touched.map((t) => {
                         const n = view.nodes.find((x) => x.id === t.nodeId);
                         if (!n) return null;
                         return (
-                          <button
-                            key={t.nodeId}
-                            onClick={() => setSelected({ type: "node", id: n.id })}
-                            className="flex max-w-full items-center gap-2 rounded-full px-3.5 py-1.5 text-left text-[13px] ring-1 transition hover:brightness-125"
-                            style={{ background: KIND[n.kind].soft, color: KIND[n.kind].color, boxShadow: `inset 0 0 0 1px ${KIND[n.kind].color}33` }}
-                          >
-                            <span className="shrink-0 font-medium">{t.change === "new" ? "New" : t.change === "stronger" ? "Stronger" : "Weaker"}</span>
-                            <span className="truncate text-white/80">{n.brand ? `${n.brand}: ` : ""}{n.text}</span>
-                          </button>
+                          <li key={t.nodeId}>
+                            <button onClick={() => setSelected({ type: "node", id: n.id })} className="flex w-full items-baseline gap-4 text-left hover:opacity-60">
+                              <span className={clsx(MONO, "w-[100px] shrink-0 text-[11.5px]")}>{t.change === "new" ? "+ New" : t.change === "stronger" ? "↑ Stronger" : "↓ Weaker"}</span>
+                              <span className="text-[15.5px] font-light">
+                                {n.brand ? `${n.brand}: ` : ""}
+                                {n.text}
+                              </span>
+                            </button>
+                          </li>
                         );
                       })}
-                    </div>
+                    </ul>
                   </li>
                 )}
               </ol>
@@ -259,114 +214,84 @@ export function BrainApp({ view }: { view: BrainView }) {
           <Question key={q.id} q={q} />
         ))}
 
-        <section className="mt-16">
-          <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
-            <h2 className="text-[13px] font-medium uppercase tracking-[0.08em] text-white/40">My brain</h2>
-            <div className="flex flex-wrap gap-4 text-[12.5px] text-white/50">
-              {ORDER.map((k) => (
-                <span key={k} className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full" style={{ background: KIND[k].color }} />
-                  {KIND[k].plural} <span className="text-white/30">{counts[k]}</span>
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="relative overflow-hidden rounded-[28px] bg-white/[0.02] ring-1 ring-white/[0.07]">
-            {view.nodes.length === 0 ? (
-              <div className="grid h-[360px] place-items-center text-center text-[15px] text-white/35">
-                Empty, for now. Every link you teach me grows this.
-              </div>
-            ) : (
-              <svg viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full">
-                <defs>
-                  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="10" result="b" />
-                    <feMerge>
-                      <feMergeNode in="b" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
-                {ORDER.map((k, col) => (
-                  <text key={k} x={(W / 3) * col + W / 6} y={40} textAnchor="middle" fill="rgba(255,255,255,0.28)" fontSize="13" letterSpacing="1.2">
-                    {KIND[k].plural.toUpperCase()}
-                  </text>
-                ))}
-                {edges.map(([a, b]) => {
-                  const pa = pos.get(a);
-                  const pb = pos.get(b);
-                  if (!pa || !pb) return null;
-                  const on = focus === a || focus === b || (lit.has(a) && lit.has(b));
-                  return (
-                    <path
-                      key={`${a}-${b}`}
-                      d={`M${pa.x},${pa.y} Q${(pa.x + pb.x) / 2},${Math.min(pa.y, pb.y) - 60} ${pb.x},${pb.y}`}
-                      fill="none"
-                      stroke={on ? "rgba(255,255,255,0.45)" : "rgba(255,255,255,0.07)"}
-                      strokeWidth={on ? 1.4 : 1}
-                      className="transition-all duration-500"
-                    />
-                  );
-                })}
-                {view.nodes.map((n) => {
-                  const p = pos.get(n.id)!;
-                  const c = KIND[n.kind].color;
-                  const isOn = focus === n.id || lit.has(n.id);
-                  const dim = focus && focus !== n.id && !edges.some(([a, b]) => (a === focus && b === n.id) || (b === focus && a === n.id));
-                  return (
-                    <g
-                      key={n.id}
-                      onClick={() => setSelected({ type: "node", id: n.id })}
-                      onMouseEnter={() => setHover(n.id)}
-                      onMouseLeave={() => setHover(null)}
-                      className="cursor-pointer transition-opacity duration-300"
-                      opacity={dim ? 0.3 : n.health === "fading" ? 0.45 : 1}
-                    >
-                      {lit.has(n.id) && <circle cx={p.x} cy={p.y} r={p.r + 10} fill="none" stroke={c} strokeOpacity="0.5" className="animate-[ring_1.6s_ease-out_infinite]" style={{ transformOrigin: `${p.x}px ${p.y}px` }} />}
-                      <circle cx={p.x} cy={p.y} r={p.r} fill={c} fillOpacity={isOn ? 0.35 : 0.16} stroke={c} strokeWidth={isOn ? 2 : 1.2} strokeDasharray={n.health === "fading" ? "4 4" : undefined} filter={isOn ? "url(#glow)" : undefined} />
-                      <circle cx={p.x} cy={p.y} r={Math.max(3, p.r * 0.18)} fill={c} />
-                      {wrap(n.brand ? `${n.brand}: ${n.text}` : n.text).map((line, i) => (
-                        <text key={i} x={p.x} y={p.y + p.r + 18 + i * 16} textAnchor="middle" fontSize="12.5" fill={isOn ? "#fff" : "rgba(255,255,255,0.6)"}>
-                          {line}
-                        </text>
+        <section className="mt-28">
+          <div className="grid gap-14 md:grid-cols-3 md:gap-10">
+            {ORDER.map((k) => {
+              const list = view.nodes.filter((n) => n.kind === k).sort((a, b) => b.strength - a.strength);
+              return (
+                <div key={k}>
+                  <div className="flex items-baseline justify-between border-b border-[#141414] pb-3">
+                    <Label className="text-[#141414]">{KIND[k].plural}</Label>
+                    <Label>{String(list.length).padStart(2, "0")}</Label>
+                  </div>
+                  {list.length === 0 ? (
+                    <p className="py-5 text-[14.5px] font-light text-[#9a9a9a]">Nothing yet.</p>
+                  ) : (
+                    <ul>
+                      {list.map((n) => (
+                        <li key={n.id}>
+                          <button
+                            onClick={() => setSelected({ type: "node", id: n.id })}
+                            onMouseEnter={() => setHover(n.id)}
+                            onMouseLeave={() => setHover(null)}
+                            className={clsx("block w-full border-b border-[#ececec] py-5 text-left transition-opacity", n.health === "fading" && "opacity-40", hover && hover !== n.id && "opacity-50")}
+                          >
+                            <p className="text-[15.5px] font-light leading-snug">
+                              {n.brand ? `${n.brand}: ` : ""}
+                              {n.text}
+                            </p>
+                            <div className="mt-3 flex items-center gap-3">
+                              <Ticks value={n.strength} />
+                              <Label>{n.health}</Label>
+                            </div>
+                          </button>
+                        </li>
                       ))}
-                    </g>
-                  );
-                })}
-              </svg>
-            )}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </section>
 
         {view.examples.length > 0 && (
-          <section className="mt-14">
-            <h2 className="mb-4 text-[13px] font-medium uppercase tracking-[0.08em] text-white/40">What you&rsquo;ve taught me</h2>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {view.examples.map((x) => (
-                <button
-                  key={x.id}
-                  onClick={() => setSelected({ type: "example", id: x.id })}
-                  className="group rounded-[20px] bg-white/[0.03] p-5 text-left ring-1 ring-white/[0.07] transition hover:bg-white/[0.05] hover:ring-white/15"
-                >
-                  <div className="text-[12px] text-white/35">
-                    {x.platform}
-                    {x.author ? ` · ${x.author}` : ""} · from {x.by}
-                  </div>
-                  <div className="mt-2 line-clamp-2 text-[15px] font-medium leading-snug text-white/90">{x.title}</div>
-                  {x.lesson && <div className="mt-3 line-clamp-3 text-[13.5px] leading-relaxed text-white/50">{x.lesson}</div>}
-                </button>
-              ))}
+          <section className="mt-28">
+            <div className="flex items-baseline justify-between border-b border-[#141414] pb-3">
+              <Label className="text-[#141414]">What you&rsquo;ve taught me</Label>
+              <Label>{String(view.examples.length).padStart(2, "0")}</Label>
             </div>
+            <ul>
+              {view.examples.map((x) => (
+                <li key={x.id}>
+                  <button
+                    onClick={() => setSelected({ type: "example", id: x.id })}
+                    onMouseEnter={() => setHover(x.id)}
+                    onMouseLeave={() => setHover(null)}
+                    className="grid w-full grid-cols-1 gap-2 border-b border-[#ececec] py-6 text-left hover:opacity-60 sm:grid-cols-[220px_1fr] sm:gap-8"
+                  >
+                    <Label>
+                      {x.platform}
+                      {x.author ? ` · ${x.author}` : ""}
+                    </Label>
+                    <div>
+                      <p className="line-clamp-2 text-[17px] font-light leading-snug">{x.title}</p>
+                      {x.lesson && <p className="mt-2 line-clamp-2 text-[14.5px] font-light leading-relaxed text-[#6b6b6b]">{x.lesson}</p>}
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
       </main>
 
       {selected && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px]" onClick={() => setSelected(null)} />
-          <aside className="fixed inset-y-0 right-0 z-50 w-full max-w-[460px] animate-[slide_.3s_ease-out] overflow-y-auto bg-[#0c0c13] px-7 py-7 ring-1 ring-white/10">
-            <button aria-label="Close" onClick={() => setSelected(null)} className="absolute right-5 top-5 grid h-9 w-9 place-items-center rounded-full text-white/50 hover:bg-white/10 hover:text-white">
-              <X className="h-4 w-4" />
+          <div className="fixed inset-0 z-40 bg-white/60" onClick={() => setSelected(null)} />
+          <aside className="fixed inset-y-0 right-0 z-50 w-full max-w-[480px] animate-[slide_.25s_ease-out] overflow-y-auto border-l border-[#141414] bg-white px-8 py-8">
+            <button onClick={() => setSelected(null)} className={clsx(MONO, "absolute right-8 top-8 text-[12px] hover:opacity-60")}>
+              Close
             </button>
             {node && <NodePanel n={node} onExample={(id) => setSelected({ type: "example", id })} />}
             {example && <ExamplePanel x={example} nodes={view.nodes} onNode={(id) => setSelected({ type: "node", id })} />}
@@ -377,11 +302,23 @@ export function BrainApp({ view }: { view: BrainView }) {
   );
 }
 
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="border-t border-[#ececec] py-5">
+      <Label className="mb-2">{label}</Label>
+      {children}
+    </div>
+  );
+}
+
+const solid = clsx(MONO, "bg-[#141414] px-5 py-2.5 text-[12px] text-white disabled:opacity-30");
+const outline = clsx(MONO, "border border-[#141414] px-5 py-2.5 text-[12px] disabled:opacity-30");
+const area = "w-full resize-none border-b border-[#dcdcdc] bg-transparent py-2 text-[15px] font-light outline-none placeholder:text-[#b5b5b5] focus:border-[#141414]";
+
 function NodePanel({ n, onExample }: { n: Node; onExample: (id: string) => void }) {
   const router = useRouter();
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
-  const k = KIND[n.kind];
   async function judge(agree: boolean) {
     setBusy(true);
     await fetch(`/api/brain/nodes/${n.id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agree, note }) });
@@ -389,85 +326,65 @@ function NodePanel({ n, onExample }: { n: Node; onExample: (id: string) => void 
     setNote("");
     router.refresh();
   }
-  const pct = Math.min(100, (n.strength / 8) * 100);
   return (
-    <div className="pr-8">
-      <div className="text-[12px] font-medium uppercase tracking-[0.08em]" style={{ color: k.color }}>
-        {k.name}
-      </div>
-      <h3 className="mt-3 text-[22px] font-semibold leading-snug tracking-tight">{n.brand ? `${n.brand}: ${n.text}` : n.text}</h3>
-      <p className="mt-3 text-[15px] leading-relaxed text-white/60">{n.detail}</p>
+    <div className="pt-6">
+      <Label>{KIND[n.kind].name}</Label>
+      <h3 className="mt-4 text-[24px] font-light leading-snug tracking-[-0.01em]">{n.brand ? `${n.brand}: ${n.text}` : n.text}</h3>
+      <p className="mt-4 pb-6 text-[15.5px] font-light leading-relaxed text-[#5a5a5a]">{n.detail}</p>
       {n.gap && (
-        <div className="mt-5 rounded-[16px] bg-white/[0.04] p-4">
-          <div className="text-[12px] font-medium uppercase tracking-[0.06em] text-white/40">What could have been better</div>
-          <p className="mt-1.5 text-[14.5px] leading-relaxed text-white/80">{n.gap}</p>
-        </div>
+        <Field label="What could have been better">
+          <p className="text-[15.5px] font-light leading-relaxed">{n.gap}</p>
+        </Field>
       )}
-
-      <div className="mt-7">
-        <div className="flex items-baseline justify-between text-[12.5px] text-white/45">
-          <span>How sure I am</span>
-          <span className="capitalize">{n.health}</span>
-        </div>
-        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
-          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: k.color }} />
+      <Field label="How sure I am">
+        <div className="flex items-center gap-3">
+          <Ticks value={n.strength} />
+          <Label className="text-[#141414]">{n.health}</Label>
         </div>
         {n.used > 0 && (
-          <p className="mt-2 text-[12.5px] text-white/45">
-            Built {n.used} idea{n.used === 1 ? "" : "s"} on this: {n.liked} liked, {n.rejected} rejected.
+          <p className="mt-3 text-[14.5px] font-light">
+            Built {plural(n.used, "idea")} on this: {n.liked} liked, {n.rejected} rejected.
           </p>
         )}
-      </div>
-
-      <div className="mt-7">
-        <div className="text-[12px] font-medium uppercase tracking-[0.06em] text-white/40">Where I learned it</div>
-        <ul className="mt-3 space-y-2">
+      </Field>
+      <Field label="Where I learned it">
+        <ul className="space-y-3">
           {n.evidence.map((e, i) => (
             <li key={i}>
-              <button onClick={() => onExample(e.swipeId)} className="w-full rounded-[14px] bg-white/[0.03] p-3.5 text-left transition hover:bg-white/[0.06]">
-                <div className="line-clamp-1 text-[14px] text-white/85">{e.title}</div>
-                <div className={clsx("mt-1 text-[13px]", e.supports ? "text-white/45" : "text-[#ff9a8b]")}>
+              <button onClick={() => onExample(e.swipeId)} className="text-left hover:opacity-60">
+                <p className="text-[15px] font-light underline decoration-[#cfcfcf] underline-offset-4">{e.title}</p>
+                <p className="mt-1 text-[13.5px] font-light text-[#7a7a7a]">
                   {e.supports ? "" : "Argues against it: "}
                   {e.note}
-                </div>
+                </p>
               </button>
             </li>
           ))}
         </ul>
-      </div>
-
+      </Field>
       {n.team.length > 0 && (
-        <div className="mt-7">
-          <div className="text-[12px] font-medium uppercase tracking-[0.06em] text-white/40">What the team said</div>
-          <ul className="mt-3 space-y-2 text-[14px]">
+        <Field label="What the team said">
+          <ul className="space-y-2 text-[15px] font-light">
             {n.team.map((t, i) => (
-              <li key={i} className="text-white/70">
-                <span className="font-medium text-white">{t.by}</span> {t.agree ? "agreed" : "disagreed"}
+              <li key={i}>
+                {t.by} {t.agree ? "agreed" : "disagreed"}
                 {t.note ? `: ${t.note}` : ""}
               </li>
             ))}
           </ul>
-        </div>
+        </Field>
       )}
-
-      <div className="mt-8 border-t border-white/[0.08] pt-6">
-        <div className="text-[14px] text-white/70">Is this right about Cashy&rsquo;s audience?</div>
-        <textarea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          rows={2}
-          placeholder="Add a note if you want (optional)"
-          className="mt-3 w-full resize-none rounded-[14px] bg-white/[0.05] px-4 py-3 text-[14px] outline-none ring-1 ring-white/10 placeholder:text-white/30 focus:ring-[#9d8cff]/50"
-        />
-        <div className="mt-3 flex gap-2">
-          <button disabled={busy} onClick={() => judge(true)} className="flex h-10 items-center gap-1.5 rounded-full bg-white px-4 text-[13.5px] font-medium text-black disabled:opacity-40">
-            <Check className="h-4 w-4" /> Yes, that&rsquo;s right
+      <Field label="Is this right about our audience?">
+        <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="A note, if you want" className={area} />
+        <div className="mt-5 flex gap-3">
+          <button disabled={busy} onClick={() => judge(true)} className={solid}>
+            Yes, that&rsquo;s right
           </button>
-          <button disabled={busy} onClick={() => judge(false)} className="h-10 rounded-full px-4 text-[13.5px] text-white/70 ring-1 ring-white/15 hover:text-white disabled:opacity-40">
-            No, it isn&rsquo;t
+          <button disabled={busy} onClick={() => judge(false)} className={outline}>
+            No
           </button>
         </div>
-      </div>
+      </Field>
     </div>
   );
 }
@@ -488,60 +405,52 @@ function ExamplePanel({ x, nodes, onNode }: { x: BrainView["examples"][number]; 
     router.refresh();
   }
   return (
-    <div className="pr-8">
-      <div className="text-[12px] text-white/40">
+    <div className="pt-6">
+      <Label>
         {x.platform}
         {x.author ? ` · ${x.author}` : ""} · taught by {x.by}
-      </div>
-      <h3 className="mt-3 text-[20px] font-semibold leading-snug tracking-tight">{x.title}</h3>
-      <a href={x.url} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-[13px] text-[#9d8cff] hover:underline">
-        Open the original <ArrowUpRight className="h-3.5 w-3.5" />
+      </Label>
+      <h3 className="mt-4 text-[22px] font-light leading-snug tracking-[-0.01em]">{x.title}</h3>
+      <a href={x.url} target="_blank" rel="noreferrer" className={clsx(MONO, "mt-3 mb-6 inline-block text-[12px] hover:opacity-60")}>
+        Open the original ↗
       </a>
-      {x.why && <p className="mt-4 text-[14.5px] leading-relaxed text-white/60">&ldquo;{x.why}&rdquo;</p>}
+      {x.why && (
+        <Field label="Why you rate it">
+          <p className="text-[15.5px] font-light leading-relaxed">&ldquo;{x.why}&rdquo;</p>
+        </Field>
+      )}
       {x.lesson && (
-        <div className="mt-6 rounded-[16px] bg-[#9d8cff]/[0.08] p-4 ring-1 ring-[#9d8cff]/20">
-          <div className="text-[12px] font-medium uppercase tracking-[0.06em] text-[#9d8cff]">The lesson</div>
-          <p className="mt-1.5 text-[15px] leading-relaxed text-white/90">{x.lesson}</p>
-        </div>
+        <Field label="The lesson">
+          <p className="text-[17px] font-light leading-relaxed">{x.lesson}</p>
+        </Field>
       )}
-      {x.notes.length > 0 && (
-        <ol className="mt-7 space-y-4">
-          {x.notes.map((t, i) => (
-            <li key={i}>
-              <div className="text-[12px] font-medium uppercase tracking-[0.06em] text-white/40">{t.step}</div>
-              <p className="mt-1 text-[14.5px] leading-relaxed text-white/75">{t.thought}</p>
-            </li>
-          ))}
-        </ol>
-      )}
+      {x.notes.map((t, i) => (
+        <Field key={i} label={t.step}>
+          <p className="text-[15px] font-light leading-relaxed text-[#4a4a4a]">{t.thought}</p>
+        </Field>
+      ))}
       {formed.length > 0 && (
-        <div className="mt-7">
-          <div className="text-[12px] font-medium uppercase tracking-[0.06em] text-white/40">What it taught me</div>
-          <div className="mt-3 space-y-2">
+        <Field label="What it taught me">
+          <ul className="space-y-3">
             {formed.map((n) => (
-              <button key={n.id} onClick={() => onNode(n.id)} className="flex w-full items-start gap-3 rounded-[14px] bg-white/[0.03] p-3.5 text-left transition hover:bg-white/[0.06]">
-                <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ background: KIND[n.kind].color }} />
-                <span className="text-[14px] leading-snug text-white/85">{n.brand ? `${n.brand}: ` : ""}{n.text}</span>
-              </button>
+              <li key={n.id}>
+                <button onClick={() => onNode(n.id)} className="text-left text-[15px] font-light hover:opacity-60">
+                  <span className={clsx(MONO, "mr-2 text-[11px] text-[#8a8a8a]")}>{KIND[n.kind].name}</span>
+                  {n.brand ? `${n.brand}: ` : ""}
+                  {n.text}
+                </button>
+              </li>
             ))}
-          </div>
-        </div>
+          </ul>
+        </Field>
       )}
-      <div className="mt-8 border-t border-white/[0.08] pt-6">
-        <div className="text-[14px] text-white/70">Did I miss the point?</div>
-        <textarea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          rows={3}
-          placeholder="Tell me what I got wrong. Your words become the truth I learn from."
-          className="mt-3 w-full resize-none rounded-[14px] bg-white/[0.05] px-4 py-3 text-[14px] outline-none ring-1 ring-white/10 placeholder:text-white/30 focus:ring-[#9d8cff]/50"
-        />
-        <button disabled={busy || !note.trim()} onClick={correct} className="mt-3 flex h-10 items-center gap-2 rounded-full bg-white px-4 text-[13.5px] font-medium text-black disabled:opacity-40">
-          {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-          {busy ? "Rethinking it" : "Correct me"}
+      <Field label="Did I miss the point?">
+        <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} placeholder="Tell me what I got wrong. Your words become the truth I learn from." className={area} />
+        <button disabled={busy || !note.trim()} onClick={correct} className={clsx(solid, "mt-5")}>
+          {busy ? "Rethinking it…" : "Correct me"}
         </button>
-        {error && <p className="mt-2 text-[13px] text-[#ff7a6b]">{error}</p>}
-      </div>
+        {error && <p className="mt-3 text-[14px]">{error}</p>}
+      </Field>
     </div>
   );
 }
@@ -557,18 +466,13 @@ function Question({ q }: { q: BrainView["questions"][number] }) {
     router.refresh();
   }
   return (
-    <section className="mx-auto mt-10 max-w-[760px] rounded-[24px] bg-[#9d8cff]/[0.07] p-6 ring-1 ring-[#9d8cff]/25 sm:p-7">
-      <div className="text-[12.5px] font-medium uppercase tracking-[0.08em] text-[#9d8cff]">I&rsquo;m not sure about something</div>
-      <p className="mt-2.5 text-[18px] leading-snug text-white/90">{q.text}</p>
-      <div className="mt-4 flex gap-2">
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Your answer"
-          className="h-11 min-w-0 flex-1 rounded-full bg-black/30 px-4 text-[14px] outline-none ring-1 ring-white/10 placeholder:text-white/30 focus:ring-[#9d8cff]/50"
-        />
-        <button disabled={busy || !text.trim()} onClick={answer} className="h-11 rounded-full bg-[#9d8cff] px-5 text-[14px] font-medium text-[#0b0b12] disabled:opacity-40">
-          Answer
+    <section className="mx-auto mt-20 max-w-[760px] border-y border-[#141414] py-8">
+      <Label className="text-[#141414]">I&rsquo;m not sure about something</Label>
+      <p className="mt-4 text-[22px] font-light leading-snug">{q.text}</p>
+      <div className="mt-6 flex items-end gap-4 border-b border-[#141414] pb-2">
+        <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Your answer" className="min-w-0 flex-1 bg-transparent py-2 text-[16px] font-light outline-none placeholder:text-[#b5b5b5]" />
+        <button disabled={busy || !text.trim()} onClick={answer} className={clsx(MONO, "pb-2 text-[12.5px] disabled:opacity-30")}>
+          Answer →
         </button>
       </div>
     </section>

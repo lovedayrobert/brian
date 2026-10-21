@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Fira_Code, Geist, Inter } from "next/font/google";
 import { Shell } from "@/components/shell";
 import { modelReady } from "@/lib/adapters/model";
 import { imageReady } from "@/lib/adapters/image";
@@ -9,6 +9,9 @@ import { authMode } from "@/lib/auth";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
+// Brian's own screen: a light geometric sans and a monospace for labels.
+const geist = Geist({ variable: "--font-geist", subsets: ["latin"], weight: ["300", "400", "500"] });
+const mono = Fira_Code({ variable: "--font-fira", subsets: ["latin"], weight: ["400", "500"] });
 
 export const metadata: Metadata = {
   title: { default: "Brian", template: "%s · Brian" },
@@ -32,7 +35,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const caps = capsFromEnv();
   const spent = spendFromRuns(Object.entries(db.spendLedger ?? {}).map(([day, costUsd]) => ({ startedAt: day, costUsd })), new Date(), caps.budgetSince);
   return (
-    <html lang="en-GB" className={`${inter.variable} h-full`}>
+    <html lang="en-GB" className={`${inter.variable} ${geist.variable} ${mono.variable} h-full`}>
       <body className="min-h-full">
         <Shell
           status={{
