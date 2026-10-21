@@ -2,7 +2,7 @@ import clsx from "clsx";
 import Link from "next/link";
 
 /**
- * The five spaces (Home, Radar, Ideas, Calendar) are the whole app. Pages
+ * The six spaces (Home, Learning, Radar, Ideas, Calendar, Results) are the whole app. Pages
  * inside a space are tabs, never new sidebar items. See CLAUDE.md.
  */
 export const RADAR_TABS = [
@@ -15,7 +15,12 @@ export const RADAR_TABS = [
 export const IDEAS_TABS = [
   { id: "ideas", href: "/ideas", label: "Brian's ideas" },
   { id: "new", href: "/ideas/new", label: "Get ideas" },
-  { id: "inspiration", href: "/ideas/inspiration", label: "Inspiration" },
+];
+
+export const LEARNING_TABS = [
+  { id: "examples", href: "/learning", label: "What worked" },
+  { id: "identity", href: "/learning/identity", label: "Cashy's identity" },
+  { id: "memory", href: "/memory", label: "Rules" },
 ];
 
 export function SectionTabs({ space, tabs, active }: { space: string; tabs: { id: string; href: string; label: string }[]; active: string }) {
@@ -39,6 +44,5 @@ export const SETTINGS_TABS = [
   { id: "sources", href: "/settings?tab=sources", label: "Sources" },
   { id: "brand", href: "/settings?tab=brand", label: "Brand" },
   { id: "models", href: "/settings?tab=models", label: "Models" },
-  { id: "memory", href: "/memory", label: "What Brian has learned" },
   { id: "accuracy", href: "/settings?tab=accuracy", label: "Accuracy" },
 ];

@@ -28,7 +28,8 @@ export type AgentName =
   | "creativeDirector"
   | "producer"
   | "rapidResponse"
-  | "artDirector";
+  | "artDirector"
+  | "teacher";
 
 type Effort = "low" | "medium" | "high" | "xhigh" | "max";
 
@@ -48,6 +49,7 @@ export const AGENTS: Record<AgentName, { model: string; effort: Effort; label: s
   creativeDirector: { model: "claude-opus-5-5", effort: "high", label: "Creative Director", job: "Concept, copy, key visual system" },
   producer: { model: "claude-sonnet-5-5", effort: "medium", label: "Producer", job: "Production plan, runbook, Linear project" },
   rapidResponse: { model: "claude-opus-5-5", effort: "medium", label: "Rapid Response", job: "Three reactive takes within minutes" },
+  teacher: { model: "claude-opus-5-5", effort: "medium", label: "Teacher", job: "Explains why a campaign the team linked worked, learns from their feedback, and builds Cashy's identity" },
   artDirector: { model: "claude-opus-5-5", effort: "medium", label: "Art Director", job: "Picks a native format for every asset; commissions images and video" },
 };
 

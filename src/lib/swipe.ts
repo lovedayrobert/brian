@@ -14,6 +14,8 @@ interface Meta {
   author?: string;
   platform: string;
   metrics?: Record<string, number>;
+  /** Full words of the post, or the start of the page */
+  text?: string;
 }
 
 async function getJson<T>(url: string): Promise<T | null> {
@@ -31,7 +33,7 @@ export async function readLink(url: string): Promise<Meta> {
   if (host === "x.com" || host === "twitter.com") {
     const m = u.pathname.match(/^\/([^/]+)\/status\/(\d+)/);
     const j = m
-      ? await getJson<{ tweet?: { text: string; author: { screen_name: string }; likes: number; retweets: number; replies: number; views?: number; bookmarks?: number } }>(
+      ? await getJson<{ tweet?: { text: string; author: { screen_name: string }; likes: number; retweets: number; replies: number; views?: number; bookmarks?: number; created_at?: string; media?: { all?: { type: string }[] }; quote?: { text: string; author: { screen_name: string } } } }>(
           `https://api.fxtwitter.com/${m[1]}/status/${m[2]}`,
         )
       : null;
@@ -39,6 +41,7 @@ export async function readLink(url: string): Promise<Meta> {
       const t = j.tweet;
       return {
         title: t.text || "(video or image post)",
+        text: [t.text, t.media?.all?.length ? `[${t.media.all.map((x) => x.type).join(", ")} attached]` : "", t.quote ? `Quoting @${t.quote.author.screen_name}: ${t.quote.text}` : ""].filter(Boolean).join("\n"),
         author: `@${t.author.screen_name}`,
         platform: "X",
         metrics: Object.fromEntries(Object.entries({ views: t.views, likes: t.likes, reposts: t.retweets, replies: t.replies, bookmarks: t.bookmarks }).filter(([, v]) => typeof v === "number")) as Record<string, number>,
@@ -58,13 +61,21 @@ export async function readLink(url: string): Promise<Meta> {
     const r = await fetch(url, { headers: { "User-Agent": USER_AGENT }, signal: AbortSignal.timeout(12_000) });
     const html = (await r.text()).slice(0, 200_000);
     const og = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)/i)?.[1] ?? html.match(/<title[^>]*>([^<]+)/i)?.[1];
-    return { title: og?.trim() || url, platform: host };
+    const desc = html.match(/<meta[^>]+(?:name|property)=["'](?:og:)?description["'][^>]+content=["']([^"']+)/i)?.[1];
+    const body = html
+      .replace(/<(script|style|nav|header|footer)[\s\S]*?<\/\1>/gi, " ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/\s+/g, " ")
+      .trim();
+    return { title: og?.trim() || url, platform: host, text: [desc, body.slice(0, 6000)].filter(Boolean).join("\n") };
   } catch {
     return { title: url, platform: host };
   }
 }
 
-export async function addSwipe(input: { url: string; why: string; by: string; title?: string }): Promise<Swipe> {
+export async function addSwipe(input: { url: string; why: string; by: string; title?: string; event?: string; owner?: Swipe["owner"] }): Promise<Swipe> {
   let url: URL;
   try {
     url = new URL(input.url.trim());
@@ -72,7 +83,6 @@ export async function addSwipe(input: { url: string; why: string; by: string; ti
   } catch {
     throw new Error("Paste a full link, starting with https://");
   }
-  if (!input.why.trim()) throw new Error("Say why it's clever. That's what Brian learns from.");
   const meta = await readLink(url.toString());
   const swipe: Swipe = {
     id: newId("swipe"),
@@ -81,13 +91,16 @@ export async function addSwipe(input: { url: string; why: string; by: string; ti
     author: meta.author,
     platform: meta.platform,
     metrics: meta.metrics,
+    text: meta.text?.slice(0, 8000),
+    event: input.event?.trim().slice(0, 80) || undefined,
+    owner: input.owner,
     why: input.why.trim().slice(0, 1000),
     addedBy: input.by,
     addedAt: new Date().toISOString(),
   };
   await repo.update((d) => {
     d.swipes = [swipe, ...(d.swipes ?? []).filter((s) => s.url !== swipe.url)];
-    logActivity(d, { by: input.by, type: "swipe.added", text: `added to Inspiration: “${swipe.title.slice(0, 100)}”`, ref: { kind: "swipe", id: swipe.id, label: swipe.title.slice(0, 60) } });
+    logActivity(d, { by: input.by, type: "swipe.added", text: `added to Learning: “${swipe.title.slice(0, 100)}”`, ref: { kind: "swipe", id: swipe.id, label: swipe.title.slice(0, 60) } });
   });
   return swipe;
 }

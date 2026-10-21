@@ -363,10 +363,45 @@ export interface Swipe {
   author?: string;
   platform: string;
   metrics?: Record<string, number>;
-  /** Why the team likes it, in their words */
+  /** Why the team likes it, in their words (optional: Brian explains it either way) */
   why: string;
   addedBy: string;
   addedAt: string;
+  /** The post's words, or the start of the article, for Brian to read */
+  text?: string;
+  /** The moment it was made for: "Halloween", "World Cup", "GTA 6 launch" */
+  event?: string;
+  /** Whose it was */
+  owner?: "ours" | "competitor" | "other";
+  /** Brian's explanation of why it worked, revised with the team's feedback */
+  breakdown?: Breakdown;
+  /** What the team said about Brian's explanation */
+  feedback?: { by: string; at: string; verdict: "right" | "partly" | "wrong"; note?: string }[];
+}
+
+export interface Breakdown {
+  at: string;
+  whatHappened: string;
+  feeling: string;
+  whySpread: string;
+  whyBrand: string;
+  timing: string;
+  /** The reusable lesson, one line */
+  lesson: string;
+  /** The surface that must never be copied: the object, format or target */
+  dontCopy: string;
+  /** What Brian couldn't tell from the link (e.g. it's a video he can't watch) */
+  unsure?: string;
+}
+
+/** Who Cashy is, built from everything the team has taught Brian. */
+export interface Identity {
+  at: string;
+  summary: string;
+  taste: string[];
+  lessons: { lesson: string; why: string; examples: string[] }[];
+  avoid: string[];
+  basedOn: number;
 }
 
 /** Anything the marketing team plans: a post, a CRM send, a campaign, a stunt. */

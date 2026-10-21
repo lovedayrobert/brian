@@ -146,7 +146,7 @@ function source(i: Idea, db: DB): { label: string; href?: string } {
   if (i.origin === "lab" || i.lens) {
     if (i.lens === "spark") {
       const sw = i.spark?.swipeId ? db.swipes?.find((s) => s.id === i.spark!.swipeId) : undefined;
-      if (sw) return { label: `a riff on ${sw.author ?? "a post"}'s post`, href: "/ideas/inspiration" };
+      if (sw) return { label: `a riff on ${sw.author ?? "a post"}'s post`, href: "/learning" };
       return { label: i.spark?.text ? `the spark “${i.spark.text.slice(0, 50)}${i.spark.text.length > 50 ? "…" : ""}”` : "your own idea", href: "/ideas/new" };
     }
     const lens = lensById(i.lens ?? "");

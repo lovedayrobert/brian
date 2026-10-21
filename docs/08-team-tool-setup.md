@@ -4,11 +4,12 @@ Everything below is built and switched on by setting variables in Railway (or `.
 
 ## How the app is organised
 
-Five spaces plus Settings, and nothing else in the sidebar (see the product rule in `CLAUDE.md`):
+Six spaces plus Settings, and nothing else in the sidebar (see the product rule in `CLAUDE.md`):
 
 - **Home**: what to do today: due and overdue tasks, ideas waiting, the room in three lines, special days coming up.
+- **Learning**: What worked (link a campaign; Brian explains why, you say if he got it), Cashy's identity (built from those), Rules (Memory).
 - **Radar**: what's happening: The room (Pulse), Breaking, Trends, Rivals.
-- **Ideas**: Brian's ideas, Get ideas, Inspiration. Packages and mockups open from their idea.
+- **Ideas**: Brian's ideas, Get ideas. Packages and mockups open from their idea.
 - **Calendar**: Linear tasks, the CRM sheet and special days (these two always show, whatever the filters), ideas for any day.
 - **Results**: how what we published did, by post, idea and channel, plus the website.
 - **Settings**: coverage and cost, sources, brand, models, what Brian has learned, accuracy.
@@ -118,3 +119,12 @@ Switched on 20 Oct 2026 at Rob's request, so nobody has to press anything for Br
 - **Each morning from 07:00 UTC** (`BRIAN_AUTO_HOUR`): a fresh sweep, then one Pulse (Sonnet).
 - **Then, only if something in the room scores 8/10 or more for feeling and has an opening**: one idea run on Opus alone (about $0.70), whatever `BRIAN_QUALITY` says. Fable and Astra stay for runs people start. Zero ideas is a fine result: no ideas beats bad ideas.
 - At most one Pulse and one idea run a day; the daily and total spend caps still apply to every call. Home shows what Brian did under The room; Settings → Models says it's on.
+
+## Learning (the most important space)
+
+Added 21 Oct 2026 after the meeting with Marko: Brian was inventing from what he saw on the internet, not from what the team thinks a successful campaign is.
+
+1. **Link something that worked** (ours, a rival's, anyone's, old or new) in Learning. Say why you rate it if you can, and tag the event it was made for (Halloween, World Cup…). Brian reads the link for free (X through fxtwitter, TikTok and YouTube titles, article text) and explains it with Opus: what happened, the feeling, why people shared it, why the brand got the credit, what it rode, the one lesson, and what never to copy. About $0.03.
+2. **Tell him if he got it**: Yes / Partly / No. Partly or No asks what he missed; your words become the truth and he rewrites it (about $0.03). Brian can't watch videos, so say what happens in one.
+3. **Cashy's identity** is rebuilt from every explanation and correction on demand (about $0.10): who Cashy is as a marketer, what the team loves, the lessons, what doesn't work.
+4. **Every idea run starts from it**, before the room. Ideas for a special day (Get ideas next to "Coming up" in Learning, or from the calendar) put examples tagged with that event first, so Halloween ideas start from Halloween campaigns that worked.

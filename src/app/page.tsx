@@ -237,7 +237,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
 
 function refHref(r: { kind: string; id: string }): string {
   if (r.kind === "idea") return `/ideas/${r.id}`;
-  if (r.kind === "swipe") return "/ideas/inspiration";
+  if (r.kind === "swipe") return "/learning";
   if (r.kind === "memory") return "/memory";
   if (r.kind === "package") return `/develop/${r.id}`;
   return "/calendar";

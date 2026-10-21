@@ -11,7 +11,8 @@ import { toolkitContext } from "./context";
 import { currentActor } from "@/lib/actor";
 import { logActivity } from "@/lib/activity";
 import { specialDayById } from "@/lib/calendar/days";
-import { swipeContext, swipeLine } from "@/lib/swipe";
+import { learningContext } from "@/lib/learning";
+import { swipeLine } from "@/lib/swipe";
 import type { DB } from "@/lib/store";
 import { totalScore } from "@/lib/scores";
 import { sourceContextFor } from "@/lib/source-context";
@@ -163,7 +164,7 @@ export async function generateIdeas(opts: {
     liveBrandContext(await ensureLiveBrand()),
     brandVoiceContext(opts.brandId),
     qualityBarContext(),
-    swipeContext(db.swipes),
+    learningContext(db.swipes, db.identity, opts.dayId ? specialDayById(opts.dayId)?.title : undefined),
     `<horizon>\n${HORIZON_BRIEF[horizon]}\n</horizon>`,
     ACCURACY_RULES,
   ].join("\n\n");

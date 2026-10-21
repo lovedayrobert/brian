@@ -7,6 +7,8 @@ import { newId, repo, type DB } from "@/lib/store";
  */
 export type ActivityType =
   | "idea.generated"
+  | "learning.feedback"
+  | "learning.identity"
   | "idea.scheduled"
   | "idea.developed"
   | "idea.rejected"
