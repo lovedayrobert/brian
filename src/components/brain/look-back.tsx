@@ -1,15 +1,16 @@
 "use client";
 
 import clsx from "clsx";
-import { Check, Eye, Heart, Loader2, MessageCircle, Play, Repeat2, Search, X } from "lucide-react";
-import { keywordsFor } from "@/lib/moment-keywords";
+import { Check, ChevronDown, Eye, Heart, Loader2, MessageCircle, Play, Plus, Repeat2, Search, Sparkles, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { mentions, teamKeywords, tokens } from "@/lib/moment-keywords";
 
 type Media = { kind: "photo" | "video" | "gif"; url: string };
 type Post = { id: string; url: string; text: string; at: string; likes?: number; reposts?: number; replies?: number; views?: number; via: "twitterapi" | "x" | "wayback"; media: Media[]; author?: { name: string; avatar?: string } };
-type Result = { handle: string; from: string; to: string; posts: Post[]; routes: { name: string; ok: boolean; note: string }[]; xSearchUrl: string; costUsd: number };
+type Result = { handle: string; from: string; to: string; posts: Post[]; others: Post[]; suggested: string[]; routes: { name: string; ok: boolean; note: string }[]; xSearchUrl: string; costUsd: number };
 type Moment = { title: string; date: string };
+type Learned = Record<string, { added: string[]; removed: string[] }>;
 
 const VIA = { twitterapi: "Full history", x: "X", wayback: "Archive" } as const;
 const n = (v?: number) => (v === undefined ? "–" : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `${(v / 1e3).toFixed(1)}K` : String(v));
@@ -33,12 +34,18 @@ function useMomentSearch(moments: Moment[], q: string) {
   }, [moments, q]);
 }
 
+/** Save the team's change to a moment's words, for everyone, next time. */
+function remember(moment: string, change: { add?: string[]; remove?: string[] }) {
+  fetch("/api/brain/moment-keywords", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ moment, ...change }) }).catch(() => {});
+}
+
 /**
- * "What did this brand do on this day?" Pick a brand, find a moment by typing,
- * see their posts from around it as real posts, pick the ones that worked and
- * teach them to Brian in one go.
+ * "What did this brand do on this day?" Pick a brand and a moment; Brian
+ * already knows the words that mark a post as being about it, shows the
+ * posts that are, keeps the rest one click away, and points out words
+ * nobody listed. Nothing to type.
  */
-export function LookBack({ moments, brands, paid, ai }: { moments: Moment[]; brands: string[]; paid: "history" | "recent" | "none"; ai: boolean }) {
+export function LookBack({ moments, brands, learned: learnedAtStart, paid, ai }: { moments: Moment[]; brands: string[]; learned: Learned; paid: "history" | "recent" | "none"; ai: boolean }) {
   const router = useRouter();
   const [handle, setHandle] = useState("");
   const [q, setQ] = useState("");
@@ -52,14 +59,42 @@ export function LookBack({ moments, brands, paid, ai }: { moments: Moment[]; bra
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [teaching, setTeaching] = useState<string | null>(null);
   const [onlyAbout, setOnlyAbout] = useState(true);
-  const [keywords, setKeywords] = useState<string[]>([]);
-  const [adding, setAdding] = useState("");
+  const [learned, setLearned] = useState<Learned>(learnedAtStart);
+  const [adding, setAdding] = useState<string | null>(null);
+  const [showOthers, setShowOthers] = useState(false);
   const matches = useMomentSearch(moments, q);
 
   const window = custom ?? (moment ? { from: shift(moment.date, -4), to: shift(moment.date, 3) } : null);
+  // The moments the words come from: the one picked, or any that fall inside your own dates.
+  const sources = useMemo(() => {
+    if (moment && !custom) return [moment.title];
+    if (custom?.from && custom.to) return [...new Set(moments.filter((m) => m.date >= shift(custom.from, -3) && m.date <= shift(custom.to, 3)).map((m) => m.title))];
+    return [];
+  }, [moment, custom, moments]);
+  const keywords = useMemo(() => [...new Set(sources.flatMap((t) => teamKeywords(t, learned[t])))], [sources, learned]);
+  const editable = sources.length === 1 ? sources[0] : null;
+
+  const change = (word: string, kind: "add" | "remove") => {
+    if (!editable) return;
+    const w = word.trim().toLowerCase();
+    if (!w) return;
+    const cur = learned[editable] ?? { added: [], removed: [] };
+    const next =
+      kind === "add"
+        ? { added: cur.added.includes(w) ? cur.added : [...cur.added, w], removed: cur.removed.filter((x) => x !== w) }
+        : { added: cur.added.filter((x) => x !== w), removed: cur.added.includes(w) || cur.removed.includes(w) ? cur.removed : [...cur.removed, w] };
+    setLearned({ ...learned, [editable]: next });
+    remember(editable, kind === "add" ? { add: [w] } : { remove: [w] });
+    // Adding a word Brian spotted pulls the posts that use it into the results straight away.
+    if (kind === "add" && result) {
+      const moved = result.others.filter((p) => mentions(p.text, [w]));
+      if (moved.length) setResult({ ...result, posts: [...result.posts, ...moved], others: result.others.filter((p) => !moved.includes(p)), suggested: result.suggested.filter((x) => x !== w) });
+      else setResult({ ...result, suggested: result.suggested.filter((x) => x !== w) });
+    }
+  };
+
   const choose = (m: Moment) => {
     setMoment(m);
-    setKeywords(keywordsFor(m.title));
     setQ(`${m.title} ${m.date.slice(0, 4)}`);
     setFocus(false);
   };
@@ -70,7 +105,8 @@ export function LookBack({ moments, brands, paid, ai }: { moments: Moment[]; bra
     setError(null);
     setResult(null);
     setPicked(new Set());
-    const res = await fetch("/api/brain/lookback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ handle, ...window, allowPaid, keywords: onlyAbout ? keywords : [] }) });
+    setShowOthers(false);
+    const res = await fetch("/api/brain/lookback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ handle, ...window, allowPaid, keywords: onlyAbout ? keywords : [], moment: sources.join(" and ") || undefined }) });
     const json = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) return setError(json.error ?? "Couldn't look that up.");
@@ -79,8 +115,14 @@ export function LookBack({ moments, brands, paid, ai }: { moments: Moment[]; bra
 
   async function teach() {
     if (!result) return;
-    const posts = result.posts.filter((p) => picked.has(p.id));
+    const all = [...result.posts, ...result.others];
+    const posts = all.filter((p) => picked.has(p.id));
     const event = !custom && moment ? `${moment.title} ${moment.date.slice(0, 4)}` : undefined;
+    // A post the words missed teaches the list too: the words Brian spotted in it are kept for this moment.
+    for (const p of result.others.filter((x) => picked.has(x.id))) {
+      const words = tokens(p.text);
+      for (const w of result.suggested.filter((x) => words.has(x))) change(w, "add");
+    }
     for (let i = 0; i < posts.length; i++) {
       setTeaching(`Teaching ${i + 1} of ${posts.length}…`);
       const res = await fetch("/api/brain/teach", {
@@ -97,6 +139,13 @@ export function LookBack({ moments, brands, paid, ai }: { moments: Moment[]; bra
     setPicked(new Set());
     router.refresh();
   }
+
+  const pick = (id: string) => {
+    const next = new Set(picked);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setPicked(next);
+  };
 
   return (
     <div className="text-left">
@@ -189,44 +238,59 @@ export function LookBack({ moments, brands, paid, ai }: { moments: Moment[]; bra
         </button>
       </div>
 
-      <div className="mt-5 rounded-[16px] bg-surface-2 p-4">
-        <label className="flex cursor-pointer items-center justify-between gap-3">
-          <span className="text-[13.5px] font-medium">
-            Only posts about {moment && !custom ? moment.title : "these words"}
-            <span className="block text-[12.5px] font-normal text-ink-3">{onlyAbout ? "Posts must mention one of the words below." : "Showing everything they posted in those dates."}</span>
-          </span>
-          <span className={clsx("relative h-6 w-10 shrink-0 rounded-full transition", onlyAbout ? "bg-accent" : "bg-line-strong")}>
-            <input type="checkbox" checked={onlyAbout} onChange={() => setOnlyAbout(!onlyAbout)} className="absolute inset-0 cursor-pointer opacity-0" />
-            <span className={clsx("pointer-events-none absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition", onlyAbout ? "left-[18px]" : "left-0.5")} />
-          </span>
-        </label>
-        {onlyAbout && (
-          <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            {keywords.map((k) => (
-              <span key={k} className="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-[12.5px] shadow-card">
-                {k}
-                <button aria-label={`Remove ${k}`} onClick={() => setKeywords(keywords.filter((x) => x !== k))} className="text-ink-3 hover:text-ink">
-                  <X className="h-3 w-3" />
-                </button>
-              </span>
-            ))}
-            <input
-              value={adding}
-              onChange={(e) => setAdding(e.target.value)}
-              onKeyDown={(e) => {
-                if ((e.key === "Enter" || e.key === ",") && adding.trim()) {
-                  e.preventDefault();
-                  const w = adding.trim().toLowerCase();
-                  if (!keywords.includes(w)) setKeywords([...keywords, w]);
-                  setAdding("");
-                }
-              }}
-              placeholder={keywords.length ? "Add a word…" : "Type a word and press Enter"}
-              className="h-7 min-w-[150px] flex-1 rounded-full bg-transparent px-2 text-[12.5px] outline-none placeholder:text-ink-3"
-            />
-          </div>
-        )}
-      </div>
+      {window && (
+        <div className="mt-5 rounded-[16px] bg-surface-2 p-4">
+          {keywords.length ? (
+            <>
+              <label className="flex cursor-pointer items-center justify-between gap-3">
+                <span className="text-[13.5px] font-medium">
+                  Only posts about {sources.join(" and ")}
+                  <span className="block text-[12.5px] font-normal text-ink-3">{onlyAbout ? "Brian knows the words these posts use. Tap a word to drop it." : "Showing everything they posted in those dates."}</span>
+                </span>
+                <span className={clsx("relative h-6 w-10 shrink-0 rounded-full transition", onlyAbout ? "bg-accent" : "bg-line-strong")}>
+                  <input type="checkbox" checked={onlyAbout} onChange={() => setOnlyAbout(!onlyAbout)} className="absolute inset-0 cursor-pointer opacity-0" />
+                  <span className={clsx("pointer-events-none absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition", onlyAbout ? "left-[18px]" : "left-0.5")} />
+                </span>
+              </label>
+              {onlyAbout && (
+                <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                  {keywords.map((k) => (
+                    <button key={k} disabled={!editable} onClick={() => change(k, "remove")} className="group inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-[12.5px] shadow-card enabled:hover:text-bad" title={editable ? "Drop this word" : undefined}>
+                      {k}
+                      {editable && <X className="h-3 w-3 text-ink-3 group-hover:text-bad" />}
+                    </button>
+                  ))}
+                  {editable &&
+                    (adding === null ? (
+                      <button onClick={() => setAdding("")} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[12.5px] text-accent-ink hover:bg-accent-soft">
+                        <Plus className="h-3 w-3" /> Add a word
+                      </button>
+                    ) : (
+                      <input
+                        autoFocus
+                        value={adding}
+                        onChange={(e) => setAdding(e.target.value)}
+                        onBlur={() => setAdding(null)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && adding.trim()) {
+                            e.preventDefault();
+                            change(adding, "add");
+                            setAdding("");
+                          }
+                          if (e.key === "Escape") setAdding(null);
+                        }}
+                        placeholder="Word, then Enter"
+                        className="h-7 w-[140px] rounded-full bg-surface px-2.5 text-[12.5px] shadow-card outline-none"
+                      />
+                    ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-[13px] text-ink-3">No known moment falls in these dates, so Brian shows everything they posted and points out the words that stand out.</p>
+          )}
+        </div>
+      )}
 
       <div className="mt-5 flex flex-wrap items-center gap-2">
         {paid !== "none" && (
@@ -251,26 +315,50 @@ export function LookBack({ moments, brands, paid, ai }: { moments: Moment[]; bra
               Search this on X ↗
             </a>
           </div>
-          <p className="mt-1 text-[12.5px] text-ink-3">{result.routes.map((r) => `${r.ok ? "✓" : "–"} ${r.name}: ${r.note}`).join(" · ")}</p>
+
+          {result.suggested.length > 0 && editable && (
+            <div className="mt-4 rounded-[16px] bg-accent-soft p-4">
+              <p className="flex items-center gap-1.5 text-[13.5px] font-medium text-accent-ink">
+                <Sparkles className="h-4 w-4" /> Brian noticed these words around {editable} that weren&rsquo;t on the list
+              </p>
+              <div className="mt-2.5 flex flex-wrap gap-1.5">
+                {result.suggested.map((w) => (
+                  <button key={w} onClick={() => change(w, "add")} className="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-[12.5px] shadow-card hover:shadow-raised">
+                    <Plus className="h-3 w-3 text-accent-ink" /> {w}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-[12px] text-ink-3">Tap to add. It&rsquo;s kept for next time, for everyone.</p>
+            </div>
+          )}
+
           {result.posts.length === 0 && (
-            <p className="mt-6 rounded-[16px] bg-surface-2 p-5 text-[14.5px] text-ink-2">Nothing reachable from here. Open the search on X (free while you&rsquo;re logged in) and paste the best posts into Teach.</p>
+            <p className="mt-6 rounded-[16px] bg-surface-2 p-5 text-[14.5px] text-ink-2">
+              {result.others.length ? "No posts used the moment's words. Have a look at the others below." : "Nothing reachable from here. Open the search on X (free while you're logged in) and paste the best posts into Teach."}
+            </p>
           )}
           <div className="mt-5 columns-1 gap-4 sm:columns-2">
             {result.posts.map((p) => (
-              <PostCard
-                key={p.id}
-                p={p}
-                handle={result.handle}
-                picked={picked.has(p.id)}
-                onPick={() => {
-                  const next = new Set(picked);
-                  if (next.has(p.id)) next.delete(p.id);
-                  else next.add(p.id);
-                  setPicked(next);
-                }}
-              />
+              <PostCard key={p.id} p={p} handle={result.handle} picked={picked.has(p.id)} onPick={() => pick(p.id)} />
             ))}
           </div>
+
+          {result.others.length > 0 && (
+            <div className="mt-4">
+              <button onClick={() => setShowOthers(!showOthers)} className="inline-flex items-center gap-1.5 text-[13.5px] text-accent-ink hover:underline">
+                <ChevronDown className={clsx("h-4 w-4 transition", showOthers && "rotate-180")} />
+                {showOthers ? "Hide" : "Show"} {result.others.length} other post{result.others.length === 1 ? "" : "s"} from these dates that didn&rsquo;t use the words
+              </button>
+              {showOthers && (
+                <div className="mt-4 columns-1 gap-4 opacity-90 sm:columns-2">
+                  {result.others.map((p) => (
+                    <PostCard key={p.id} p={p} handle={result.handle} picked={picked.has(p.id)} onPick={() => pick(p.id)} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {picked.size > 0 && (
             <div className="sticky bottom-4 mt-4 flex flex-wrap items-center gap-4 rounded-full bg-surface py-2 pl-2 pr-5 shadow-float">
               <button disabled={!!teaching || !ai} onClick={teach} className="inline-flex h-10 items-center gap-2 rounded-full bg-ink px-5 text-[14px] font-medium text-bg disabled:opacity-40">
@@ -280,6 +368,8 @@ export function LookBack({ moments, brands, paid, ai }: { moments: Moment[]; bra
               <span className="text-[13px] text-ink-3">About ${(picked.size * 0.04).toFixed(2)}. He digests each into his brain.</span>
             </div>
           )}
+
+          <p className="mt-4 text-[12px] text-ink-3">{result.routes.map((r) => `${r.ok ? "✓" : "–"} ${r.name}: ${r.note}`).join(" · ")}</p>
         </div>
       )}
     </div>

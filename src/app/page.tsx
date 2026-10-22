@@ -19,6 +19,7 @@ export default async function BrianPage({ searchParams }: { searchParams: Promis
     ai: modelReady(),
     lookback: {
       brands: rivals().handles,
+      learned: db.momentKeywords ?? {},
       paid: twitterApiReady() ? "history" : process.env.X_BEARER_TOKEN ? "recent" : "none",
       // Moments to look back at, this year and the three before it.
       moments: (() => {

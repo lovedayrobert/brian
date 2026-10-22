@@ -11,7 +11,7 @@ type Kind = "truth" | "mechanic" | "industry";
 export interface BrainView {
   ai: boolean;
   /** Looking back at a brand's posts around a moment */
-  lookback: { paid: "history" | "recent" | "none"; moments: { title: string; date: string }[]; brands: string[] };
+  lookback: { paid: "history" | "recent" | "none"; moments: { title: string; date: string }[]; brands: string[]; learned: Record<string, { added: string[]; removed: string[] }> };
   /** ?brain=0..1 shows the brain at a given stage of growth, to preview it (the knowledge shown stays real) */
   preview?: number;
   nodes: {
@@ -177,7 +177,7 @@ export function BrainApp({ view }: { view: BrainView }) {
           ) : (
             <>
               <p className="mb-5 text-[14px] text-ink-2">Pick a brand and a moment (like Stake, Halloween 2024) to see what they posted around it. Tick the posts that worked and teach them to Brian.</p>
-              <LookBack moments={view.lookback.moments} brands={view.lookback.brands} paid={view.lookback.paid} ai={view.ai} />
+              <LookBack moments={view.lookback.moments} brands={view.lookback.brands} learned={view.lookback.learned} paid={view.lookback.paid} ai={view.ai} />
             </>
           )}
         </section>

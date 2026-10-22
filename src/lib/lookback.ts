@@ -1,6 +1,6 @@
 import { xBudget } from "@/lib/adapters/sources/x";
 import { USER_AGENT } from "@/lib/adapters/sources/types";
-import { mentions } from "@/lib/moment-keywords";
+import { distinctiveWords, mentions } from "@/lib/moment-keywords";
 import { repo } from "@/lib/store";
 
 /**
@@ -59,6 +59,10 @@ export interface LookResult {
   from: string;
   to: string;
   posts: LookPost[];
+  /** Posts from the same dates that didn't mention any keyword, so nothing is hidden silently */
+  others: LookPost[];
+  /** Words that suddenly appeared around the moment and aren't on the list yet */
+  suggested: string[];
   routes: { name: string; ok: boolean; note: string }[];
   xSearchUrl: string;
   costUsd: number;
@@ -241,10 +245,36 @@ async function viaWayback(handle: string, start: number, end: number, max: numbe
 }
 
 /**
+ * Counting finds words that spiked around the moment, but a brand's giveaway
+ * boilerplate spikes too. Haiku keeps only the words that really belong to the
+ * moment (about $0.001). Without a model, nothing is suggested rather than junk.
+ */
+async function onlyMomentWords(candidates: string[], moment: string | undefined, known: string[]): Promise<string[]> {
+  if (!candidates.length || !moment) return [];
+  try {
+    const { callStructured, modelReady } = await import("@/lib/adapters/model");
+    if (!modelReady()) return [];
+    const z = await import("zod/v4");
+    const out = await callStructured({
+      agent: "cartographer",
+      subject: `${moment} words`,
+      maxTokens: 600,
+      schema: z.object({ words: z.array(z.string()).describe("Only candidates, copied exactly") }),
+      system: "You pick out words that are specifically about a moment (a holiday, event or day), from words that spiked in a brand's posts around it. Keep only words a post would use because of that moment (themes, symbols, emoji, campaign names that play on it). Drop generic marketing, giveaway and filler words.",
+      prompt: `Moment: ${moment}\nAlready on the list: ${known.join(", ")}\nCandidates: ${candidates.join(", ")}\nWhich candidates are about ${moment}? It's fine to return none.`,
+    });
+    const allowed = new Set(candidates);
+    return out.words.map((w) => w.trim().toLowerCase()).filter((w) => allowed.has(w)).slice(0, 8);
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Look back at a brand's posts between two dates (YYYY-MM-DD, inclusive).
  * Paid routes are skipped unless allowPaid; X spend counts against the X budget.
  */
-export async function lookBack(input: { handle: string; from: string; to: string; allowPaid: boolean; max?: number; keywords?: string[] }): Promise<LookResult> {
+export async function lookBack(input: { handle: string; from: string; to: string; allowPaid: boolean; max?: number; keywords?: string[]; moment?: string }): Promise<LookResult> {
   const handle = cleanHandle(input.handle);
   if (!/^\w{1,15}$/.test(handle)) throw new Error("Give an X handle, like @stake.");
   const start = Date.parse(`${input.from}T00:00:00Z`);
@@ -256,6 +286,8 @@ export async function lookBack(input: { handle: string; from: string; to: string
   const onTopic = (p: LookPost) => !keywords.length || mentions(p.text, keywords);
   const routes: LookResult["routes"] = [];
   let posts: LookPost[] = [];
+  let others: LookPost[] = [];
+  let suggested: string[] = [];
   let costUsd = 0;
   let xCost = 0;
 
@@ -264,6 +296,21 @@ export async function lookBack(input: { handle: string; from: string; to: string
     routes.push({ name: "Full X history (TwitterAPI.io)", ok: r.posts.length > 0, note: r.note });
     posts = r.posts;
     costUsd += r.cost;
+    if (keywords.length) {
+      // Everything else from those dates (nothing hidden silently), and the week before, to spot words nobody listed.
+      const span = end - start;
+      const [all, before] = await Promise.all([viaTwitterApi(handle, start, end, max, []), viaTwitterApi(handle, start - span - 1000, start - 1000, max, [])]);
+      costUsd += all.cost + before.cost;
+      const have = new Set(posts.map((p) => p.id));
+      others = all.posts.filter((p) => !have.has(p.id));
+      const candidates = distinctiveWords(
+        [...posts, ...others].map((p) => p.text),
+        before.posts.map((p) => p.text),
+        [...keywords, handle],
+        25,
+      );
+      suggested = await onlyMomentWords(candidates, input.moment, keywords);
+    }
   }
   // X's own timeline only reaches recent posts; worth trying for the last year.
   if (!posts.length && input.allowPaid && Date.now() - end < 400 * 86_400_000) {
@@ -274,6 +321,7 @@ export async function lookBack(input: { handle: string; from: string; to: string
     else {
       const r = await viaXTimeline(handle, start, end, max);
       const kept = r.posts.filter(onTopic);
+      others = r.posts.filter((p) => !onTopic(p));
       routes.push({ name: "X timeline", ok: kept.length > 0, note: keywords.length && r.posts.length ? `${kept.length} of ${r.posts.length} posts are about it` : r.note });
       posts = kept;
       costUsd += r.cost;
@@ -283,6 +331,8 @@ export async function lookBack(input: { handle: string; from: string; to: string
   if (posts.length < 5) {
     const r = await viaWayback(handle, start, end, max);
     const kept = r.posts.filter(onTopic);
+    const seen = new Set(others.map((p) => p.id));
+    others = [...others, ...r.posts.filter((p) => !onTopic(p) && !seen.has(p.id))];
     routes.push({ name: "Wayback Machine (free)", ok: kept.length > 0, note: keywords.length && r.posts.length ? `${kept.length} of ${r.posts.length} archived posts are about it` : r.note });
     const have = new Set(posts.map((p) => p.id));
     posts = [...posts, ...kept.filter((p) => !have.has(p.id))];
@@ -296,5 +346,5 @@ export async function lookBack(input: { handle: string; from: string; to: string
       d.xState = { ...(s ?? { pulls: 0, posts: [] }), month, monthUsd: (s?.month === month ? s.monthUsd : 0) + xCost, day, dayUsd: (s?.day === day ? s.dayUsd : 0) + xCost } as NonNullable<typeof d.xState>;
     });
   }
-  return { handle, from: input.from, to: input.to, posts: posts.sort((a, b) => score(b) - score(a)), routes, xSearchUrl: xSearchUrl(handle, input.from, input.to), costUsd: Math.round(costUsd * 1000) / 1000 };
+  return { handle, from: input.from, to: input.to, posts: posts.sort((a, b) => score(b) - score(a)), others: others.sort((a, b) => score(b) - score(a)), suggested, routes, xSearchUrl: xSearchUrl(handle, input.from, input.to), costUsd: Math.round(costUsd * 1000) / 1000 };
 }
