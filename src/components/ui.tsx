@@ -15,11 +15,11 @@ export function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <header className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
-        {eyebrow && <div className="mb-1.5 text-[13px] font-medium text-ink-2">{eyebrow}</div>}
-        <h1 className="display text-[28px] leading-[1.1] sm:text-[34px]">{title}</h1>
-        {subtitle && <p className="mt-2 max-w-[640px] text-[15px] leading-relaxed text-ink-2">{subtitle}</p>}
+        {eyebrow && <div className="mono-label mb-3 text-ink-3">{eyebrow}</div>}
+        <h1 className="display text-[30px] leading-[1.12] sm:text-[40px]">{title}</h1>
+        {subtitle && <p className="mt-3 max-w-[640px] text-[15.5px] font-light leading-relaxed text-ink-2">{subtitle}</p>}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
     </header>
@@ -28,7 +28,7 @@ export function PageHeader({
 
 export function Card({ className, children, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={clsx("rounded-[18px] bg-surface shadow-card", className)} {...rest}>
+    <div className={clsx("rounded-[2px] border border-line bg-surface", className)} {...rest}>
       {children}
     </div>
   );
@@ -36,8 +36,8 @@ export function Card({ className, children, ...rest }: React.HTMLAttributes<HTML
 
 export function SectionTitle({ children, action, className }: { children: React.ReactNode; action?: React.ReactNode; className?: string }) {
   return (
-    <div className={clsx("mb-3 flex items-center justify-between gap-3", className)}>
-      <h2 className="text-[17px] font-semibold tracking-tight">{children}</h2>
+    <div className={clsx("mb-4 flex items-baseline justify-between gap-3 border-b border-ink pb-3", className)}>
+      <h2 className="mono-label text-ink">{children}</h2>
       {action}
     </div>
   );
@@ -53,14 +53,14 @@ export function Pill({
   className?: string;
 }) {
   const tones = {
-    neutral: "bg-surface-3 text-ink-2",
-    accent: "bg-accent-soft text-accent-ink",
-    good: "bg-good-soft text-good",
-    warn: "bg-warn-soft text-warn",
-    bad: "bg-bad-soft text-bad",
+    neutral: "border-line-strong text-ink-2",
+    accent: "border-ink text-ink",
+    good: "border-good/40 text-good",
+    warn: "border-warn/40 text-warn",
+    bad: "border-bad/40 text-bad",
   };
   return (
-    <span className={clsx("inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-[3px] text-[11.5px] font-medium", tones[tone], className)}>
+    <span className={clsx("inline-flex items-center gap-1 whitespace-nowrap border px-1.5 py-[2px] font-[family-name:var(--font-fira)] text-[10.5px] uppercase tracking-[0.1em]", tones[tone], className)}>
       {children}
     </span>
   );
@@ -135,8 +135,8 @@ export function ProvenanceTag({ p }: { p: Provenance }) {
 export function Stat({ label, value, hint, className }: { label: string; value: React.ReactNode; hint?: React.ReactNode; className?: string }) {
   return (
     <div className={clsx("min-w-0", className)}>
-      <div className="text-[12.5px] text-ink-2">{label}</div>
-      <div className="display tabular mt-1 text-[26px] leading-none">{value}</div>
+      <div className="mono-label text-ink-3">{label}</div>
+      <div className="display tabular mt-2 text-[30px] leading-none">{value}</div>
       {hint && <div className="mt-1.5 text-[12px] text-ink-3">{hint}</div>}
     </div>
   );
@@ -156,9 +156,9 @@ export function EmptyState({
   className?: string;
 }) {
   return (
-    <div className={clsx("flex flex-col items-center rounded-[18px] border border-dashed border-line-strong px-6 py-14 text-center", className)}>
-      {icon && <div className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-surface-3 text-ink-2">{icon}</div>}
-      <div className="text-[15px] font-semibold">{title}</div>
+    <div className={clsx("flex flex-col items-center border border-dashed border-line-strong px-6 py-14 text-center", className)}>
+      {icon && <div className="mb-4 text-ink-3">{icon}</div>}
+      <div className="text-[17px] font-light">{title}</div>
       {body && <div className="mt-1.5 max-w-[440px] text-[13.5px] leading-relaxed text-ink-2">{body}</div>}
       {action && <div className="mt-5">{action}</div>}
     </div>
@@ -261,10 +261,10 @@ export function ScoreBar({ label, value, reason }: { label: string; value: numbe
     <div>
       <div className="flex items-baseline justify-between text-[12.5px]">
         <span className="text-ink-2">{label}</span>
-        <span className="tabular font-semibold">{value}/10</span>
+        <span className="tabular">{value}/10</span>
       </div>
-      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-3">
-        <div className="h-full rounded-full bg-accent" style={{ width: `${value * 10}%` }} />
+      <div className="mt-1.5 h-[3px] overflow-hidden bg-surface-3">
+        <div className="h-full bg-ink" style={{ width: `${value * 10}%` }} />
       </div>
       <div className="mt-1.5 text-[12px] leading-snug text-ink-3">{reason}</div>
     </div>

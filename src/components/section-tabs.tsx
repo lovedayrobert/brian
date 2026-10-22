@@ -20,11 +20,11 @@ export const IDEAS_TABS = [
 
 export function SectionTabs({ space, tabs, active }: { space: string; tabs: { id: string; href: string; label: string }[]; active: string }) {
   return (
-    <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2">
-      <span className="text-[13px] font-medium uppercase tracking-[0.06em] text-ink-3">{space}</span>
-      <nav className="flex rounded-full bg-surface p-0.5 shadow-card">
+    <div className="mb-8 flex flex-wrap items-center gap-x-8 gap-y-2 border-b border-line">
+      <span className="mono-label pb-3 text-ink-3">{space}</span>
+      <nav className="flex flex-wrap gap-x-6">
         {tabs.map((t) => (
-          <Link key={t.id} href={t.href} className={clsx("rounded-full px-3.5 py-1.5 text-[13px] transition", active === t.id ? "bg-ink text-bg" : "text-ink-2 hover:text-ink")}>
+          <Link key={t.id} href={t.href} className={clsx("mono-label -mb-px border-b pb-3 transition", active === t.id ? "border-ink text-ink" : "border-transparent text-ink-3 hover:text-ink")}>
             {t.label}
           </Link>
         ))}

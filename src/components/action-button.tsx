@@ -65,11 +65,11 @@ export function ActionButton({
   }
 
   const styles = {
-    primary: "bg-ink text-bg hover:opacity-90",
-    secondary: "bg-surface text-ink shadow-card hover:shadow-raised",
-    ghost: "text-accent-ink hover:bg-accent-soft",
+    primary: "bg-ink text-bg hover:opacity-85",
+    secondary: "border border-ink bg-surface text-ink hover:bg-surface-3",
+    ghost: "text-ink underline-offset-4 hover:underline",
   };
-  const sizes = { sm: "h-8 px-3 text-[12.5px]", md: "h-9 px-4 text-[13.5px]" };
+  const sizes = { sm: "h-8 px-3 text-[11px]", md: "h-10 px-4 text-[11.5px]" };
 
   return (
     <span className="inline-flex flex-col items-start gap-1.5">
@@ -79,7 +79,7 @@ export function ActionButton({
         disabled={busy || disabled}
         title={disabled ? disabledReason : undefined}
         className={clsx(
-          "inline-flex items-center justify-center gap-1.5 rounded-full font-medium transition disabled:cursor-not-allowed disabled:opacity-45",
+          "inline-flex items-center justify-center gap-1.5 font-[family-name:var(--font-fira)] uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:opacity-40",
           styles[variant],
           sizes[size],
           className,
