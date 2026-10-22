@@ -14,14 +14,11 @@ Brian is Cashy's AI marketing engine (Next.js 16, TypeScript, Anthropic SDK). If
 8. `docs/08-team-tool-setup.md`: calendar, Linear, CRM sheet, Google sign-in, model setup
 9. `docs/09-roadmap.md`: what comes next
 
-## Product rule: Brian first, team tools behind him
+## Product rule: Brian first, everything one click away
 
-Brian is one thing: a brain the team teaches, which then thinks for them (Rob and Marko, 21 Oct 2026: the old dashboard "doesn't work for us").
+Brian is the home screen (`/`): a brain the team teaches, which then thinks for them. Every other area is one click away in a single slim top bar (Brian, Today, Ideas, Calendar, Results, Radar, Settings), drawn in Brian's Bittensor-like style: white, black ink, mono uppercase labels. Rob and Marko asked for this middle ground on 22 Oct 2026, after the old sidebar dashboard felt overcomplicated and a Brian-only screen hid the tools the team uses.
 
-- **Brian `/`**: the product. No sidebar. Teach him a link, watch him work it out, see his brain (audience truths, mechanics, industry memory), answer his questions. Next: his pitches, each traceable to what it was built on.
-- **Team tools** (`/home`, `/radar`, `/ideas`, `/calendar`, `/results`, `/settings`): behind a single "Team tools" link. They work and the team uses Calendar and Results, but they are not the showcase.
-
-**Never add a sidebar item or a new top-level page**, and never put anything on Brian's screen that isn't teaching him, his brain, or his ideas. A new feature goes inside one of the spaces: as a tab (`src/components/section-tabs.tsx`), a panel, a section or a button on an existing page. If a feature doesn't clearly belong in one space, that's a sign it isn't needed yet. Ask before building it. Old URLs are redirected in `next.config.ts`; keep them working when moving things.
+**Never add an item to the top bar or a new top-level page**, and never put anything on Brian's screen that isn't teaching him, his brain, or his ideas. A new feature goes inside one of the spaces: as a tab (`src/components/section-tabs.tsx`), a panel, a section or a button on an existing page. If a feature doesn't clearly belong in one space, that's a sign it isn't needed yet. Ask before building it. Old URLs are redirected in `next.config.ts`; keep them working when moving things.
 
 Before adding anything, check it can be used without explanation by someone on the marketing team who has never seen Brian, and that an existing feature doesn't already do the job.
 
