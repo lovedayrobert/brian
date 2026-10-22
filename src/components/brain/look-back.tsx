@@ -62,7 +62,12 @@ export function LookBack({ moments, brands, learned: learnedAtStart, paid, ai }:
   const [learned, setLearned] = useState<Learned>(learnedAtStart);
   const [adding, setAdding] = useState<string | null>(null);
   const [showOthers, setShowOthers] = useState(false);
-  const matches = useMomentSearch(moments, q);
+  // Only moments that have happened: there's nothing to look back at for Halloween 2026 yet.
+  const past = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return moments.filter((m) => m.date <= today);
+  }, [moments]);
+  const matches = useMomentSearch(past, q);
 
   const window = custom ?? (moment ? { from: shift(moment.date, -4), to: shift(moment.date, 3) } : null);
   // The moments the words come from: the one picked, or any that fall inside your own dates.
@@ -164,7 +169,7 @@ export function LookBack({ moments, brands, learned: learnedAtStart, paid, ai }:
           )}
         </div>
         {!custom ? (
-          <div className="relative">
+          <div className="self-start">
             <label className="mb-1.5 block text-[12.5px] font-medium text-ink-2">Moment</label>
             <div className="relative">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
@@ -194,28 +199,28 @@ export function LookBack({ moments, brands, learned: learnedAtStart, paid, ai }:
                 placeholder="Halloween 2024, Black Friday, GTA…"
                 className={clsx(field, "pl-10")}
               />
+              {focus && q.trim() && !moment && (
+                <div className="absolute inset-x-0 top-full z-20 mt-1.5 overflow-hidden rounded-[14px] bg-surface p-1 shadow-float">
+                  {matches.length === 0 ? (
+                    <p className="px-3 py-2.5 text-[13px] text-ink-3">No moment called that. Set your own dates below.</p>
+                  ) : (
+                    matches.map((m, i) => (
+                      <button
+                        key={`${m.title}${m.date}`}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => choose(m)}
+                        className={clsx("flex w-full items-baseline justify-between gap-3 rounded-[10px] px-3 py-2 text-left text-[14px]", i === cursor ? "bg-surface-3" : "hover:bg-surface-2")}
+                      >
+                        <span className="font-medium">
+                          {m.title} {m.date.slice(0, 4)}
+                        </span>
+                        <span className="text-[12.5px] text-ink-3">{nice(m.date)}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
-            {focus && q.trim() && !moment && (
-              <div className="absolute inset-x-0 top-full z-20 mt-1.5 overflow-hidden rounded-[14px] bg-surface p-1 shadow-float">
-                {matches.length === 0 ? (
-                  <p className="px-3 py-2.5 text-[13px] text-ink-3">No moment called that. Set your own dates below.</p>
-                ) : (
-                  matches.map((m, i) => (
-                    <button
-                      key={`${m.title}${m.date}`}
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => choose(m)}
-                      className={clsx("flex w-full items-baseline justify-between gap-3 rounded-[10px] px-3 py-2 text-left text-[14px]", i === cursor ? "bg-surface-3" : "hover:bg-surface-2")}
-                    >
-                      <span className="font-medium">
-                        {m.title} {m.date.slice(0, 4)}
-                      </span>
-                      <span className="text-[12.5px] text-ink-3">{nice(m.date)}</span>
-                    </button>
-                  ))
-                )}
-              </div>
-            )}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
