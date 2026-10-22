@@ -93,6 +93,9 @@ export function BrainMesh({ points, links, highlight, pulse, formation }: { poin
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+    // Lines take the page's ink colour, so the brain works in light and dark.
+    const rgb = (getComputedStyle(canvas).color.match(/\d+/g) ?? ["20", "20", "20"]).slice(0, 3).join(",");
+    const ink = (a: number) => `rgba(${rgb},${a})`;
     // Before it forms, each point drifts out from its place in the brain: a soft, unfocused cloud that
     // sharpens into the brain as Brian learns (lines stay local, so it never turns into a scribble).
     const loosen = (b: V, key: string): V => {
@@ -190,14 +193,14 @@ export function BrainMesh({ points, links, highlight, pulse, formation }: { poin
       ctx.lineWidth = 0.5;
       for (const [i, j] of fieldLinks) {
         const alpha = 0.02 + f * 0.05 + ((fp[i].depth + fp[j].depth) / 2) * (0.04 + f * 0.13);
-        ctx.strokeStyle = `rgba(20,20,20,${alpha})`;
+        ctx.strokeStyle = ink(alpha);
         ctx.beginPath();
         ctx.moveTo(fp[i].x, fp[i].y);
         ctx.lineTo(fp[j].x, fp[j].y);
         ctx.stroke();
       }
       for (const q of fp) {
-        ctx.fillStyle = `rgba(20,20,20,${0.08 + q.depth * (0.15 + f * 0.15)})`;
+        ctx.fillStyle = ink(0.08 + q.depth * (0.15 + f * 0.15));
         ctx.fillRect(q.x - 0.5, q.y - 0.5, 1.2, 1.2);
       }
       if (f > 0.55) {
@@ -206,7 +209,7 @@ export function BrainMesh({ points, links, highlight, pulse, formation }: { poin
         for (const l of lobeLabels) {
           const q = project(l.at);
           if (q.depth < 0.45) continue;
-          ctx.fillStyle = `rgba(20,20,20,${(f - 0.55) * 1.2 * (q.depth - 0.4)})`;
+          ctx.fillStyle = ink((f - 0.55) * 1.2 * (q.depth - 0.4));
           ctx.fillText(l.text, q.x, q.y - 14);
         }
       }
@@ -216,7 +219,7 @@ export function BrainMesh({ points, links, highlight, pulse, formation }: { poin
         if (!a) continue;
         const pa = project(a);
         const on = hi === id || pu.has(id);
-        ctx.strokeStyle = `rgba(20,20,20,${on ? 0.6 : 0.12 + pa.depth * 0.22})`;
+        ctx.strokeStyle = ink(on ? 0.6 : 0.12 + pa.depth * 0.22);
         ctx.lineWidth = on ? 0.9 : 0.6;
         ctx.beginPath();
         ctx.moveTo(pa.x, pa.y);
@@ -232,7 +235,7 @@ export function BrainMesh({ points, links, highlight, pulse, formation }: { poin
         const on = hi && (l.a === hi || l.b === hi);
         const lit = pu.has(l.a) || pu.has(l.b);
         const alpha = on ? 0.85 : lit ? 0.5 : base * (0.35 + 0.65 * ((pa.depth + pb.depth) / 2));
-        ctx.strokeStyle = `rgba(20,20,20,${alpha})`;
+        ctx.strokeStyle = ink(alpha);
         ctx.lineWidth = on ? 1.2 : 0.6;
         ctx.beginPath();
         ctx.moveTo(pa.x, pa.y);
@@ -244,12 +247,12 @@ export function BrainMesh({ points, links, highlight, pulse, formation }: { poin
         const q = project(pos.get(p.id)!);
         const on = hi === p.id || pu.has(p.id);
         const size = (1.6 + p.weight * 3.4) * q.s * (on ? 1.6 : 1);
-        ctx.fillStyle = `rgba(20,20,20,${on ? 1 : 0.35 + q.depth * 0.6})`;
+        ctx.fillStyle = ink(on ? 1 : 0.35 + q.depth * 0.6);
         ctx.beginPath();
         ctx.arc(q.x, q.y, size, 0, Math.PI * 2);
         ctx.fill();
         if (on) {
-          ctx.strokeStyle = "rgba(20,20,20,0.5)";
+          ctx.strokeStyle = ink(0.5);
           ctx.lineWidth = 0.75;
           ctx.beginPath();
           ctx.arc(q.x, q.y, size + 6 + Math.sin(angle * 40) * 2, 0, Math.PI * 2);
@@ -274,5 +277,5 @@ export function BrainMesh({ points, links, highlight, pulse, formation }: { poin
     };
   }, [points, links]);
 
-  return <canvas ref={ref} className="block h-full w-full" aria-label="Brian's brain: everything he knows, and how it connects" role="img" />;
+  return <canvas ref={ref} className="block h-full w-full text-ink" aria-label="Brian's brain: everything he knows, and how it connects" role="img" />;
 }

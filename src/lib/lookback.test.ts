@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanHandle, tweetTime, xSearchUrl } from "./lookback";
+import { cleanHandle, tidyText, tweetTime, xSearchUrl } from "./lookback";
 
 describe("looking back at a brand's posts", () => {
   it("reads the posting time out of a tweet id", () => {
@@ -14,5 +14,8 @@ describe("looking back at a brand's posts", () => {
   });
   it("builds the free search on X", () => {
     expect(decodeURIComponent(xSearchUrl("stake", "2024-10-28", "2024-11-03"))).toContain("from:stake since:2024-10-28 until:2024-11-03");
+  });
+  it("cleans post text for reading", () => {
+    expect(tidyText("KYC Lvl 2 verified &amp; https://t.co/abc123 ready\nGo https://t.co/xyz")).toBe("KYC Lvl 2 verified &  ready\nGo");
   });
 });

@@ -33,7 +33,25 @@ export interface LookPost {
   replies?: number;
   views?: number;
   via: "twitterapi" | "x" | "wayback";
+  /** Images, and the still for videos and GIFs */
+  media: { kind: "photo" | "video" | "gif"; url: string }[];
+  author?: { name: string; avatar?: string };
 }
+
+/** Post text as people read it: no t.co links (the card links to the post), HTML entities decoded. */
+export function tidyText(text: string): string {
+  return text
+    .replace(/https:\/\/t\.co\/\w+/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/[ \t]+\n/g, "\n")
+    .trim();
+}
+
+const kindOf = (t?: string): "photo" | "video" | "gif" => (t === "video" ? "video" : t === "animated_gif" || t === "gif" ? "gif" : "photo");
 
 export interface LookResult {
   handle: string;
@@ -75,7 +93,23 @@ export function twitterApiReady(): boolean {
 }
 
 async function viaTwitterApi(handle: string, start: number, end: number, max: number): Promise<{ posts: LookPost[]; cost: number; note: string }> {
-  type Res = { tweets: { id: string; url: string; text: string; createdAt: string; likeCount: number; retweetCount: number; replyCount: number; viewCount: number; isReply?: boolean }[]; has_next_page: boolean; next_cursor: string };
+  type Res = {
+    tweets: {
+      id: string;
+      url: string;
+      text: string;
+      createdAt: string;
+      likeCount: number;
+      retweetCount: number;
+      replyCount: number;
+      viewCount: number;
+      isReply?: boolean;
+      author?: { name?: string; profilePicture?: string };
+      extendedEntities?: { media?: { type?: string; media_url_https?: string }[] };
+    }[];
+    has_next_page: boolean;
+    next_cursor: string;
+  };
   const posts: LookPost[] = [];
   let cursor = "";
   let cost = 0;
@@ -85,7 +119,19 @@ async function viaTwitterApi(handle: string, start: number, end: number, max: nu
     if (!body) return { posts, cost, note: `TwitterAPI.io answered ${status}` };
     cost += Math.max(1, body.tweets.length) * 0.00015;
     for (const t of body.tweets)
-      posts.push({ id: t.id, url: t.url || `https://x.com/${handle}/status/${t.id}`, text: t.text, at: new Date(t.createdAt).toISOString(), likes: t.likeCount, reposts: t.retweetCount, replies: t.replyCount, views: t.viewCount, via: "twitterapi" });
+      posts.push({
+        id: t.id,
+        url: t.url || `https://x.com/${handle}/status/${t.id}`,
+        text: tidyText(t.text),
+        at: new Date(t.createdAt).toISOString(),
+        likes: t.likeCount,
+        reposts: t.retweetCount,
+        replies: t.replyCount,
+        views: t.viewCount,
+        via: "twitterapi",
+        media: (t.extendedEntities?.media ?? []).filter((m) => m.media_url_https).map((m) => ({ kind: kindOf(m.type), url: m.media_url_https! })),
+        author: t.author?.name ? { name: t.author.name, avatar: t.author.profilePicture } : undefined,
+      });
     if (!body.has_next_page || !body.next_cursor) break;
     cursor = body.next_cursor;
   }
@@ -96,19 +142,41 @@ async function viaXTimeline(handle: string, start: number, end: number, max: num
   const token = process.env.X_BEARER_TOKEN;
   if (!token) return { posts: [], cost: 0, note: "No X key" };
   const headers = { Authorization: `Bearer ${token}` };
-  const user = await json<{ data?: { id: string } }>(`https://api.x.com/2/users/by/username/${handle}`, { headers });
+  const user = await json<{ data?: { id: string; name: string; profile_image_url?: string } }>(`https://api.x.com/2/users/by/username/${handle}?user.fields=profile_image_url`, { headers });
   let cost = 0.01;
   if (!user.body?.data) return { posts: [], cost, note: `X couldn't find @${handle}` };
   const posts: LookPost[] = [];
   let token2 = "";
   while (posts.length < max) {
-    const params = new URLSearchParams({ max_results: String(Math.min(100, Math.max(5, max - posts.length))), start_time: new Date(start).toISOString(), end_time: new Date(end).toISOString(), exclude: "retweets,replies", "tweet.fields": "created_at,public_metrics" });
+    const params = new URLSearchParams({ max_results: String(Math.min(100, Math.max(5, max - posts.length))), start_time: new Date(start).toISOString(), end_time: new Date(end).toISOString(), exclude: "retweets,replies", "tweet.fields": "created_at,public_metrics,attachments", expansions: "attachments.media_keys", "media.fields": "type,url,preview_image_url" });
     if (token2) params.set("pagination_token", token2);
-    const { body } = await json<{ data?: { id: string; text: string; created_at: string; public_metrics: { like_count: number; retweet_count: number; reply_count: number; impression_count?: number } }[]; meta?: { next_token?: string } }>(`https://api.x.com/2/users/${user.body.data.id}/tweets?${params}`, { headers });
+    const { body } = await json<{
+      data?: { id: string; text: string; created_at: string; attachments?: { media_keys?: string[] }; public_metrics: { like_count: number; retweet_count: number; reply_count: number; impression_count?: number } }[];
+      includes?: { media?: { media_key: string; type: string; url?: string; preview_image_url?: string }[] };
+      meta?: { next_token?: string };
+    }>(`https://api.x.com/2/users/${user.body.data.id}/tweets?${params}`, { headers });
+    const media = new Map((body?.includes?.media ?? []).map((m) => [m.media_key, m]));
+    const author = { name: user.body.data.name, avatar: user.body.data.profile_image_url };
     const got = body?.data ?? [];
     cost += got.length * xBudget().price;
     for (const t of got)
-      posts.push({ id: t.id, url: `https://x.com/${handle}/status/${t.id}`, text: t.text, at: t.created_at, likes: t.public_metrics.like_count, reposts: t.public_metrics.retweet_count, replies: t.public_metrics.reply_count, views: t.public_metrics.impression_count, via: "x" });
+      posts.push({
+        id: t.id,
+        url: `https://x.com/${handle}/status/${t.id}`,
+        text: tidyText(t.text),
+        at: t.created_at,
+        likes: t.public_metrics.like_count,
+        reposts: t.public_metrics.retweet_count,
+        replies: t.public_metrics.reply_count,
+        views: t.public_metrics.impression_count,
+        via: "x",
+        media: (t.attachments?.media_keys ?? []).flatMap((k) => {
+          const m = media.get(k);
+          const url = m?.url ?? m?.preview_image_url;
+          return m && url ? [{ kind: kindOf(m.type), url }] : [];
+        }),
+        author,
+      });
     if (!body?.meta?.next_token || !got.length) break;
     token2 = body.meta.next_token;
   }
@@ -135,12 +203,35 @@ async function viaWayback(handle: string, start: number, end: number, max: numbe
   if (!ids.size) return { posts: [], note: blocked ? "The Wayback Machine is busy; try again in a minute" : "Nothing archived from that window" };
   const posts: LookPost[] = [];
   for (const id of [...ids].slice(0, max)) {
-    const { body } = await json<{ tweet?: { text: string; created_at: string; likes: number; retweets: number; replies: number; views?: number; author: { screen_name: string } } }>(`https://api.fxtwitter.com/${handle}/status/${id}`);
+    const { body } = await json<{
+      tweet?: {
+        text: string;
+        created_at: string;
+        likes: number;
+        retweets: number;
+        replies: number;
+        views?: number;
+        author: { screen_name: string; name?: string; avatar_url?: string };
+        media?: { all?: { type: string; url: string; thumbnail_url?: string }[] };
+      };
+    }>(`https://api.fxtwitter.com/${handle}/status/${id}`);
     const t = body?.tweet;
     posts.push(
       t
-        ? { id, url: `https://x.com/${t.author.screen_name}/status/${id}`, text: t.text, at: new Date(t.created_at).toISOString(), likes: t.likes, reposts: t.retweets, replies: t.replies, views: t.views, via: "wayback" }
-        : { id, url: `https://x.com/${handle}/status/${id}`, text: "(deleted or unavailable now)", at: new Date(tweetTime(id)).toISOString(), via: "wayback" },
+        ? {
+            id,
+            url: `https://x.com/${t.author.screen_name}/status/${id}`,
+            text: tidyText(t.text),
+            at: new Date(t.created_at).toISOString(),
+            likes: t.likes,
+            reposts: t.retweets,
+            replies: t.replies,
+            views: t.views,
+            via: "wayback",
+            media: (t.media?.all ?? []).map((m) => ({ kind: kindOf(m.type), url: m.type === "photo" ? m.url : (m.thumbnail_url ?? m.url) })),
+            author: { name: t.author.name ?? t.author.screen_name, avatar: t.author.avatar_url },
+          }
+        : { id, url: `https://x.com/${handle}/status/${id}`, text: "(deleted or unavailable now)", at: new Date(tweetTime(id)).toISOString(), via: "wayback", media: [] },
     );
   }
   return { posts, note: `${posts.length} archived posts` };

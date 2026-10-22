@@ -5,6 +5,7 @@ import { personName } from "@/lib/people";
 import { load } from "@/lib/queries";
 import { specialDays } from "@/lib/calendar/days";
 import { twitterApiReady } from "@/lib/lookback";
+import { rivals } from "@/lib/adapters/sources/x";
 
 export const metadata = { title: "Brian" };
 
@@ -17,6 +18,7 @@ export default async function BrianPage({ searchParams }: { searchParams: Promis
   const view: BrainView = {
     ai: modelReady(),
     lookback: {
+      brands: rivals().handles,
       paid: twitterApiReady() ? "history" : process.env.X_BEARER_TOKEN ? "recent" : "none",
       // Moments to look back at, this year and the three before it.
       moments: (() => {

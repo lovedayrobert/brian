@@ -18,7 +18,7 @@ export function BrianLogo({ className }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2.5 ${className ?? ""}`}>
       <BrianMark size={30} />
-      <span className="font-[family-name:var(--font-geist)] text-[20px] font-light leading-none tracking-[-0.02em]">Brian</span>
+      <span className="text-[17px] font-semibold leading-none tracking-tight">Brian</span>
     </span>
   );
 }

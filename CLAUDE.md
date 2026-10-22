@@ -16,7 +16,7 @@ Brian is Cashy's AI marketing engine (Next.js 16, TypeScript, Anthropic SDK). If
 
 ## Product rule: Brian first, everything one click away
 
-Brian is the home screen (`/`): a brain the team teaches, which then thinks for them. Every other area is one click away in a single slim top bar (Brian, Today, Ideas, Calendar, Results, Radar, Settings), drawn in Brian's Bittensor-like style: white, black ink, mono uppercase labels. Rob and Marko asked for this middle ground on 22 Oct 2026, after the old sidebar dashboard felt overcomplicated and a Brian-only screen hid the tools the team uses.
+Brian is the home screen (`/`): a brain the team teaches, which then thinks for them. Every other area is one click away in a single slim top bar (Brian, Today, Ideas, Calendar, Results, Radar, Settings) in the app's own soft light style (Rob tried a Bittensor look on 22 Oct and asked to go back). Rob and Marko asked for this middle ground on 22 Oct 2026, after the old sidebar dashboard felt overcomplicated and a Brian-only screen hid the tools the team uses.
 
 **Never add an item to the top bar or a new top-level page**, and never put anything on Brian's screen that isn't teaching him, his brain, or his ideas. A new feature goes inside one of the spaces: as a tab (`src/components/section-tabs.tsx`), a panel, a section or a button on an existing page. If a feature doesn't clearly belong in one space, that's a sign it isn't needed yet. Ask before building it. Old URLs are redirected in `next.config.ts`; keep them working when moving things.
 
@@ -40,7 +40,7 @@ Before adding anything, check it can be used without explanation by someone on t
 
 ```bash
 npm install
-npm test            # 115 unit tests
+npm test            # 116 unit tests
 npm run typecheck
 npm run lint
 npm run build

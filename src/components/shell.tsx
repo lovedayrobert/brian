@@ -32,7 +32,9 @@ export interface ShellStatus {
   budget?: number | null;
 }
 
-const MONO = "font-[family-name:var(--font-fira)] text-[12px] uppercase tracking-[0.14em]";
+const ITEM = "rounded-full px-3.5 py-1.5 text-[13.5px] transition-colors";
+const ON = "bg-surface font-medium text-ink shadow-card";
+const OFF = "text-ink-2 hover:text-ink";
 
 export function Shell({ children, status }: { children: React.ReactNode; status: ShellStatus }) {
   const pathname = usePathname();
@@ -53,63 +55,59 @@ export function Shell({ children, status }: { children: React.ReactNode; status:
   };
 
   return (
-    <div className={clsx("min-h-dvh", brian && "bg-white")}>
-      <header className="sticky top-0 z-30 border-b border-[#ececec] bg-white/90 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-8 px-6 text-[#141414] sm:px-10">
+    <div className="min-h-dvh">
+      <header className="sticky top-0 z-30 border-b border-line bg-bg/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-6 px-4 sm:px-6 lg:px-10">
           <Link href="/" aria-label="Brian" className="shrink-0 hover:opacity-70">
             <BrianLogo />
           </Link>
-          <nav className="hidden flex-1 items-center gap-7 lg:flex">
+          <nav className="hidden flex-1 items-center gap-1 lg:flex">
             {NAV.map((it) => (
-              <Link
-                key={it.href}
-                href={it.href}
-                className={clsx(MONO, "border-b py-1 transition-colors", isActive(it.href, it.also) ? "border-[#141414] text-[#141414]" : "border-transparent text-[#8a8a8a] hover:text-[#141414]")}
-              >
+              <Link key={it.href} href={it.href} className={clsx(ITEM, isActive(it.href, it.also) ? ON : OFF)}>
                 {it.label}
               </Link>
             ))}
           </nav>
-          <div className="ml-auto hidden items-center gap-7 lg:flex">
+          <div className="ml-auto hidden items-center gap-2 lg:flex">
             {status.budget != null && status.budgetLeft != null && (
-              <span className={clsx(MONO, low ? "text-[#141414]" : "text-[#8a8a8a]")} title={`AI budget: $${status.budgetLeft.toFixed(2)} of $${status.budget} left`}>
+              <span className={clsx("mr-2 text-[12.5px]", low ? "text-warn" : "text-ink-3")} title={`AI budget: $${status.budgetLeft.toFixed(2)} of $${status.budget} left`}>
                 ${status.budgetLeft.toFixed(2)} left
               </span>
             )}
             <Link
               href="/settings"
-              className={clsx(MONO, "border-b py-1", isActive("/settings", ["/memory"]) ? "border-[#141414] text-[#141414]" : "border-transparent text-[#8a8a8a] hover:text-[#141414]")}
+              className={clsx(ITEM, isActive("/settings", ["/memory"]) ? ON : OFF)}
             >
               Settings
             </Link>
             {status.auth && (
-              <button onClick={signOut} className={clsx(MONO, "text-[#8a8a8a] hover:text-[#141414]")}>
+              <button onClick={signOut} className="px-2 text-[12.5px] text-ink-3 hover:text-ink">
                 Sign out
               </button>
             )}
           </div>
-          <button aria-label="Open menu" onClick={() => setOpenOn(pathname)} className={clsx(MONO, "ml-auto lg:hidden")}>
+          <button aria-label="Open menu" onClick={() => setOpenOn(pathname)} className="ml-auto rounded-full px-3.5 py-1.5 text-[13.5px] font-medium text-ink shadow-card lg:hidden">
             Menu
           </button>
         </div>
       </header>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-white text-[#141414] lg:hidden">
-          <div className="flex h-16 items-center justify-between px-6">
+        <div className="fixed inset-0 z-50 flex flex-col bg-bg lg:hidden">
+          <div className="flex h-16 items-center justify-between px-4">
             <BrianLogo />
-            <button aria-label="Close menu" onClick={() => setOpenOn(null)} className={MONO}>
+            <button aria-label="Close menu" onClick={() => setOpenOn(null)} className="rounded-full px-3.5 py-1.5 text-[13.5px] font-medium shadow-card">
               Close
             </button>
           </div>
-          <nav className="flex flex-1 flex-col items-center justify-center gap-8">
+          <nav className="flex flex-1 flex-col items-stretch justify-center gap-1 px-6">
             {[...NAV, { href: "/settings", label: "Settings", also: ["/memory"] }].map((it) => (
-              <Link key={it.href} href={it.href} className={clsx("font-[family-name:var(--font-fira)] text-[18px] uppercase tracking-[0.14em]", isActive(it.href, it.also) ? "underline underline-offset-8" : "")}>
+              <Link key={it.href} href={it.href} className={clsx("rounded-[14px] px-5 py-3.5 text-[18px]", isActive(it.href, it.also) ? "bg-surface font-medium shadow-card" : "text-ink-2")}>
                 {it.label}
               </Link>
             ))}
           </nav>
-          <div className={clsx(MONO, "flex justify-center gap-8 pb-10 text-[#8a8a8a]")}>
+          <div className="flex justify-center gap-8 pb-10 text-[13px] text-ink-3">
             {status.budgetLeft != null && <span>${status.budgetLeft.toFixed(2)} left</span>}
             {status.auth && <button onClick={signOut}>Sign out</button>}
           </div>
