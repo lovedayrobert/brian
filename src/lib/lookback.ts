@@ -1,5 +1,6 @@
 import { xBudget } from "@/lib/adapters/sources/x";
 import { USER_AGENT } from "@/lib/adapters/sources/types";
+import { mentions } from "@/lib/moment-keywords";
 import { repo } from "@/lib/store";
 
 /**
@@ -92,7 +93,7 @@ export function twitterApiReady(): boolean {
   return !!process.env.TWITTERAPI_IO_KEY;
 }
 
-async function viaTwitterApi(handle: string, start: number, end: number, max: number): Promise<{ posts: LookPost[]; cost: number; note: string }> {
+async function viaTwitterApi(handle: string, start: number, end: number, max: number, keywords: string[]): Promise<{ posts: LookPost[]; cost: number; note: string }> {
   type Res = {
     tweets: {
       id: string;
@@ -114,7 +115,9 @@ async function viaTwitterApi(handle: string, start: number, end: number, max: nu
   let cursor = "";
   let cost = 0;
   for (let page = 0; page < Math.ceil(max / 20); page++) {
-    const q = `from:${handle} since_time:${Math.floor(start / 1000)} until_time:${Math.floor(end / 1000)} -filter:replies`;
+    // Keywords go into the search itself, so every post that comes back is on topic.
+    const about = keywords.length ? ` (${keywords.map((k) => (/\s/.test(k) ? `"${k}"` : k)).join(" OR ")})` : "";
+    const q = `from:${handle}${about} since_time:${Math.floor(start / 1000)} until_time:${Math.floor(end / 1000)} -filter:replies`;
     const { status, body } = await json<Res>(`https://api.twitterapi.io/twitter/tweet/advanced_search?${new URLSearchParams({ query: q, queryType: "Top", cursor })}`, { headers: { "X-API-Key": process.env.TWITTERAPI_IO_KEY! } });
     if (!body) return { posts, cost, note: `TwitterAPI.io answered ${status}` };
     cost += Math.max(1, body.tweets.length) * 0.00015;
@@ -241,7 +244,7 @@ async function viaWayback(handle: string, start: number, end: number, max: numbe
  * Look back at a brand's posts between two dates (YYYY-MM-DD, inclusive).
  * Paid routes are skipped unless allowPaid; X spend counts against the X budget.
  */
-export async function lookBack(input: { handle: string; from: string; to: string; allowPaid: boolean; max?: number }): Promise<LookResult> {
+export async function lookBack(input: { handle: string; from: string; to: string; allowPaid: boolean; max?: number; keywords?: string[] }): Promise<LookResult> {
   const handle = cleanHandle(input.handle);
   if (!/^\w{1,15}$/.test(handle)) throw new Error("Give an X handle, like @stake.");
   const start = Date.parse(`${input.from}T00:00:00Z`);
@@ -249,13 +252,15 @@ export async function lookBack(input: { handle: string; from: string; to: string
   if (Number.isNaN(start) || Number.isNaN(end) || end < start) throw new Error("Pick a start and an end date.");
   if (end - start > 45 * 86_400_000) throw new Error("Keep it to 45 days or less, around one moment.");
   const max = Math.min(60, input.max ?? 40);
+  const keywords = (input.keywords ?? []).map((k) => k.trim().toLowerCase()).filter(Boolean).slice(0, 20);
+  const onTopic = (p: LookPost) => !keywords.length || mentions(p.text, keywords);
   const routes: LookResult["routes"] = [];
   let posts: LookPost[] = [];
   let costUsd = 0;
   let xCost = 0;
 
   if (twitterApiReady() && input.allowPaid) {
-    const r = await viaTwitterApi(handle, start, end, max);
+    const r = await viaTwitterApi(handle, start, end, max, keywords);
     routes.push({ name: "Full X history (TwitterAPI.io)", ok: r.posts.length > 0, note: r.note });
     posts = r.posts;
     costUsd += r.cost;
@@ -268,17 +273,19 @@ export async function lookBack(input: { handle: string; from: string; to: string
     if (xBudget().monthUsd - spent < max * xBudget().price + 0.01) routes.push({ name: "X timeline", ok: false, note: "Not enough X budget left this month" });
     else {
       const r = await viaXTimeline(handle, start, end, max);
-      routes.push({ name: "X timeline", ok: r.posts.length > 0, note: r.note });
-      posts = r.posts;
+      const kept = r.posts.filter(onTopic);
+      routes.push({ name: "X timeline", ok: kept.length > 0, note: keywords.length && r.posts.length ? `${kept.length} of ${r.posts.length} posts are about it` : r.note });
+      posts = kept;
       costUsd += r.cost;
       xCost = r.cost;
     }
   }
   if (posts.length < 5) {
     const r = await viaWayback(handle, start, end, max);
-    routes.push({ name: "Wayback Machine (free)", ok: r.posts.length > 0, note: r.note });
+    const kept = r.posts.filter(onTopic);
+    routes.push({ name: "Wayback Machine (free)", ok: kept.length > 0, note: keywords.length && r.posts.length ? `${kept.length} of ${r.posts.length} archived posts are about it` : r.note });
     const have = new Set(posts.map((p) => p.id));
-    posts = [...posts, ...r.posts.filter((p) => !have.has(p.id))];
+    posts = [...posts, ...kept.filter((p) => !have.has(p.id))];
   }
   if (xCost > 0) {
     const now = new Date();

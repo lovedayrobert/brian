@@ -1,7 +1,8 @@
 "use client";
 
 import clsx from "clsx";
-import { Check, Eye, Heart, Loader2, MessageCircle, Play, Repeat2, Search } from "lucide-react";
+import { Check, Eye, Heart, Loader2, MessageCircle, Play, Repeat2, Search, X } from "lucide-react";
+import { keywordsFor } from "@/lib/moment-keywords";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -50,11 +51,15 @@ export function LookBack({ moments, brands, paid, ai }: { moments: Moment[]; bra
   const [result, setResult] = useState<Result | null>(null);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [teaching, setTeaching] = useState<string | null>(null);
+  const [onlyAbout, setOnlyAbout] = useState(true);
+  const [keywords, setKeywords] = useState<string[]>([]);
+  const [adding, setAdding] = useState("");
   const matches = useMomentSearch(moments, q);
 
   const window = custom ?? (moment ? { from: shift(moment.date, -4), to: shift(moment.date, 3) } : null);
   const choose = (m: Moment) => {
     setMoment(m);
+    setKeywords(keywordsFor(m.title));
     setQ(`${m.title} ${m.date.slice(0, 4)}`);
     setFocus(false);
   };
@@ -65,7 +70,7 @@ export function LookBack({ moments, brands, paid, ai }: { moments: Moment[]; bra
     setError(null);
     setResult(null);
     setPicked(new Set());
-    const res = await fetch("/api/brain/lookback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ handle, ...window, allowPaid }) });
+    const res = await fetch("/api/brain/lookback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ handle, ...window, allowPaid, keywords: onlyAbout ? keywords : [] }) });
     const json = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) return setError(json.error ?? "Couldn't look that up.");
@@ -182,6 +187,45 @@ export function LookBack({ moments, brands, paid, ai }: { moments: Moment[]; bra
         <button onClick={() => setCustom(custom ? null : { from: window?.from ?? "", to: window?.to ?? "" })} className="text-accent-ink hover:underline">
           {custom ? "Search for a moment instead" : "Set my own dates"}
         </button>
+      </div>
+
+      <div className="mt-5 rounded-[16px] bg-surface-2 p-4">
+        <label className="flex cursor-pointer items-center justify-between gap-3">
+          <span className="text-[13.5px] font-medium">
+            Only posts about {moment && !custom ? moment.title : "these words"}
+            <span className="block text-[12.5px] font-normal text-ink-3">{onlyAbout ? "Posts must mention one of the words below." : "Showing everything they posted in those dates."}</span>
+          </span>
+          <span className={clsx("relative h-6 w-10 shrink-0 rounded-full transition", onlyAbout ? "bg-accent" : "bg-line-strong")}>
+            <input type="checkbox" checked={onlyAbout} onChange={() => setOnlyAbout(!onlyAbout)} className="absolute inset-0 cursor-pointer opacity-0" />
+            <span className={clsx("pointer-events-none absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition", onlyAbout ? "left-[18px]" : "left-0.5")} />
+          </span>
+        </label>
+        {onlyAbout && (
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            {keywords.map((k) => (
+              <span key={k} className="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-[12.5px] shadow-card">
+                {k}
+                <button aria-label={`Remove ${k}`} onClick={() => setKeywords(keywords.filter((x) => x !== k))} className="text-ink-3 hover:text-ink">
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+            <input
+              value={adding}
+              onChange={(e) => setAdding(e.target.value)}
+              onKeyDown={(e) => {
+                if ((e.key === "Enter" || e.key === ",") && adding.trim()) {
+                  e.preventDefault();
+                  const w = adding.trim().toLowerCase();
+                  if (!keywords.includes(w)) setKeywords([...keywords, w]);
+                  setAdding("");
+                }
+              }}
+              placeholder={keywords.length ? "Add a word…" : "Type a word and press Enter"}
+              className="h-7 min-w-[150px] flex-1 rounded-full bg-transparent px-2 text-[12.5px] outline-none placeholder:text-ink-3"
+            />
+          </div>
+        )}
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-2">

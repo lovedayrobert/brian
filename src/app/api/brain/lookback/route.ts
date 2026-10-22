@@ -9,8 +9,8 @@ export async function POST(req: Request) {
   if (denied) return denied;
   setActor(req);
   try {
-    const { handle, from, to, allowPaid } = (await req.json()) as { handle?: string; from?: string; to?: string; allowPaid?: boolean };
-    return Response.json(await lookBack({ handle: handle ?? "", from: from ?? "", to: to ?? "", allowPaid: allowPaid === true }));
+    const { handle, from, to, allowPaid, keywords } = (await req.json()) as { handle?: string; from?: string; to?: string; allowPaid?: boolean; keywords?: string[] };
+    return Response.json(await lookBack({ handle: handle ?? "", from: from ?? "", to: to ?? "", allowPaid: allowPaid === true, keywords: Array.isArray(keywords) ? keywords.map(String) : undefined }));
   } catch (e) {
     return fail(e);
   }
