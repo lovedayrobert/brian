@@ -126,92 +126,92 @@ export function BrainApp({ view }: { view: BrainView }) {
     router.refresh();
   }
 
+  const formed = Math.round(Math.min(1, view.nodes.length / FULL_BRAIN) * 100);
+  const tabBtn = (on: boolean) => clsx("rounded-full px-4 py-1.5 text-[13.5px] transition", on ? "bg-ink font-medium text-bg" : "text-ink-2 hover:text-ink");
+
   return (
     <div className="min-h-dvh bg-bg text-ink antialiased">
-
-      <main className="mx-auto max-w-[1180px] px-6 pb-32 sm:px-10">
-        <section className="relative mx-auto mt-4 h-[min(58vh,520px)] w-full max-w-[760px]">
-          <BrainMesh formation={view.preview ?? view.nodes.length / FULL_BRAIN} points={points} links={links} highlight={hover ?? (selected?.type === "node" ? selected.id : null)} pulse={pulse} />
-        </section>
-
-        <section className="mx-auto max-w-[760px] text-center">
-          <Label>Cashy&rsquo;s marketing brain</Label>
-          <h1 className="display mt-5 text-balance text-[30px] leading-[1.15] sm:text-[42px]">
-            {view.nodes.length
-              ? `I know ${plural(counts.truth, "truth")} about our audience and ${plural(counts.mechanic, "reason")} things spread.`
-              : "Teach me what good looks like."}
-          </h1>
-          <p className="mx-auto mt-5 max-w-[520px] text-[16px] leading-relaxed text-ink-2">
-            Give me a campaign or post that worked. I&rsquo;ll work out why, connect it to everything I know, and build ideas from it. Never copies.
+      <main className="mx-auto max-w-[1100px] px-4 pb-28 pt-8 sm:px-6 lg:px-10 lg:pt-10">
+        <header className="mb-8">
+          <h1 className="display text-[30px] leading-[1.1] sm:text-[34px]">Brian</h1>
+          <p className="mt-2 max-w-[640px] text-[15px] leading-relaxed text-ink-2">
+            Show Brian marketing that worked. He works out why it worked, remembers it, and uses it to come up with ideas for Cashy. He never copies.
           </p>
+        </header>
 
-          <form onSubmit={teach} className="mx-auto mt-12 max-w-[620px] text-left">
-            <div className="flex items-center gap-2 rounded-full bg-surface p-1.5 pl-5 shadow-card focus-within:shadow-raised">
-              <input
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                disabled={busy}
-                placeholder="Paste a link that worked"
-                className="min-w-0 flex-1 bg-transparent py-2 text-[16px] outline-none placeholder:text-ink-3"
-              />
-              <button type="submit" disabled={busy || !url.trim() || !view.ai} className="h-10 shrink-0 rounded-full bg-ink px-5 text-[14px] font-medium text-bg hover:opacity-90 disabled:opacity-40">
-                {busy ? "Thinking…" : "Teach Brian"}
-              </button>
-            </div>
-            {url.trim() && !busy && (
+        <div className="mb-3 inline-flex rounded-full bg-surface p-1 shadow-card">
+          <button onClick={() => setLooking(false)} className={tabBtn(!looking)}>
+            Teach from a link
+          </button>
+          <button onClick={() => setLooking(true)} className={tabBtn(looking)}>
+            Find a brand&rsquo;s old posts
+          </button>
+        </div>
+
+        <section className="rounded-[22px] bg-surface p-5 shadow-card sm:p-7">
+          {!looking ? (
+            <form onSubmit={teach}>
+              <label className="mb-1.5 block text-[13px] font-medium text-ink-2">A post or campaign you rate</label>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <input
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  disabled={busy}
+                  placeholder="Paste a link: X, TikTok, YouTube, an article"
+                  className="h-11 min-w-0 flex-1 rounded-full bg-surface-3 px-4 text-[14.5px] outline-none placeholder:text-ink-3 focus:bg-surface focus:shadow-card"
+                />
+                <button type="submit" disabled={busy || !url.trim() || !view.ai} className="h-11 shrink-0 rounded-full bg-ink px-5 text-[14px] font-medium text-bg hover:opacity-90 disabled:opacity-40">
+                  {busy ? "Brian is thinking…" : "Teach Brian"}
+                </button>
+              </div>
+              <label className="mb-1.5 mt-4 block text-[13px] font-medium text-ink-2">Why you rate it (optional, but he learns most from this)</label>
               <input
                 value={why}
                 onChange={(e) => setWhy(e.target.value)}
-                placeholder="Why do you rate it? (optional, but I learn most from this)"
-                className="mt-5 w-full border-b border-line bg-transparent py-2 text-[15px] outline-none placeholder:text-ink-3 focus:border-line-strong"
+                placeholder="e.g. one real act, rode the GTA hype, people shared it to laugh at themselves"
+                className="h-11 w-full rounded-full bg-surface-3 px-4 text-[14.5px] outline-none placeholder:text-ink-3 focus:bg-surface focus:shadow-card"
               />
-            )}
-            {error && <p className="mt-4 text-[14px]">{error}</p>}
-          </form>
-          <button onClick={() => setLooking(!looking)} className="mt-6 text-[13.5px] text-accent-ink hover:underline">
-            {looking ? "Close look back" : "Or look back: what did a brand do on a day? →"}
-          </button>
+              <p className="mt-3 text-[12.5px] text-ink-3">About $0.04 each. He can&rsquo;t watch videos, so for a video say what happens in it.</p>
+              {error && <p className="mt-3 text-[13.5px] text-bad">{error}</p>}
+            </form>
+          ) : (
+            <>
+              <p className="mb-5 text-[14px] text-ink-2">Pick a brand and a moment (like Stake, Halloween 2024) to see what they posted around it. Tick the posts that worked and teach them to Brian.</p>
+              <LookBack moments={view.lookback.moments} brands={view.lookback.brands} paid={view.lookback.paid} ai={view.ai} />
+            </>
+          )}
         </section>
 
-        {looking && (
-          <section className="mx-auto mt-10 max-w-[760px] animate-[rise_.3s_ease-out] rounded-[24px] bg-surface p-6 shadow-card sm:p-8">
-            <h2 className="mb-5 text-[17px] font-semibold tracking-tight">Look back: what did a brand do around a moment?</h2>
-            <LookBack moments={view.lookback.moments} brands={view.lookback.brands} paid={view.lookback.paid} ai={view.ai} />
-          </section>
-        )}
-
         {(busy || digest) && (
-          <section className="mx-auto mt-20 max-w-[760px]">
-            <Label className="mb-6">{busy ? "Reading it, comparing it with everything I know" : "How I filed it"}</Label>
-            {busy && <div className="h-px w-full animate-pulse bg-ink/20" />}
+          <section className="mt-6 rounded-[22px] bg-surface p-5 shadow-card sm:p-7">
+            <h2 className="text-[17px] font-semibold tracking-tight">{busy ? "Brian is reading it…" : "How Brian filed it"}</h2>
+            {busy && <div className="shimmer mt-4 h-3 w-2/3 rounded-full" />}
             {digest && (
-              <ol>
+              <ol className="mt-3">
                 {digest.thinking.slice(0, shown).map((t, i) => (
-                  <li key={i} className="grid animate-[rise_.5s_ease-out] grid-cols-1 gap-2 border-t border-line py-5 sm:grid-cols-[180px_1fr] sm:gap-6">
-                    <Label className="pt-1 text-ink">{t.step}</Label>
-                    <p className="text-[16px] leading-relaxed">{t.thought}</p>
+                  <li key={i} className="grid animate-[rise_.5s_ease-out] grid-cols-1 gap-1 border-t border-line py-4 sm:grid-cols-[170px_1fr] sm:gap-6">
+                    <span className="text-[13px] font-medium text-ink-2">{t.step}</span>
+                    <p className="text-[15px] leading-relaxed">{t.thought}</p>
                   </li>
                 ))}
                 {shown > digest.thinking.length && (
-                  <li className="animate-[rise_.5s_ease-out] border-t border-line-strong pt-6">
-                    <Label className="mb-4">What changed in my brain</Label>
-                    <ul className="space-y-3">
+                  <li className="animate-[rise_.5s_ease-out] border-t border-line pt-4">
+                    <p className="mb-3 text-[13px] font-medium text-ink-2">What changed in his brain</p>
+                    <div className="flex flex-wrap gap-2">
                       {digest.touched.map((t) => {
                         const n = view.nodes.find((x) => x.id === t.nodeId);
                         if (!n) return null;
                         return (
-                          <li key={t.nodeId}>
-                            <button onClick={() => setSelected({ type: "node", id: n.id })} className="flex w-full items-baseline gap-4 text-left hover:opacity-60">
-                              <span className={clsx(MONO, "w-[100px] shrink-0 text-[11.5px]")}>{t.change === "new" ? "+ New" : t.change === "stronger" ? "↑ Stronger" : "↓ Weaker"}</span>
-                              <span className="text-[15.5px]">
-                                {n.brand ? `${n.brand}: ` : ""}
-                                {n.text}
-                              </span>
-                            </button>
-                          </li>
+                          <button key={t.nodeId} onClick={() => setSelected({ type: "node", id: n.id })} className="inline-flex max-w-full items-center gap-2 rounded-full bg-surface-3 px-3 py-1.5 text-left text-[13px] hover:bg-accent-soft">
+                            <span className={clsx("shrink-0 font-medium", t.change === "weaker" ? "text-bad" : "text-good")}>{t.change === "new" ? "New" : t.change === "stronger" ? "Stronger" : "Weaker"}</span>
+                            <span className="truncate">
+                              {n.brand ? `${n.brand}: ` : ""}
+                              {n.text}
+                            </span>
+                          </button>
                         );
                       })}
-                    </ul>
+                    </div>
                   </li>
                 )}
               </ol>
@@ -223,18 +223,38 @@ export function BrainApp({ view }: { view: BrainView }) {
           <Question key={q.id} q={q} />
         ))}
 
-        <section className="mt-28">
-          <div className="grid gap-14 md:grid-cols-3 md:gap-10">
+        <section className="mt-12">
+          <h2 className="mb-3 text-[17px] font-semibold tracking-tight">What Brian has learned</h2>
+          <div className="grid gap-5 rounded-[22px] bg-surface p-5 shadow-card sm:p-6 md:grid-cols-[300px_1fr] md:items-center">
+            <div className="relative h-[220px] overflow-hidden rounded-[16px] bg-surface-2">
+              <BrainMesh formation={view.preview ?? view.nodes.length / FULL_BRAIN} points={points} links={links} highlight={hover ?? (selected?.type === "node" ? selected.id : null)} pulse={pulse} />
+            </div>
+            <div>
+              <div className="grid grid-cols-3 gap-4">
+                {ORDER.map((k) => (
+                  <div key={k}>
+                    <div className="display tabular text-[30px] leading-none">{counts[k]}</div>
+                    <div className="mt-1.5 text-[13px] text-ink-2">{KIND[k].plural}</div>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-5 text-[13.5px] leading-relaxed text-ink-2">
+                Each dot is something he&rsquo;s learned, and lines join things learned from the same example. The more you teach him, the more it takes the shape of a brain. It&rsquo;s {formed}% formed.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-6 md:grid-cols-3">
             {ORDER.map((k) => {
               const list = view.nodes.filter((n) => n.kind === k).sort((a, b) => b.strength - a.strength);
               return (
                 <div key={k}>
-                  <div className="flex items-baseline justify-between pb-3">
-                    <Label className="text-ink">{KIND[k].plural}</Label>
-                    <Label>{String(list.length).padStart(2, "0")}</Label>
+                  <div className="mb-2 flex items-baseline justify-between">
+                    <span className="text-[14px] font-semibold">{KIND[k].plural}</span>
+                    <span className="text-[12.5px] text-ink-3">{list.length}</span>
                   </div>
                   {list.length === 0 ? (
-                    <p className="py-5 text-[14.5px] text-ink-3">Nothing yet.</p>
+                    <p className="rounded-[16px] border border-dashed border-line-strong p-4 text-[13.5px] text-ink-3">Nothing yet.</p>
                   ) : (
                     <ul>
                       {list.map((n) => (
@@ -243,15 +263,15 @@ export function BrainApp({ view }: { view: BrainView }) {
                             onClick={() => setSelected({ type: "node", id: n.id })}
                             onMouseEnter={() => setHover(n.id)}
                             onMouseLeave={() => setHover(null)}
-                            className={clsx("mb-2 block w-full rounded-[16px] bg-surface p-4 text-left shadow-card transition hover:shadow-raised", n.health === "fading" && "opacity-40", hover && hover !== n.id && "opacity-50")}
+                            className={clsx("mb-2 block w-full rounded-[16px] bg-surface p-4 text-left shadow-card transition hover:shadow-raised", n.health === "fading" && "opacity-40")}
                           >
-                            <p className="text-[15.5px] leading-snug">
+                            <p className="text-[14.5px] leading-snug">
                               {n.brand ? `${n.brand}: ` : ""}
                               {n.text}
                             </p>
-                            <div className="mt-3 flex items-center gap-3">
+                            <div className="mt-3 flex items-center gap-2">
                               <Ticks value={n.strength} />
-                              <Label>{n.health}</Label>
+                              <span className="text-[12px] capitalize text-ink-3">{n.health}</span>
                             </div>
                           </button>
                         </li>
@@ -265,28 +285,23 @@ export function BrainApp({ view }: { view: BrainView }) {
         </section>
 
         {view.examples.length > 0 && (
-          <section className="mt-28">
-            <div className="flex items-baseline justify-between pb-3">
-              <Label className="text-ink">What you&rsquo;ve taught me</Label>
-              <Label>{String(view.examples.length).padStart(2, "0")}</Label>
-            </div>
-            <ul>
+          <section className="mt-12">
+            <h2 className="mb-3 text-[17px] font-semibold tracking-tight">What you&rsquo;ve taught him ({view.examples.length})</h2>
+            <ul className="grid gap-2 md:grid-cols-2">
               {view.examples.map((x) => (
                 <li key={x.id}>
                   <button
                     onClick={() => setSelected({ type: "example", id: x.id })}
                     onMouseEnter={() => setHover(x.id)}
                     onMouseLeave={() => setHover(null)}
-                    className="mb-2 grid w-full grid-cols-1 gap-2 rounded-[16px] bg-surface p-5 text-left shadow-card transition hover:shadow-raised sm:grid-cols-[200px_1fr] sm:gap-6"
+                    className="block h-full w-full rounded-[16px] bg-surface p-4 text-left shadow-card transition hover:shadow-raised"
                   >
-                    <Label>
+                    <div className="text-[12.5px] text-ink-3">
                       {x.platform}
-                      {x.author ? ` · ${x.author}` : ""}
-                    </Label>
-                    <div>
-                      <p className="line-clamp-2 text-[17px] leading-snug">{x.title}</p>
-                      {x.lesson && <p className="mt-2 line-clamp-2 text-[14.5px] leading-relaxed text-ink-2">{x.lesson}</p>}
+                      {x.author ? ` · ${x.author}` : ""} · from {x.by}
                     </div>
+                    <p className="mt-1 line-clamp-2 text-[15px] font-medium leading-snug">{x.title}</p>
+                    {x.lesson && <p className="mt-2 line-clamp-2 text-[13.5px] leading-relaxed text-ink-2">{x.lesson}</p>}
                   </button>
                 </li>
               ))}
@@ -475,7 +490,7 @@ function Question({ q }: { q: BrainView["questions"][number] }) {
     router.refresh();
   }
   return (
-    <section className="mx-auto mt-16 max-w-[760px] rounded-[20px] bg-accent-soft px-7 py-7">
+    <section className="mt-6 rounded-[22px] bg-accent-soft p-5 sm:p-7">
       <Label className="text-ink">I&rsquo;m not sure about something</Label>
       <p className="mt-4 text-[22px] leading-snug">{q.text}</p>
       <div className="mt-5 flex items-center gap-2 rounded-full bg-surface p-1.5 pl-5 shadow-card">
