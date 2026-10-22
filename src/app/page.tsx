@@ -39,6 +39,7 @@ export default async function BrianPage({ searchParams }: { searchParams: Promis
       detail: n.detail,
       brand: n.brand,
       gap: n.gap,
+      moment: n.moment,
       strength: strength(n),
       health: health(n),
       evidence: n.evidence.map((e) => ({ swipeId: e.swipeId, title: title(e.swipeId), note: e.note, supports: e.supports })),

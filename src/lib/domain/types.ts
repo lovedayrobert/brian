@@ -401,7 +401,7 @@ export interface Breakdown {
  * things spread, and memory of what the industry has done. Each piece keeps
  * its evidence, what the team said, and whether ideas built on it worked.
  */
-export type BrainKind = "truth" | "mechanic" | "industry";
+export type BrainKind = "truth" | "mechanic" | "industry" | "cliche";
 
 export interface BrainNode {
   id: string;
@@ -410,6 +410,12 @@ export interface BrainNode {
   text: string;
   /** Why it's true or why it works; for industry: how it landed */
   detail: string;
+  /**
+   * The moment it belongs to ("Halloween"), or none if it's always true. Moment
+   * knowledge is only used for ideas for that moment, so a seasonal lesson never
+   * leaks into a normal day.
+   */
+  moment?: string;
   /** Industry only: whose it was, and what could have been better (the gap) */
   brand?: string;
   gap?: string;

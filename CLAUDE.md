@@ -40,7 +40,7 @@ Before adding anything, check it can be used without explanation by someone on t
 
 ```bash
 npm install
-npm test            # 123 unit tests
+npm test            # 126 unit tests
 npm run typecheck
 npm run lint
 npm run build

@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { BrainNode } from "@/lib/domain/types";
-import { applyDigest, brainContext, health, strength } from "./brain";
+import { applyDigest, brainContext, health, momentOf, strength } from "./brain";
 
 const node = (over: Partial<BrainNode>): BrainNode => ({ id: "n1", kind: "truth", text: "Degens love watching the house lose", detail: "", evidence: [], team: [], uses: [], createdAt: "2026-10-21T00:00:00Z", updatedAt: "2026-10-21T00:00:00Z", ...over });
 const ev = (swipeId: string, supports = true) => ({ swipeId, note: "", supports, at: "2026-10-21T00:00:00Z" });
 const now = Date.parse("2026-10-22T00:00:00Z");
-const empty = { notes: [], whatHappened: "", feeling: "", whySpread: "", whyBrand: "", timing: "", lesson: "", dontCopy: "", unsure: null, question: null, questionNodeIds: [] };
+const empty = { cliches: [] as string[], notes: [], whatHappened: "", feeling: "", whySpread: "", whyBrand: "", timing: "", lesson: "", dontCopy: "", unsure: null, question: null, questionNodeIds: [] };
 
 describe("Brian's brain", () => {
   it("trusts the team double and liked ideas most", () => {
@@ -25,7 +25,7 @@ describe("Brian's brain", () => {
     const { brain, touched } = applyDigest(
       [node({ evidence: [ev("old")] })],
       "gta",
-      { ...empty, links: [{ nodeId: "n1", supports: true, note: "yes" }, { nodeId: "missing", supports: true, note: "" }], newKnowledge: [{ kind: "mechanic", text: "Two worlds collide", detail: "" }], industry: { brand: "Hunter", what: "GTA map in LA", landed: "337k views", couldBeBetter: "no brand" } },
+      { ...empty, links: [{ nodeId: "n1", supports: true, note: "yes" }, { nodeId: "missing", supports: true, note: "" }], newKnowledge: [{ kind: "mechanic", scope: "timeless", text: "Two worlds collide", detail: "" }], industry: { brand: "Hunter", what: "GTA map in LA", landed: "337k views", couldBeBetter: "no brand" } },
       "2026-10-21T00:00:00Z",
       () => `new${++i}`,
     );
@@ -34,13 +34,56 @@ describe("Brian's brain", () => {
     expect(touched.map((t) => t.change)).toEqual(["stronger", "new", "new"]);
   });
   it("re-digesting takes back what the example said last time", () => {
-    const first = applyDigest([], "gta", { ...empty, links: [], newKnowledge: [{ kind: "truth", text: "x", detail: "" }], industry: null }, "t", () => "a");
-    const again = applyDigest(first.brain, "gta", { ...empty, links: [], newKnowledge: [{ kind: "truth", text: "y", detail: "" }], industry: null }, "t", () => "b");
+    const first = applyDigest([], "gta", { ...empty, links: [], newKnowledge: [{ kind: "truth", scope: "timeless", text: "x", detail: "" }], industry: null }, "t", () => "a");
+    const again = applyDigest(first.brain, "gta", { ...empty, links: [], newKnowledge: [{ kind: "truth", scope: "timeless", text: "y", detail: "" }], industry: null }, "t", () => "b");
     expect(again.brain.map((n) => n.text)).toEqual(["y"]);
   });
   it("never shows the inventor campaigns, only truths and mechanics", () => {
     const ctx = brainContext([node({ evidence: [ev("a")] }), node({ id: "c", kind: "industry", text: "Stake logo on memes", evidence: [ev("a")] })]);
     expect(ctx).toContain("Degens love watching the house lose");
     expect(ctx).not.toContain("Stake");
+  });
+  it("keeps a moment's lessons apart from what's always true", () => {
+    let i = 0;
+    const { brain } = applyDigest(
+      [],
+      "stake-halloween",
+      {
+        ...empty,
+        links: [],
+        newKnowledge: [
+          { kind: "mechanic", scope: "timeless", text: "Reach bought with prizes isn't creativity", detail: "" },
+          { kind: "truth", scope: "moment", text: "People want to be scared for fun", detail: "" },
+        ],
+        cliches: ["Spooky giveaway with a pumpkin emoji"],
+        industry: { brand: "Stake", what: "Guess-the-drop giveaways", landed: "100K views", couldBeBetter: "No idea behind it" },
+      },
+      "2026-10-22T00:00:00Z",
+      () => `n${++i}`,
+      "Halloween",
+    );
+    expect(brain.find((n) => n.text.startsWith("Reach"))!.moment).toBeUndefined();
+    expect(brain.find((n) => n.text.startsWith("People want"))!.moment).toBe("Halloween");
+    expect(brain.find((n) => n.kind === "cliche")!.moment).toBe("Halloween");
+    expect(brain.find((n) => n.kind === "industry")!.moment).toBe("Halloween");
+
+    // A normal day sees only what's always true; a Halloween idea also gets the playbook.
+    const day = brainContext(brain);
+    expect(day).toContain("Reach bought");
+    expect(day).not.toContain("scared for fun");
+    const halloween = brainContext(brain, "Halloween");
+    expect(halloween).toContain("scared for fun");
+    expect(halloween).toContain("Spooky giveaway");
+    expect(halloween).toContain("No idea behind it");
+    expect(brainContext(brain, "Christmas")).not.toContain("scared for fun");
+  });
+  it("doesn't let moment knowledge fade over the year between moments", () => {
+    const old = { evidence: [ev("a")], updatedAt: "2026-01-01T00:00:00Z" };
+    expect(health(node({ ...old, moment: "Halloween" }), now)).not.toBe("fading");
+    expect(health(node(old), now)).toBe("fading");
+  });
+  it("drops the year from a moment", () => {
+    expect(momentOf("Halloween 2024")).toBe("Halloween");
+    expect(momentOf("GTA 6 launch")).toBe("GTA 6 launch");
   });
 });

@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { LookBack } from "./look-back";
 import { BrainMesh, FULL_BRAIN, type MeshLink, type MeshPoint } from "./brain-mesh";
 
-type Kind = "truth" | "mechanic" | "industry";
+type Kind = "truth" | "mechanic" | "industry" | "cliche";
 
 export interface BrainView {
   ai: boolean;
@@ -21,6 +21,7 @@ export interface BrainView {
     detail: string;
     brand?: string;
     gap?: string;
+    moment?: string;
     strength: number;
     health: "strong" | "growing" | "weak" | "fading";
     evidence: { swipeId: string; title: string; note: string; supports: boolean }[];
@@ -40,8 +41,11 @@ const KIND: Record<Kind, { name: string; plural: string }> = {
   truth: { name: "Audience truth", plural: "What our audience feels" },
   mechanic: { name: "Mechanic", plural: "Why things spread" },
   industry: { name: "Industry memory", plural: "What's been done" },
+  cliche: { name: "Cliché", plural: "What everyone does" },
 };
 const ORDER: Kind[] = ["truth", "mechanic", "industry"];
+// The timeless part of the brain; moment knowledge lives in playbooks below it.
+const timeless = (n: { moment?: string }) => !n.moment;
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const MONO = "font-medium uppercase tracking-[0.06em]";
 
@@ -90,7 +94,7 @@ export function BrainApp({ view }: { view: BrainView }) {
   const { points, links } = useMemo(() => {
     const max = Math.max(4, ...view.nodes.map((n) => n.strength));
     const points: MeshPoint[] = [
-      ...view.nodes.map((n) => ({ id: n.id, weight: n.strength / max, group: n.kind })),
+      ...view.nodes.map((n) => ({ id: n.id, weight: n.strength / max, group: n.kind === "cliche" ? "industry" : n.kind })),
       ...view.examples.map((x) => ({ id: x.id, weight: 0.15, group: "example" })),
     ];
     const links: MeshLink[] = [];
@@ -105,7 +109,12 @@ export function BrainApp({ view }: { view: BrainView }) {
   }, [view.nodes, view.examples]);
 
   const pulse = useMemo(() => (busy ? points.map((p) => p.id) : digest && shown > digest.thinking.length ? digest.touched.map((t) => t.nodeId) : []), [busy, points, digest, shown]);
-  const counts = Object.fromEntries(ORDER.map((k) => [k, view.nodes.filter((n) => n.kind === k).length])) as Record<Kind, number>;
+  const counts = Object.fromEntries(ORDER.map((k) => [k, view.nodes.filter((n) => timeless(n) && n.kind === k).length])) as Record<Kind, number>;
+  const playbooks = useMemo(() => {
+    const m = new Map<string, Node[]>();
+    for (const n of view.nodes) if (n.moment) m.set(n.moment, [...(m.get(n.moment) ?? []), n]);
+    return [...m.entries()].sort((a, b) => b[1].length - a[1].length);
+  }, [view.nodes]);
   const node = selected?.type === "node" ? view.nodes.find((n) => n.id === selected.id) : undefined;
   const example = selected?.type === "example" ? view.examples.find((x) => x.id === selected.id) : undefined;
 
@@ -246,7 +255,7 @@ export function BrainApp({ view }: { view: BrainView }) {
 
           <div className="mt-6 grid gap-6 md:grid-cols-3">
             {ORDER.map((k) => {
-              const list = view.nodes.filter((n) => n.kind === k).sort((a, b) => b.strength - a.strength);
+              const list = view.nodes.filter((n) => timeless(n) && n.kind === k).sort((a, b) => b.strength - a.strength);
               return (
                 <div key={k}>
                   <div className="mb-2 flex items-baseline justify-between">
@@ -282,6 +291,59 @@ export function BrainApp({ view }: { view: BrainView }) {
               );
             })}
           </div>
+        </section>
+
+        <section className="mt-12">
+          <h2 className="text-[17px] font-semibold tracking-tight">Playbooks for moments</h2>
+          <p className="mb-3 mt-1 max-w-[680px] text-[13.5px] text-ink-2">
+            What Brian knows about specific moments, kept apart from what&rsquo;s always true. He only uses a playbook when he&rsquo;s coming up with ideas for that moment.
+          </p>
+          {playbooks.length === 0 ? (
+            <p className="rounded-[16px] border border-dashed border-line-strong p-5 text-[13.5px] text-ink-3">
+              None yet. Teach Brian posts made for a moment (find a brand&rsquo;s old posts around Halloween, say) and he builds a playbook for it.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {playbooks.map(([moment, nodes], i) => {
+                const wants = nodes.filter((n) => n.kind === "truth" || n.kind === "mechanic");
+                const cliches = nodes.filter((n) => n.kind === "cliche");
+                const done = nodes.filter((n) => n.kind === "industry");
+                const item = (n: Node, text: string, sub?: string) => (
+                  <li key={n.id}>
+                    <button onClick={() => setSelected({ type: "node", id: n.id })} className="w-full rounded-[12px] px-3 py-2 text-left text-[14px] leading-snug hover:bg-surface-2">
+                      {text}
+                      {sub && <span className="mt-0.5 block text-[12.5px] text-ink-3">{sub}</span>}
+                    </button>
+                  </li>
+                );
+                return (
+                  <details key={moment} open={i === 0} className="group rounded-[20px] bg-surface shadow-card">
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4">
+                      <span className="text-[15.5px] font-semibold">{moment}</span>
+                      <span className="text-[12.5px] text-ink-3">
+                        {nodes.length} thing{nodes.length === 1 ? "" : "s"} learned
+                        <span className="ml-2 inline-block transition group-open:rotate-180">▾</span>
+                      </span>
+                    </summary>
+                    <div className="grid gap-4 border-t border-line px-3 pb-4 pt-3 md:grid-cols-3">
+                      <div>
+                        <p className="px-3 pb-1 text-[12.5px] font-medium text-ink-2">What the audience wants</p>
+                        <ul>{wants.length ? wants.map((n) => item(n, n.text)) : <li className="px-3 py-2 text-[13px] text-ink-3">Nothing yet</li>}</ul>
+                      </div>
+                      <div>
+                        <p className="px-3 pb-1 text-[12.5px] font-medium text-ink-2">What everyone does (avoid)</p>
+                        <ul>{cliches.length ? cliches.map((n) => item(n, n.text)) : <li className="px-3 py-2 text-[13px] text-ink-3">Nothing yet</li>}</ul>
+                      </div>
+                      <div>
+                        <p className="px-3 pb-1 text-[12.5px] font-medium text-ink-2">What brands did, and the gap</p>
+                        <ul>{done.length ? done.map((n) => item(n, `${n.brand ? `${n.brand}: ` : ""}${n.text}`, n.gap ? `Gap: ${n.gap}` : undefined)) : <li className="px-3 py-2 text-[13px] text-ink-3">Nothing yet</li>}</ul>
+                      </div>
+                    </div>
+                  </details>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         {view.examples.length > 0 && (
@@ -352,7 +414,10 @@ function NodePanel({ n, onExample }: { n: Node; onExample: (id: string) => void 
   }
   return (
     <div className="pt-6">
-      <Label>{KIND[n.kind].name}</Label>
+      <Label>
+        {KIND[n.kind].name}
+        {n.moment ? ` · ${n.moment} only` : " · Always true"}
+      </Label>
       <h3 className="mt-4 text-[24px] leading-snug tracking-[-0.01em]">{n.brand ? `${n.brand}: ${n.text}` : n.text}</h3>
       <p className="mt-4 pb-6 text-[15.5px] leading-relaxed text-ink-2">{n.detail}</p>
       {n.gap && (

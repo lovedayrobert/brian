@@ -166,7 +166,7 @@ export async function generateIdeas(opts: {
     liveBrandContext(await ensureLiveBrand()),
     brandVoiceContext(opts.brandId),
     qualityBarContext(),
-    brainContext(db.brain),
+    brainContext(db.brain, opts.dayId ? specialDayById(opts.dayId)?.title : undefined),
     learningContext(db.swipes, db.identity, opts.dayId ? specialDayById(opts.dayId)?.title : undefined),
     `<horizon>\n${HORIZON_BRIEF[horizon]}\n</horizon>`,
     ACCURACY_RULES,

@@ -141,3 +141,12 @@ X's own API can't search old posts on pay-per-use (7 days only), and a brand's t
 4. Always: **Search this on X**, the exact search as a link, free for anyone logged in.
 
 We don't scrape X with logged-in accounts (Playwright and similar): it breaks X's terms and gets the account locked.
+
+## Always true vs playbooks for moments
+
+Brian keeps two kinds of memory apart, so a seasonal lesson never leaks into a normal day:
+
+- **Always true**: audience truths and mechanics that hold any day of the year.
+- **Playbooks for moments** (Halloween, Christmas, Super Bowl…): what the audience wants around it, what brands did and the gap they left, and the clichés everyone repeats.
+
+When you teach him a post made for a moment (anything taught from "Find a brand's old posts" is tagged with its moment), he files the lesson underneath it as always true, and the moment-only parts in that moment's playbook. Ideas for a normal day use only what's always true; ideas for a moment also use its playbook, and an idea that is one of its clichés is dead. Moment knowledge doesn't fade between years.
