@@ -128,3 +128,16 @@ Added 21 Oct 2026 after the meeting with Marko: Brian was inventing from what he
 2. **Tell him if he got it**: Yes / Partly / No. Partly or No asks what he missed; your words become the truth and he rewrites it (about $0.03). Brian can't watch videos, so say what happens in one.
 3. **Cashy's identity** is rebuilt from every explanation and correction on demand (about $0.10): who Cashy is as a marketer, what the team loves, the lessons, what doesn't work.
 4. **Every idea run starts from it**, before the room. Ideas for a special day (Get ideas next to "Coming up" in Learning, or from the calendar) put examples tagged with that event first, so Halloween ideas start from Halloween campaigns that worked.
+
+## Look back: what did a brand do on a day?
+
+On Brian's screen, under Teach: pick a brand's X handle, a moment (Halloween, Black Friday, GTA 6 launch…) and a year, or your own dates. Brian lists their posts from around it, best first, and you tick the ones that worked to teach them to him in one go (about $0.04 each).
+
+X's own API can't search old posts on pay-per-use (7 days only), and a brand's timeline only reaches its last 3,200 posts (Stake's doesn't reach Halloween 2025). So Brian tries, in order:
+
+1. **TwitterAPI.io** (`TWITTERAPI_IO_KEY`): X's whole history by account and dates, about $0.15 per 1,000 posts. Not connected until someone makes an account and adds credit.
+2. **X timeline**: the brand's recent posts, $0.005 each from the X budget, at most 40 a look.
+3. **Wayback Machine** (free): archived copies of the brand's tweet pages, filtered to the exact dates using the time inside every tweet id; fxtwitter fills in words and numbers. Coverage varies, and it rate-limits.
+4. Always: **Search this on X**, the exact search as a link, free for anyone logged in.
+
+We don't scrape X with logged-in accounts (Playwright and similar): it breaks X's terms and gets the account locked.

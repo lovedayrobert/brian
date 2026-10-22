@@ -3,12 +3,15 @@
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { LookBack } from "./look-back";
 import { BrainMesh, FULL_BRAIN, type MeshLink, type MeshPoint } from "./brain-mesh";
 
 type Kind = "truth" | "mechanic" | "industry";
 
 export interface BrainView {
   ai: boolean;
+  /** Looking back at a brand's posts around a moment */
+  lookback: { paid: "history" | "recent" | "none"; moments: { title: string; date: string }[] };
   /** ?brain=0..1 shows the brain at a given stage of growth, to preview it (the knowledge shown stays real) */
   preview?: number;
   nodes: {
@@ -69,6 +72,7 @@ export function BrainApp({ view }: { view: BrainView }) {
   const [shown, setShown] = useState(0);
   const [selected, setSelected] = useState<{ type: "node" | "example"; id: string } | null>(null);
   const [hover, setHover] = useState<string | null>(null);
+  const [looking, setLooking] = useState(false);
 
   // Reveal Brian's notes one at a time, then what changed in his brain.
   useEffect(() => {
@@ -164,7 +168,17 @@ export function BrainApp({ view }: { view: BrainView }) {
             )}
             {error && <p className="mt-4 text-[14px]">{error}</p>}
           </form>
+          <button onClick={() => setLooking(!looking)} className={clsx(MONO, "mt-8 text-[11.5px] text-[#8a8a8a] hover:text-[#141414]")}>
+            {looking ? "Close look back" : "Or look back: what did a brand do on a day? →"}
+          </button>
         </section>
+
+        {looking && (
+          <section className="mx-auto mt-10 max-w-[760px] animate-[rise_.3s_ease-out] border-t border-[#141414] pt-8">
+            <Label className="mb-6 text-[#141414]">Look back</Label>
+            <LookBack moments={view.lookback.moments} paid={view.lookback.paid} ai={view.ai} />
+          </section>
+        )}
 
         {(busy || digest) && (
           <section className="mx-auto mt-20 max-w-[760px]">

@@ -3,6 +3,8 @@ import { modelReady } from "@/lib/adapters/model";
 import { health, strength } from "@/lib/brain";
 import { personName } from "@/lib/people";
 import { load } from "@/lib/queries";
+import { specialDays } from "@/lib/calendar/days";
+import { twitterApiReady } from "@/lib/lookback";
 
 export const metadata = { title: "Brian" };
 
@@ -14,6 +16,18 @@ export default async function BrianPage({ searchParams }: { searchParams: Promis
   const title = (id: string) => swipes.find((s) => s.id === id)?.title ?? "An example that was removed";
   const view: BrainView = {
     ai: modelReady(),
+    lookback: {
+      paid: twitterApiReady() ? "history" : process.env.X_BEARER_TOKEN ? "recent" : "none",
+      // Moments to look back at, this year and the three before it.
+      moments: (() => {
+        const y = new Date().getUTCFullYear();
+        const seen = new Set<string>();
+        return specialDays(`${y - 3}-01-01`, `${y}-12-31`)
+          .filter((d) => d.kind !== "cashy")
+          .map((d) => ({ title: d.title, date: d.date }))
+          .filter((d) => (seen.has(`${d.title}${d.date.slice(0, 4)}`) ? false : (seen.add(`${d.title}${d.date.slice(0, 4)}`), true)));
+      })(),
+    },
     preview: brain !== undefined && !Number.isNaN(Number(brain)) ? Math.max(0, Math.min(1, Number(brain))) : undefined,
     nodes: (db.brain ?? []).map((n) => ({
       id: n.id,
