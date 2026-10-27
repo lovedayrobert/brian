@@ -118,6 +118,7 @@ function exampleText(s: Swipe): string {
   return [
     `Link: ${s.url} (${s.platform}${s.author ? `, ${s.author}` : ""}${s.owner ? `, ${s.owner === "ours" ? "Cashy's own" : s.owner === "competitor" ? "a competitor's" : "someone else's"}` : ""})`,
     s.event ? `Made for: ${s.event}` : "",
+    s.context ? `What else the world was paying attention to that week: ${s.context}\nUse this to judge timing: what it was competing with, what it rode, or what it ignored.` : "",
     `Numbers: ${metrics}`,
     `What it says:\n${(s.text || s.title).slice(0, 6000)}`,
     s.why ? `Why the team rates it: ${s.why}` : "The team didn't say why. Work it out.",

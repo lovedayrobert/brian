@@ -371,6 +371,8 @@ export interface Swipe {
   addedAt: string;
   /** The post's words, or the start of the article, for Brian to read */
   text?: string;
+  /** What else the world was paying attention to that week, so Brian reads it in its moment */
+  context?: string;
   /** The moment it was made for: "Halloween", "World Cup", "GTA 6 launch" */
   event?: string;
   /** Whose it was */

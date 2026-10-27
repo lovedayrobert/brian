@@ -75,7 +75,7 @@ export async function readLink(url: string): Promise<Meta> {
   }
 }
 
-export async function addSwipe(input: { url: string; why: string; by: string; title?: string; event?: string; owner?: Swipe["owner"] }): Promise<Swipe> {
+export async function addSwipe(input: { url: string; why: string; by: string; title?: string; event?: string; owner?: Swipe["owner"]; context?: string }): Promise<Swipe> {
   let url: URL;
   try {
     url = new URL(input.url.trim());
@@ -93,6 +93,7 @@ export async function addSwipe(input: { url: string; why: string; by: string; ti
     metrics: meta.metrics,
     text: meta.text?.slice(0, 8000),
     event: input.event?.trim().slice(0, 80) || undefined,
+    context: input.context?.trim().slice(0, 1500) || undefined,
     owner: input.owner,
     why: input.why.trim().slice(0, 1000),
     addedBy: input.by,

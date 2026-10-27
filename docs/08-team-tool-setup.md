@@ -150,3 +150,15 @@ Brian keeps two kinds of memory apart, so a seasonal lesson never leaks into a n
 - **Playbooks for moments** (Halloween, Christmas, Super Bowl…): what the audience wants around it, what brands did and the gap they left, and the clichés everyone repeats.
 
 When you teach him a post made for a moment (anything taught from "Find a brand's old posts" is tagged with its moment), he files the lesson underneath it as always true, and the moment-only parts in that moment's playbook. Ideas for a normal day use only what's always true; ideas for a moment also use its playbook, and an idea that is one of its clichés is dead. Moment knowledge doesn't fade between years.
+
+## What else was happening that week
+
+In "Find a brand's old posts", next to the brand's posts, Brian shows what the world was paying attention to in the same dates (Marko, 27 Oct 2026), so a post is read in its moment:
+
+- **Brian's read of the week**: two or three sentences (Haiku, about $0.002).
+- **What people were reading**: Wikipedia's most-read pages across those days (free).
+- **The news**: Wikipedia's daily "Current events" digest, ranked by what people were reading and by what our audience talks about (free).
+- **Biggest on X**: anyone's posts with 100K+ likes, at most two per account (TwitterAPI.io, about $0.009).
+- **Reddit**: top posts in our audience's communities (Arctic Shift archive, free).
+
+TikTok, Instagram and Google Trends don't publish what was trending on a past day, so they aren't included. Results are cached per date window, so looking again is free. When you teach a post from those dates, the week goes with it and Brian judges its timing against it.

@@ -5,6 +5,7 @@ import { Check, ChevronDown, Eye, Heart, Loader2, MessageCircle, Play, Plus, Rep
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { mentions, teamKeywords, tokens } from "@/lib/moment-keywords";
+import type { WeekContext } from "@/lib/week-context";
 
 type Media = { kind: "photo" | "video" | "gif"; url: string };
 type Post = { id: string; url: string; text: string; at: string; likes?: number; reposts?: number; replies?: number; views?: number; via: "twitterapi" | "x" | "wayback"; media: Media[]; author?: { name: string; avatar?: string } };
@@ -62,6 +63,7 @@ export function LookBack({ moments, brands, learned: learnedAtStart, paid, ai }:
   const [learned, setLearned] = useState<Learned>(learnedAtStart);
   const [adding, setAdding] = useState<string | null>(null);
   const [showOthers, setShowOthers] = useState(false);
+  const [week, setWeek] = useState<WeekContext | "loading" | null>(null);
   // Only moments that have happened: there's nothing to look back at for Halloween 2026 yet.
   const past = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -106,6 +108,12 @@ export function LookBack({ moments, brands, learned: learnedAtStart, paid, ai }:
 
   async function look(allowPaid: boolean) {
     if (!window) return setError("Find a moment, or set your own dates.");
+    // What else was happening that week loads alongside the brand's posts.
+    setWeek("loading");
+    fetch("/api/brain/week", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(window) })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((w) => setWeek(w))
+      .catch(() => setWeek(null));
     setBusy(true);
     setError(null);
     setResult(null);
@@ -133,7 +141,12 @@ export function LookBack({ moments, brands, learned: learnedAtStart, paid, ai }:
       const res = await fetch("/api/brain/teach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: posts[i].url, event, why: `Picked from @${result.handle}'s posts ${event ? `around ${event}` : `from ${result.from} to ${result.to}`}.` }),
+        body: JSON.stringify({
+          url: posts[i].url,
+          event,
+          why: `Picked from @${result.handle}'s posts ${event ? `around ${event}` : `from ${result.from} to ${result.to}`}.`,
+          context: week && week !== "loading" ? weekLine(week) : undefined,
+        }),
       });
       if (!res.ok) {
         setTeaching(null);
@@ -321,6 +334,8 @@ export function LookBack({ moments, brands, learned: learnedAtStart, paid, ai }:
             </a>
           </div>
 
+          <WeekPanel week={week} />
+
           {result.suggested.length > 0 && editable && (
             <div className="mt-4 rounded-[16px] bg-accent-soft p-4">
               <p className="flex items-center gap-1.5 text-[13.5px] font-medium text-accent-ink">
@@ -377,6 +392,59 @@ export function LookBack({ moments, brands, learned: learnedAtStart, paid, ai }:
           <p className="mt-4 text-[12px] text-ink-3">{result.routes.map((r) => `${r.ok ? "✓" : "–"} ${r.name}: ${r.note}`).join(" · ")}</p>
         </div>
       )}
+    </div>
+  );
+}
+
+/** The week in one paragraph, for Brian to read alongside a post he's being taught. */
+function weekLine(w: WeekContext): string {
+  const top = (xs: { title: string }[], n: number) => xs.slice(0, n).map((x) => x.title.slice(0, 90)).join("; ");
+  return [w.summary, w.reading.length ? `Most-read: ${top(w.reading, 6)}.` : "", w.x.length ? `Biggest on X: ${top(w.x, 3)}.` : ""].filter(Boolean).join(" ");
+}
+
+/** What else the world was paying attention to in the same dates, across sources. */
+function WeekPanel({ week }: { week: WeekContext | "loading" | null }) {
+  if (!week) return null;
+  if (week === "loading")
+    return (
+      <div className="mt-5 rounded-[18px] bg-surface-2 p-5">
+        <p className="text-[14px] font-semibold">What else was happening that week</p>
+        <p className="mt-1 text-[13px] text-ink-3">Brian is reading Wikipedia, the news, X and Reddit for those dates…</p>
+        <div className="shimmer mt-3 h-3 w-2/3 rounded-full" />
+      </div>
+    );
+  const cols: { name: string; hint: string; items: WeekContext["reading"] }[] = [
+    { name: "What people were reading", hint: "Most-read on Wikipedia", items: week.reading },
+    { name: "The news", hint: "The main stories, day by day", items: week.news },
+    { name: "Biggest on X", hint: "100K+ likes, anyone", items: week.x },
+    { name: "Reddit", hint: "Our audience's communities", items: week.reddit },
+  ].filter((c) => c.items.length);
+  return (
+    <div className="mt-5 rounded-[18px] bg-surface-2 p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="text-[14px] font-semibold">What else was happening that week</p>
+        {week.missing.length > 0 && <span className="text-[12px] text-ink-3">Couldn&rsquo;t reach {week.missing.join(" or ")} just now</span>}
+      </div>
+      {week.summary && <p className="mt-2 max-w-[820px] text-[14.5px] leading-relaxed">{week.summary}</p>}
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {cols.map((c) => (
+          <div key={c.name} className="rounded-[14px] bg-surface p-3.5 shadow-card">
+            <p className="text-[13px] font-semibold">{c.name}</p>
+            <p className="text-[11.5px] text-ink-3">{c.hint}</p>
+            <ol className="mt-2.5 space-y-2">
+              {c.items.slice(0, 6).map((it, i) => (
+                <li key={it.url + i}>
+                  <a href={it.url} target="_blank" rel="noreferrer" className="block hover:underline">
+                    <span className="line-clamp-2 text-[13px] leading-snug">{it.title}</span>
+                  </a>
+                  <span className="text-[11.5px] text-ink-3">{it.meta}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        ))}
+      </div>
+      <p className="mt-3 text-[12px] text-ink-3">When you teach a post from these dates, Brian reads it against this week, so he learns what it was competing with.</p>
     </div>
   );
 }

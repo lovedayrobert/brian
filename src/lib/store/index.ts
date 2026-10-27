@@ -70,6 +70,8 @@ export interface DB {
   xUsage?: { month: string; reads: number; lastPull?: string; userId?: string };
   /** What Brian did on his own: reads, the morning Pulse, and idea runs on hot days */
   autopilot?: AutopilotState;
+  /** What else was happening in a past week, cached per date window */
+  weekContexts?: Record<string, import("@/lib/week-context").WeekContext>;
   /** The team's edits to each moment's look-back keywords */
   momentKeywords?: Record<string, { added: string[]; removed: string[] }>;
   /** Brian's brain: truths, mechanics and industry memory, with evidence */
