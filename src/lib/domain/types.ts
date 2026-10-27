@@ -200,6 +200,8 @@ export interface Idea {
   size?: "reply" | "post" | "meme" | "act" | "campaign";
   /** Which model invented it (Opus, Fable, GPT-6 Astra) */
   madeBy?: string;
+  /** The campaign it was made for, if any */
+  campaignId?: string;
   /** The brain pieces (truths and mechanics) it was built on */
   builtOn?: string[];
   /** Which world it's about (streaming, sport, crypto…), for spreading ideas out. */
@@ -371,6 +373,8 @@ export interface Swipe {
   addedAt: string;
   /** The post's words, or the start of the article, for Brian to read */
   text?: string;
+  /** The campaign it was taught into, or none for the main Brian */
+  campaignId?: string;
   /** What else the world was paying attention to that week, so Brian reads it in its moment */
   context?: string;
   /** The moment it was made for: "Halloween", "World Cup", "GTA 6 launch" */
@@ -413,6 +417,11 @@ export interface BrainNode {
   /** Why it's true or why it works; for industry: how it landed */
   detail: string;
   /**
+   * The campaign whose Brian learned it. Campaign knowledge stays in its campaign:
+   * it never reaches the main Brian or another campaign unless the team promotes it.
+   */
+  campaignId?: string;
+  /**
    * The moment it belongs to ("Halloween"), or none if it's always true. Moment
    * knowledge is only used for ideas for that moment, so a seasonal lesson never
    * leaks into a normal day.
@@ -439,6 +448,24 @@ export interface BrainQuestion {
   swipeId?: string;
   createdAt: string;
   answer?: { by: string; at: string; text: string };
+}
+
+/**
+ * A campaign the team works on ("Halloween", "GTA 6 launch"): a folder with its
+ * own mini Brian. What's taught inside it is learned only inside it.
+ */
+export interface Campaign {
+  id: string;
+  name: string;
+  /** A recurring moment it's tied to (a special-day title like "Halloween"), so history and ideas line up with it */
+  moment?: string;
+  /** For one-off campaigns: when it runs */
+  from?: string;
+  to?: string;
+  /** What the team wants from it, in their words */
+  brief?: string;
+  createdBy: string;
+  createdAt: string;
 }
 
 /** Brian's thinking while digesting one example, kept so it can be shown. */

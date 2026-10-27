@@ -162,3 +162,12 @@ In "Find a brand's old posts", next to the brand's posts, Brian shows what the w
 - **Reddit**: top posts in our audience's communities (Arctic Shift archive, free).
 
 TikTok, Instagram and Google Trends don't publish what was trending on a past day, so they aren't included. Results are cached per date window, so looking again is free. When you teach a post from those dates, the week goes with it and Brian judges its timing against it.
+
+## Campaigns: a Brian per campaign
+
+Since 27 Oct 2026 (Rob), learning is foldered by campaign, replacing the "playbooks for moments" (which were moved into campaigns automatically).
+
+- **The main Brian** (home screen) learns from the present day: what's true on any day. Everyday ideas use only him.
+- **Campaigns** ("Halloween", "GTA 6 launch"…) each have their own Brian. Start one from Brian's page with New campaign; name it after a recurring moment and it follows that moment every year, with its past years one click away. Inside a campaign: **Teach it** (from brands' old posts around the moment, with what else was happening that week, or from a link), **What it's learned** (what the audience wants, what everyone does to avoid, what brands did and the gap), and **Ideas** (built from the campaign's Brian plus the main Brian's instincts, aimed at the campaign's next moment; about $0.70–1.50 a run).
+- **Nothing leaks.** What a campaign's Brian learns can't strengthen the main Brian or another campaign, even if it tries to link to them. Ideas for a special day automatically use that moment's campaign, if there is one.
+- **Teach Brian too**: on any campaign lesson that's true beyond the campaign, copies it into the main Brian. The campaign keeps its own copy. The team decides what generalises, not Brian.

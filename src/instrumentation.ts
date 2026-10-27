@@ -6,6 +6,10 @@
  */
 export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs" || process.env.NEXT_PHASE === "phase-production-build") return;
+  // Playbooks from before campaigns become campaigns (once; safe to repeat).
+  const { repo } = await import("@/lib/store");
+  const { moveMomentsIntoCampaigns } = await import("@/lib/campaigns");
+  await repo.update((d) => void moveMomentsIntoCampaigns(d)).catch((e) => console.error("Campaign move failed:", (e as Error).message));
   const { refreshDue } = await import("@/lib/results/publications");
   const { snapshotChannels } = await import("@/lib/results/channels");
   const tick = () =>

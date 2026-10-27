@@ -75,7 +75,7 @@ export async function readLink(url: string): Promise<Meta> {
   }
 }
 
-export async function addSwipe(input: { url: string; why: string; by: string; title?: string; event?: string; owner?: Swipe["owner"]; context?: string }): Promise<Swipe> {
+export async function addSwipe(input: { url: string; why: string; by: string; title?: string; event?: string; owner?: Swipe["owner"]; context?: string; campaignId?: string }): Promise<Swipe> {
   let url: URL;
   try {
     url = new URL(input.url.trim());
@@ -94,13 +94,16 @@ export async function addSwipe(input: { url: string; why: string; by: string; ti
     text: meta.text?.slice(0, 8000),
     event: input.event?.trim().slice(0, 80) || undefined,
     context: input.context?.trim().slice(0, 1500) || undefined,
+    campaignId: input.campaignId || undefined,
     owner: input.owner,
     why: input.why.trim().slice(0, 1000),
     addedBy: input.by,
     addedAt: new Date().toISOString(),
   };
   await repo.update((d) => {
-    d.swipes = [swipe, ...(d.swipes ?? []).filter((s) => s.url !== swipe.url)];
+    if (swipe.campaignId && !d.campaigns?.some((c) => c.id === swipe.campaignId)) throw new Error("That campaign is gone.");
+    // The same link can be taught to the main Brian and to a campaign: they're separate brains.
+    d.swipes = [swipe, ...(d.swipes ?? []).filter((s) => !(s.url === swipe.url && s.campaignId === swipe.campaignId))];
     logActivity(d, { by: input.by, type: "swipe.added", text: `added to Learning: “${swipe.title.slice(0, 100)}”`, ref: { kind: "swipe", id: swipe.id, label: swipe.title.slice(0, 60) } });
   });
   return swipe;

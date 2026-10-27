@@ -12,6 +12,7 @@ import { currentActor } from "@/lib/actor";
 import { logActivity } from "@/lib/activity";
 import { specialDayById } from "@/lib/calendar/days";
 import { brainContext, industryContext, recordUses } from "@/lib/brain";
+import { campaignById, campaignForMoment } from "@/lib/campaigns";
 import { learningContext } from "@/lib/learning";
 import { swipeLine } from "@/lib/swipe";
 import type { DB } from "@/lib/store";
@@ -138,6 +139,8 @@ export async function generateIdeas(opts: {
   horizon?: Horizon;
   /** A special day from the marketing calendar */
   dayId?: string;
+  /** Ideas for one campaign: its own Brian's learning comes first, and the ideas are filed in it */
+  campaignId?: string;
   /** Start from the team's own half-idea or a swiped post ("they did this, could we do something like it?") */
   spark?: { text: string; swipeId?: string };
 }): Promise<IdeaRunResult> {
@@ -166,7 +169,7 @@ export async function generateIdeas(opts: {
     liveBrandContext(await ensureLiveBrand()),
     brandVoiceContext(opts.brandId),
     qualityBarContext(),
-    brainContext(db.brain, opts.dayId ? specialDayById(opts.dayId)?.title : undefined),
+    brainContext(db.brain, campaignById(db, opts.campaignId) ?? campaignForMoment(db, opts.dayId ? specialDayById(opts.dayId)?.title : undefined)),
     learningContext(db.swipes, db.identity, opts.dayId ? specialDayById(opts.dayId)?.title : undefined),
     `<horizon>\n${HORIZON_BRIEF[horizon]}\n</horizon>`,
     ACCURACY_RULES,
@@ -316,6 +319,7 @@ Give 10 ideas Cashy could do on this. First work out what people actually feel a
       size: c.size,
       subject: c.subject,
       madeBy: c.madeBy,
+      campaignId: opts.campaignId,
       builtOn: c.builtOn?.filter((id) => (db.brain ?? []).some((n) => n.id === id)),
       world: c.world,
       post: c.post ? stripDisclaimer(c.post) : undefined,

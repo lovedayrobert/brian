@@ -11,8 +11,8 @@ export async function POST(req: Request) {
   if (denied) return denied;
   setActor(req);
   try {
-    const { url, why, event, context } = (await req.json()) as { url?: string; why?: string; event?: string; context?: string };
-    const s = await addSwipe({ url: url ?? "", why: why ?? "", event, context, by: (await userFromRequest(req)) ?? "team" });
+    const { url, why, event, context, campaignId } = (await req.json()) as { url?: string; why?: string; event?: string; context?: string; campaignId?: string };
+    const s = await addSwipe({ url: url ?? "", why: why ?? "", event, context, campaignId, by: (await userFromRequest(req)) ?? "team" });
     const d = await digest(s.id);
     return Response.json({ swipeId: s.id, digest: d });
   } catch (e) {

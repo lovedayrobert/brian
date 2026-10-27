@@ -45,7 +45,7 @@ export function Shell({ children, status }: { children: React.ReactNode; status:
 
   if (pathname === "/login") return <main className="px-4">{children}</main>;
 
-  const isActive = (href: string, also: string[] = []) => (href === "/" ? pathname === "/" : [href, ...also].some((h) => pathname.startsWith(h)));
+  const isActive = (href: string, also: string[] = []) => (href === "/" ? pathname === "/" || pathname.startsWith("/campaigns") : [href, ...also].some((h) => pathname.startsWith(h)));
   const brian = pathname === "/";
   const low = status.budget != null && status.budgetLeft != null && status.budgetLeft < status.budget * 0.2;
   const signOut = async () => {

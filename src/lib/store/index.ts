@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { dataDir } from "@/lib/paths";
-import type { AgentRun, CalendarItem, Idea, Moment, Package, Pulse, Signal, Swipe, SweepRun, Trend, Identity, BrainNode, BrainQuestion, Digest } from "@/lib/domain/types";
+import type { AgentRun, CalendarItem, Idea, Moment, Package, Pulse, Signal, Swipe, SweepRun, Trend, Identity, BrainNode, BrainQuestion, Digest, Campaign } from "@/lib/domain/types";
 import type { RapidResponse } from "@/lib/pipeline/rapid";
 import type { BacktestResult } from "@/lib/engine/backtest";
 import type { Feedback, Memory, MemoryEvent } from "@/lib/memory";
@@ -70,6 +70,8 @@ export interface DB {
   xUsage?: { month: string; reads: number; lastPull?: string; userId?: string };
   /** What Brian did on his own: reads, the morning Pulse, and idea runs on hot days */
   autopilot?: AutopilotState;
+  /** Campaigns, each with its own contained mini Brian */
+  campaigns?: Campaign[];
   /** What else was happening in a past week, cached per date window */
   weekContexts?: Record<string, import("@/lib/week-context").WeekContext>;
   /** The team's edits to each moment's look-back keywords */

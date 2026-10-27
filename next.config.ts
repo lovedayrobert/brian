@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
       { source: "/learning/:path*", destination: "/", permanent: false },
       { source: "/develop", destination: "/ideas", permanent: false },
       { source: "/mockups", destination: "/ideas", permanent: false },
-      { source: "/campaigns", destination: "/calendar", permanent: false },
+      { source: "/campaigns", destination: "/", permanent: false },
       { source: "/calendar/results", destination: "/results", permanent: false },
     ];
   },

@@ -48,7 +48,7 @@ export function health(n: BrainNode, now = Date.now()): Health {
   const rejected = n.uses.filter((u) => u.verdict === "rejected").length;
   const last = Math.max(new Date(n.updatedAt).getTime(), ...n.uses.map((u) => new Date(u.at).getTime()));
   // Only timeless truths and mechanics fade with time: moment knowledge waits a year for its moment.
-  const ages = !n.moment && (n.kind === "truth" || n.kind === "mechanic");
+  const ages = !n.moment && !n.campaignId && (n.kind === "truth" || n.kind === "mechanic");
   if ((rejected >= 2 && liked === 0) || (ages && now - last > 30 * DAY && liked === 0)) return "fading";
   const s = strength(n);
   return s >= 4 ? "strong" : s >= 2 ? "growing" : "weak";
@@ -73,15 +73,14 @@ const DigestOut = z.object({
     .array(
       z.object({
         kind: z.enum(["truth", "mechanic"]),
-        scope: z.enum(["timeless", "moment"]).describe("timeless: true on any day of the year. moment: only true around this example's moment (e.g. what people want at Halloween). Only use moment when the example was made for one"),
         text: z.string().describe("One sentence, general, no brand or campaign names"),
         detail: z.string().describe("Why it's true or why it works, one line"),
       }),
     )
     .describe("Only what's genuinely new to the brain. 0-4. A truth is about people; a mechanic is about how things spread"),
   cliches: z
-    .array(z.string().describe("One line: a move brands always make around this moment, e.g. 'spooky giveaway with a pumpkin emoji'"))
-    .describe("Only when the example was made for a moment: what everyone does around it, so ideas can avoid it. 0-3, only ones this example shows. Empty otherwise"),
+    .array(z.string().describe("One line: a move brands always make for this campaign's moment, e.g. 'spooky giveaway with a pumpkin emoji'"))
+    .describe("Only when you're a campaign's Brian: what everyone does for it, so ideas can avoid it. 0-3, only ones this example shows. Empty otherwise"),
   industry: z
     .object({ brand: z.string(), what: z.string().describe("What they did, one sentence"), landed: z.string().describe("How it landed and with whom"), couldBeBetter: z.string().describe("What could have been better: the gap someone else could use") })
     .nullable()
@@ -92,23 +91,24 @@ const DigestOut = z.object({
 
 const SYSTEM = [
   "You are Brian, the marketing brain of Cashy, a crypto casino. The team feeds you campaigns and posts that worked, theirs, rivals', anyone's. You digest each one into your brain. You're building three kinds of knowledge: truths about our audiences (degens, crypto people, gamblers, internet culture), mechanics of why things spread, and memory of what the industry has done and what could have been better.",
-  "Keep two kinds of memory apart. What's timeless is true on any day of the year. What belongs to a moment (Halloween, Christmas, the Super Bowl) is only true around it, and goes in that moment's playbook: what the audience wants then, what brands did, and the clichés everyone repeats. A seasonal example usually teaches both: the timeless lesson underneath (e.g. 'reach bought with prizes isn't creativity') and the moment-only part (e.g. 'guess-the-thing giveaways are the standard casino Halloween move'). Never file a seasonal detail as timeless.",
+  "You are either the main Brian, who learns from the present day and what's true any day, or one campaign's Brian (Halloween, a game launch…), who learns only for that campaign. A campaign's Brian files everything it learns in the campaign, including what the audience wants then, what brands did, and the clichés everyone repeats; none of it reaches the main Brian unless the team promotes it.",
   "Think like a sharp marketer, not a summariser: the feeling, why people shared it, why the brand got credit, what it rode. Truths and mechanics must be general enough to build completely different ideas on; never write a campaign's surface (its object, format, target or joke) into them. Link to what you already know before adding anything new; your brain should get sharper, not longer.",
   "The team's words are the truth: when they've said why they like something or corrected you, build on it. If something clashes with what they taught you before, ask them.",
   STYLE_RULES,
 ].join("\n\n");
 
 /** The brain as Brian reads it when digesting: strongest first, with ids. */
-export function brainSnapshot(all: BrainNode[], moment?: string, max = 120): string {
-  // Brian files against what's timeless and against this moment's playbook, never another moment's.
-  const nodes = all.filter((n) => !n.moment || n.moment === moment);
+export function brainSnapshot(all: BrainNode[], campaign?: { id: string; name: string }, max = 120): string {
+  // A campaign's Brian sees only its campaign; the main Brian sees only itself. Nothing crosses over.
+  const nodes = all.filter((n) => (campaign ? n.campaignId === campaign.id : !n.campaignId && !n.moment));
+  const moment = campaign?.name;
   if (!nodes.length) return "Your brain is empty. This is your first example.";
   const by = (k: BrainNode["kind"]) =>
     nodes
       .filter((n) => n.kind === k)
       .sort((a, b) => strength(b) - strength(a))
       .slice(0, max)
-      .map((n) => `- [${n.id}] ${n.moment ? `(${n.moment} only) ` : ""}${k === "industry" ? `${n.brand}: ` : ""}${n.text} (strength ${strength(n)}, ${health(n)})`)
+      .map((n) => `- [${n.id}] ${k === "industry" ? `${n.brand}: ` : ""}${n.text} (strength ${strength(n)}, ${health(n)})`)
       .join("\n");
   return `<your_brain>\nTruths about our audiences:\n${by("truth") || "none yet"}\n\nMechanics of why things spread:\n${by("mechanic") || "none yet"}\n\nIndustry memory:\n${by("industry") || "none yet"}${moment ? `\n\n${moment} clichés (what everyone does):\n${by("cliche") || "none yet"}` : ""}\n</your_brain>`;
 }
@@ -134,13 +134,14 @@ type DigestResult = z.infer<typeof DigestOut>;
  * Applies one digest to the brain. Pure, so it's tested. Re-digesting an example
  * first takes back what it said last time, so evidence is never double counted.
  */
-export function applyDigest(brain: BrainNode[], swipeId: string, out: DigestResult, now: string, makeId: () => string, moment?: string): { brain: BrainNode[]; touched: Digest["touched"] } {
+export function applyDigest(brain: BrainNode[], swipeId: string, out: DigestResult, now: string, makeId: () => string, campaign?: { id: string; name: string }): { brain: BrainNode[]; touched: Digest["touched"] } {
   // Take back this example's earlier evidence; drop pieces that only it supported and nobody has judged or used.
   let next = brain
     .map((n) => ({ ...n, evidence: n.evidence.filter((e) => e.swipeId !== swipeId) }))
     .filter((n) => n.evidence.length || n.team.length || n.uses.length);
   const touched: Digest["touched"] = [];
-  const known = new Set(next.map((n) => n.id));
+  // Links only land inside the same Brian: a campaign can't strengthen the main Brian, or another campaign.
+  const known = new Set(next.filter((n) => (campaign ? n.campaignId === campaign.id : !n.campaignId)).map((n) => n.id));
   for (const l of out.links) {
     if (!known.has(l.nodeId)) continue;
     next = next.map((n) => (n.id === l.nodeId ? { ...n, evidence: [...n.evidence, { swipeId, note: l.note, supports: l.supports, at: now }], updatedAt: now } : n));
@@ -152,9 +153,10 @@ export function applyDigest(brain: BrainNode[], swipeId: string, out: DigestResu
     touched.push({ nodeId: id, change: "new" });
   };
   const first = { swipeId, note: "Where Brian first learned this", supports: true, at: now };
-  for (const k of out.newKnowledge.slice(0, 4)) add({ kind: k.kind, text: k.text, detail: k.detail, moment: k.scope === "moment" && moment ? moment : undefined, evidence: [first] });
-  if (out.industry) add({ kind: "industry", text: out.industry.what, detail: out.industry.landed, brand: out.industry.brand, gap: out.industry.couldBeBetter, moment, evidence: [{ ...first, note: "The campaign itself" }] });
-  if (moment) for (const c of (out.cliches ?? []).slice(0, 3)) add({ kind: "cliche", text: c, detail: `What brands keep doing around ${moment}`, moment, evidence: [{ ...first, note: "Seen here" }] });
+  const campaignId = campaign?.id;
+  for (const k of out.newKnowledge.slice(0, 4)) add({ kind: k.kind, text: k.text, detail: k.detail, campaignId, evidence: [first] });
+  if (out.industry) add({ kind: "industry", text: out.industry.what, detail: out.industry.landed, brand: out.industry.brand, gap: out.industry.couldBeBetter, campaignId, evidence: [{ ...first, note: "The campaign itself" }] });
+  if (campaign) for (const c of (out.cliches ?? []).slice(0, 3)) add({ kind: "cliche", text: c, detail: `What brands keep doing for ${campaign.name}`, campaignId, evidence: [{ ...first, note: "Seen here" }] });
   return { brain: next, touched };
 }
 
@@ -164,20 +166,20 @@ export async function digest(swipeId: string): Promise<Digest> {
   const s = db.swipes?.find((x) => x.id === swipeId);
   if (!s) throw new Error("That example is gone.");
   const brain = (db.brain ?? []).map((n) => ({ ...n, evidence: n.evidence.filter((e) => e.swipeId !== swipeId) }));
-  const moment = momentOf(s.event);
+  const campaign = s.campaignId ? db.campaigns?.find((c) => c.id === s.campaignId) : undefined;
   const out = await callStructured({
     agent: "teacher",
     subject: s.title.slice(0, 60),
     schema: DigestOut,
     maxTokens: 8000,
     system: SYSTEM,
-    prompt: `${brainSnapshot(brain, moment)}${moment ? `\n\nThis example was made for ${moment}. File the timeless lesson underneath it as timeless, and what only holds around ${moment} as moment knowledge and clichés.` : "\n\nThis example wasn't made for a particular moment: everything you learn from it is timeless."}\n\n<example>\n${exampleText(s)}\n</example>\n\n${s.breakdown ? "You've digested this before; the team has since given feedback. Digest it again with their words as the truth." : "Digest this example into your brain."}`,
+    prompt: `${brainSnapshot(brain, campaign)}${campaign ? `\n\nYou are the Brian for the campaign "${campaign.name}"${campaign.brief ? ` (the team's brief: ${campaign.brief})` : ""}. Everything you learn from this example stays in this campaign.` : "\n\nYou are the main Brian: learn what's true on any day of the year."}\n\n<example>\n${exampleText(s)}\n</example>\n\n${s.breakdown ? "You've digested this before; the team has since given feedback. Digest it again with their words as the truth." : "Digest this example into your brain."}`,
   });
   const now = new Date().toISOString();
   const breakdown: Breakdown = { at: now, whatHappened: out.whatHappened, feeling: out.feeling, whySpread: out.whySpread, whyBrand: out.whyBrand, timing: out.timing, lesson: out.lesson, dontCopy: out.dontCopy, unsure: out.unsure ?? undefined };
   let result: Digest = { swipeId, at: now, thinking: out.notes.map((n) => ({ step: n.step, thought: n.note })), touched: [] };
   await repo.update((d) => {
-    const applied = applyDigest(d.brain ?? [], swipeId, out, now, () => newId("bn"), moment);
+    const applied = applyDigest(d.brain ?? [], swipeId, out, now, () => newId("bn"), campaign);
     d.brain = applied.brain;
     result = { ...result, touched: applied.touched };
     d.digests = [result, ...(d.digests ?? []).filter((x) => x.swipeId !== swipeId)].slice(0, 500);
@@ -231,24 +233,23 @@ export async function ideaVerdict(ideaId: string, verdict: "liked" | "rejected")
  * Industry memory stays out of the Inventor's view, so it can't lift a surface;
  * the panel gets it instead, to kill anything too close (industryContext).
  */
-export function brainContext(brain: BrainNode[] | undefined, moment?: string): string {
+export function brainContext(brain: BrainNode[] | undefined, campaign?: { id: string; name: string }): string {
   const live = (brain ?? []).filter((n) => health(n) !== "fading" && strength(n) > 0).sort((a, b) => strength(b) - strength(a));
   const line = (n: BrainNode) => `- [${n.id}] ${n.text} (${n.detail}; strength ${strength(n)})`;
-  // Timeless knowledge always; a moment's playbook only for ideas for that moment, so seasonal lessons never leak into a normal day.
-  const timeless = (k: BrainNode["kind"]) => live.filter((n) => !n.moment && n.kind === k).slice(0, 40).map(line).join("\n");
+  // The main Brian's instincts always; a campaign's Brian only for that campaign's ideas, so its lessons never leak elsewhere.
+  const main = live.filter((n) => !n.campaignId && !n.moment);
+  const of = (xs: BrainNode[], k: BrainNode["kind"]) => xs.filter((n) => n.kind === k);
   const parts: string[] = [];
-  if (live.some((n) => !n.moment && n.kind !== "industry" && n.kind !== "cliche"))
+  if (main.some((n) => n.kind === "truth" || n.kind === "mechanic"))
     parts.push(
-      `<brian_brain note="What the team has taught you, true on any day. Build every idea on at least one truth about our audience and one mechanic, and list their ids in builtOn. Combine them with what's happening right now. Never build on a campaign you've seen: build on why it worked.">\nTruths about our audiences:\n${timeless("truth") || "none yet"}\n\nMechanics of why things spread:\n${timeless("mechanic") || "none yet"}\n</brian_brain>`,
+      `<brian_brain note="What the team has taught you, true on any day. Build every idea on at least one truth about our audience and one mechanic, and list their ids in builtOn. Combine them with what's happening right now. Never build on a campaign you've seen: build on why it worked.">\nTruths about our audiences:\n${of(main, "truth").slice(0, 40).map(line).join("\n") || "none yet"}\n\nMechanics of why things spread:\n${of(main, "mechanic").slice(0, 40).map(line).join("\n") || "none yet"}\n</brian_brain>`,
     );
-  if (moment) {
-    const here = live.filter((n) => n.moment?.toLowerCase() === momentOf(moment)?.toLowerCase());
-    if (here.length) {
-      const of = (k: BrainNode["kind"]) => here.filter((n) => n.kind === k);
+  if (campaign) {
+    const here = live.filter((n) => n.campaignId === campaign.id);
+    if (here.length)
       parts.push(
-        `<playbook moment="${momentOf(moment)}" note="Only for ideas for this moment. Use what the audience wants then; steer clear of the clichés (an idea that is one of them is dead); the gaps are where originality lives. Cite ids in builtOn too.">\nWhat our audience wants around it:\n${[...of("truth"), ...of("mechanic")].map(line).join("\n") || "nothing yet"}\n\nClichés everyone does (avoid):\n${of("cliche").map((n) => `- ${n.text}`).join("\n") || "none recorded"}\n\nGaps brands left (what could have been better):\n${of("industry").filter((n) => n.gap).map((n) => `- ${n.gap}`).join("\n") || "none recorded"}\n</playbook>`,
+        `<campaign_brain campaign="${campaign.name}" note="What this campaign's Brian learned from the team. It comes first for this campaign. Use what the audience wants; steer clear of the clichés (an idea that is one of them is dead); the gaps are where originality lives. Cite ids in builtOn too.">\nWhat our audience wants:\n${[...of(here, "truth"), ...of(here, "mechanic")].map(line).join("\n") || "nothing yet"}\n\nClichés everyone does (avoid):\n${of(here, "cliche").map((n) => `- ${n.text}`).join("\n") || "none recorded"}\n\nGaps brands left (what could have been better):\n${of(here, "industry").filter((n) => n.gap).map((n) => `- ${n.gap}`).join("\n") || "none recorded"}\n</campaign_brain>`,
       );
-    }
   }
   return parts.join("\n\n");
 }

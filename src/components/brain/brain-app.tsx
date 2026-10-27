@@ -1,569 +1,187 @@
 "use client";
 
 import clsx from "clsx";
+import { Plus } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { LookBack } from "./look-back";
-import { BrainMesh, FULL_BRAIN, type MeshLink, type MeshPoint } from "./brain-mesh";
+import { useMemo, useState } from "react";
+import type { ExampleView, LookbackView, NodeView, QuestionView } from "@/lib/brain-view";
+import { Drawer, ExampleList, KnowledgeColumns, MiniBrain, Question, TeachBox, plural } from "./shared";
 
-type Kind = "truth" | "mechanic" | "industry" | "cliche";
+export interface CampaignCard {
+  id: string;
+  name: string;
+  moment?: string;
+  from?: string;
+  to?: string;
+  learned: number;
+  examples: number;
+  ideas: number;
+}
 
 export interface BrainView {
   ai: boolean;
-  /** Looking back at a brand's posts around a moment */
-  lookback: { paid: "history" | "recent" | "none"; moments: { title: string; date: string }[]; brands: string[]; learned: Record<string, { added: string[]; removed: string[] }> };
+  lookback: LookbackView;
   /** ?brain=0..1 shows the brain at a given stage of growth, to preview it (the knowledge shown stays real) */
   preview?: number;
-  nodes: {
-    id: string;
-    kind: Kind;
-    text: string;
-    detail: string;
-    brand?: string;
-    gap?: string;
-    moment?: string;
-    strength: number;
-    health: "strong" | "growing" | "weak" | "fading";
-    evidence: { swipeId: string; title: string; note: string; supports: boolean }[];
-    team: { by: string; agree: boolean; note?: string; at: string }[];
-    liked: number;
-    rejected: number;
-    used: number;
-  }[];
-  questions: { id: string; text: string; nodeIds: string[] }[];
-  examples: { id: string; title: string; url: string; platform: string; author?: string; why: string; lesson?: string; notes: { step: string; thought: string }[]; by: string; at: string }[];
+  nodes: NodeView[];
+  questions: QuestionView[];
+  examples: ExampleView[];
+  campaigns: CampaignCard[];
 }
 
-type Node = BrainView["nodes"][number];
-type Digest = { swipeId: string; thinking: { step: string; thought: string }[]; touched: { nodeId: string; change: "new" | "stronger" | "weaker" }[] };
-
-const KIND: Record<Kind, { name: string; plural: string }> = {
-  truth: { name: "Audience truth", plural: "What our audience feels" },
-  mechanic: { name: "Mechanic", plural: "Why things spread" },
-  industry: { name: "Industry memory", plural: "What's been done" },
-  cliche: { name: "Cliché", plural: "What everyone does" },
-};
-const ORDER: Kind[] = ["truth", "mechanic", "industry"];
-// The timeless part of the brain; moment knowledge lives in playbooks below it.
-const timeless = (n: { moment?: string }) => !n.moment;
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
-const MONO = "font-medium uppercase tracking-[0.06em]";
-
-/** Small uppercase monospace label: the voice of the interface. */
-function Label({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={clsx(MONO, "text-[12px] text-ink-3", className)}>{children}</div>;
-}
-
-/** Strength as a row of ticks, like a reading on an instrument. */
-function Ticks({ value, max = 8 }: { value: number; max?: number }) {
-  const on = Math.max(0, Math.min(max, Math.round(value)));
-  return (
-    <span className="inline-flex gap-[3px]" aria-label={`Strength ${value}`}>
-      {Array.from({ length: max }, (_, i) => (
-        <span key={i} className={clsx("h-[9px] w-[3px]", i < on ? "bg-ink" : "bg-surface-3")} />
-      ))}
-    </span>
-  );
-}
-
+/**
+ * The main Brian: learns from the present day, what's true on any day. Every
+ * campaign has its own Brian, opened from the Campaigns section here.
+ */
 export function BrainApp({ view }: { view: BrainView }) {
-  const router = useRouter();
-  const [url, setUrl] = useState("");
-  const [why, setWhy] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [digest, setDigest] = useState<Digest | null>(null);
-  const [shown, setShown] = useState(0);
   const [selected, setSelected] = useState<{ type: "node" | "example"; id: string } | null>(null);
   const [hover, setHover] = useState<string | null>(null);
-  const [looking, setLooking] = useState(false);
-
-  // Reveal Brian's notes one at a time, then what changed in his brain.
-  useEffect(() => {
-    if (!digest || shown > digest.thinking.length) return;
-    const t = setTimeout(() => setShown((s) => s + 1), shown === 0 ? 200 : 1000);
-    return () => clearTimeout(t);
-  }, [digest, shown]);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setSelected(null);
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  const { points, links } = useMemo(() => {
-    const max = Math.max(4, ...view.nodes.map((n) => n.strength));
-    const points: MeshPoint[] = [
-      ...view.nodes.map((n) => ({ id: n.id, weight: n.strength / max, group: n.kind === "cliche" ? "industry" : n.kind })),
-      ...view.examples.map((x) => ({ id: x.id, weight: 0.15, group: "example" })),
-    ];
-    const links: MeshLink[] = [];
-    for (const n of view.nodes) for (const e of n.evidence) links.push({ a: n.id, b: e.swipeId, w: e.supports ? 0.5 : 0.2 });
-    for (let i = 0; i < view.nodes.length; i++)
-      for (let j = i + 1; j < view.nodes.length; j++) {
-        const a = view.nodes[i];
-        const b = view.nodes[j];
-        if (a.evidence.some((e) => b.evidence.some((f) => f.swipeId === e.swipeId))) links.push({ a: a.id, b: b.id, w: 1 });
-      }
-    return { points, links };
-  }, [view.nodes, view.examples]);
-
-  const pulse = useMemo(() => (busy ? points.map((p) => p.id) : digest && shown > digest.thinking.length ? digest.touched.map((t) => t.nodeId) : []), [busy, points, digest, shown]);
-  const counts = Object.fromEntries(ORDER.map((k) => [k, view.nodes.filter((n) => timeless(n) && n.kind === k).length])) as Record<Kind, number>;
-  const playbooks = useMemo(() => {
-    const m = new Map<string, Node[]>();
-    for (const n of view.nodes) if (n.moment) m.set(n.moment, [...(m.get(n.moment) ?? []), n]);
-    return [...m.entries()].sort((a, b) => b[1].length - a[1].length);
-  }, [view.nodes]);
-  const node = selected?.type === "node" ? view.nodes.find((n) => n.id === selected.id) : undefined;
-  const example = selected?.type === "example" ? view.examples.find((x) => x.id === selected.id) : undefined;
-
-  async function teach(e: React.FormEvent) {
-    e.preventDefault();
-    if (!url.trim()) return;
-    setBusy(true);
-    setError(null);
-    setDigest(null);
-    setShown(0);
-    const res = await fetch("/api/brain/teach", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url, why }) });
-    const json = await res.json().catch(() => ({}));
-    setBusy(false);
-    if (!res.ok) return setError(json.error ?? "I couldn't read that one.");
-    setUrl("");
-    setWhy("");
-    setDigest(json.digest);
-    router.refresh();
-  }
-
-  const formed = Math.round(Math.min(1, view.nodes.length / FULL_BRAIN) * 100);
-  const tabBtn = (on: boolean) => clsx("rounded-full px-4 py-1.5 text-[13.5px] transition", on ? "bg-ink font-medium text-bg" : "text-ink-2 hover:text-ink");
+  const of = (k: NodeView["kind"]) => view.nodes.filter((n) => n.kind === k).sort((a, b) => b.strength - a.strength);
+  const openNode = (id: string) => setSelected({ type: "node", id });
 
   return (
     <div className="min-h-dvh bg-bg text-ink antialiased">
       <main className="mx-auto max-w-[1100px] px-4 pb-28 pt-8 sm:px-6 lg:px-10 lg:pt-10">
         <header className="mb-8">
           <h1 className="display text-[30px] leading-[1.1] sm:text-[34px]">Brian</h1>
-          <p className="mt-2 max-w-[640px] text-[15px] leading-relaxed text-ink-2">
-            Show Brian marketing that worked. He works out why it worked, remembers it, and uses it to come up with ideas for Cashy. He never copies.
+          <p className="mt-2 max-w-[660px] text-[15px] leading-relaxed text-ink-2">
+            Show Brian marketing that worked. He works out why, remembers it, and uses it to come up with ideas for Cashy. He never copies. This is the main Brian, for what&rsquo;s true any day; each campaign below has a Brian of its own.
           </p>
         </header>
 
-        <div className="mb-3 inline-flex rounded-full bg-surface p-1 shadow-card">
-          <button onClick={() => setLooking(false)} className={tabBtn(!looking)}>
-            Teach from a link
-          </button>
-          <button onClick={() => setLooking(true)} className={tabBtn(looking)}>
-            Find a brand&rsquo;s old posts
-          </button>
-        </div>
-
         <section className="rounded-[22px] bg-surface p-5 shadow-card sm:p-7">
-          {!looking ? (
-            <form onSubmit={teach}>
-              <label className="mb-1.5 block text-[13px] font-medium text-ink-2">A post or campaign you rate</label>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <input
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  disabled={busy}
-                  placeholder="Paste a link: X, TikTok, YouTube, an article"
-                  className="h-11 min-w-0 flex-1 rounded-full bg-surface-3 px-4 text-[14.5px] outline-none placeholder:text-ink-3 focus:bg-surface focus:shadow-card"
-                />
-                <button type="submit" disabled={busy || !url.trim() || !view.ai} className="h-11 shrink-0 rounded-full bg-ink px-5 text-[14px] font-medium text-bg hover:opacity-90 disabled:opacity-40">
-                  {busy ? "Brian is thinking…" : "Teach Brian"}
-                </button>
-              </div>
-              <label className="mb-1.5 mt-4 block text-[13px] font-medium text-ink-2">Why you rate it (optional, but he learns most from this)</label>
-              <input
-                value={why}
-                onChange={(e) => setWhy(e.target.value)}
-                placeholder="e.g. one real act, rode the GTA hype, people shared it to laugh at themselves"
-                className="h-11 w-full rounded-full bg-surface-3 px-4 text-[14.5px] outline-none placeholder:text-ink-3 focus:bg-surface focus:shadow-card"
-              />
-              <p className="mt-3 text-[12.5px] text-ink-3">About $0.04 each. He can&rsquo;t watch videos, so for a video say what happens in it.</p>
-              {error && <p className="mt-3 text-[13.5px] text-bad">{error}</p>}
-            </form>
-          ) : (
-            <>
-              <p className="mb-5 text-[14px] text-ink-2">Pick a brand and a moment (like Stake, Halloween 2024) to see what they posted around it. Tick the posts that worked and teach them to Brian.</p>
-              <LookBack moments={view.lookback.moments} brands={view.lookback.brands} learned={view.lookback.learned} paid={view.lookback.paid} ai={view.ai} />
-            </>
-          )}
+          <h2 className="mb-4 text-[17px] font-semibold tracking-tight">Teach Brian</h2>
+          <TeachBox ai={view.ai} nodes={view.nodes} onNode={openNode} />
         </section>
-
-        {(busy || digest) && (
-          <section className="mt-6 rounded-[22px] bg-surface p-5 shadow-card sm:p-7">
-            <h2 className="text-[17px] font-semibold tracking-tight">{busy ? "Brian is reading it…" : "How Brian filed it"}</h2>
-            {busy && <div className="shimmer mt-4 h-3 w-2/3 rounded-full" />}
-            {digest && (
-              <ol className="mt-3">
-                {digest.thinking.slice(0, shown).map((t, i) => (
-                  <li key={i} className="grid animate-[rise_.5s_ease-out] grid-cols-1 gap-1 border-t border-line py-4 sm:grid-cols-[170px_1fr] sm:gap-6">
-                    <span className="text-[13px] font-medium text-ink-2">{t.step}</span>
-                    <p className="text-[15px] leading-relaxed">{t.thought}</p>
-                  </li>
-                ))}
-                {shown > digest.thinking.length && (
-                  <li className="animate-[rise_.5s_ease-out] border-t border-line pt-4">
-                    <p className="mb-3 text-[13px] font-medium text-ink-2">What changed in his brain</p>
-                    <div className="flex flex-wrap gap-2">
-                      {digest.touched.map((t) => {
-                        const n = view.nodes.find((x) => x.id === t.nodeId);
-                        if (!n) return null;
-                        return (
-                          <button key={t.nodeId} onClick={() => setSelected({ type: "node", id: n.id })} className="inline-flex max-w-full items-center gap-2 rounded-full bg-surface-3 px-3 py-1.5 text-left text-[13px] hover:bg-accent-soft">
-                            <span className={clsx("shrink-0 font-medium", t.change === "weaker" ? "text-bad" : "text-good")}>{t.change === "new" ? "New" : t.change === "stronger" ? "Stronger" : "Weaker"}</span>
-                            <span className="truncate">
-                              {n.brand ? `${n.brand}: ` : ""}
-                              {n.text}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </li>
-                )}
-              </ol>
-            )}
-          </section>
-        )}
 
         {view.questions.slice(0, 1).map((q) => (
           <Question key={q.id} q={q} />
         ))}
 
+        <Campaigns campaigns={view.campaigns} moments={view.lookback.moments} />
+
         <section className="mt-12">
           <h2 className="mb-3 text-[17px] font-semibold tracking-tight">What Brian has learned</h2>
-          <div className="grid gap-5 rounded-[22px] bg-surface p-5 shadow-card sm:p-6 md:grid-cols-[300px_1fr] md:items-center">
-            <div className="relative h-[220px] overflow-hidden rounded-[16px] bg-surface-2">
-              <BrainMesh formation={view.preview ?? view.nodes.length / FULL_BRAIN} points={points} links={links} highlight={hover ?? (selected?.type === "node" ? selected.id : null)} pulse={pulse} />
-            </div>
-            <div>
-              <div className="grid grid-cols-3 gap-4">
-                {ORDER.map((k) => (
-                  <div key={k}>
-                    <div className="display tabular text-[30px] leading-none">{counts[k]}</div>
-                    <div className="mt-1.5 text-[13px] text-ink-2">{KIND[k].plural}</div>
-                  </div>
-                ))}
-              </div>
-              <p className="mt-5 text-[13.5px] leading-relaxed text-ink-2">
-                Each dot is something he&rsquo;s learned, and lines join things learned from the same example. The more you teach him, the more it takes the shape of a brain. It&rsquo;s {formed}% formed.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-6 grid gap-6 md:grid-cols-3">
-            {ORDER.map((k) => {
-              const list = view.nodes.filter((n) => timeless(n) && n.kind === k).sort((a, b) => b.strength - a.strength);
-              return (
-                <div key={k}>
-                  <div className="mb-2 flex items-baseline justify-between">
-                    <span className="text-[14px] font-semibold">{KIND[k].plural}</span>
-                    <span className="text-[12.5px] text-ink-3">{list.length}</span>
-                  </div>
-                  {list.length === 0 ? (
-                    <p className="rounded-[16px] border border-dashed border-line-strong p-4 text-[13.5px] text-ink-3">Nothing yet.</p>
-                  ) : (
-                    <ul>
-                      {list.map((n) => (
-                        <li key={n.id}>
-                          <button
-                            onClick={() => setSelected({ type: "node", id: n.id })}
-                            onMouseEnter={() => setHover(n.id)}
-                            onMouseLeave={() => setHover(null)}
-                            className={clsx("mb-2 block w-full rounded-[16px] bg-surface p-4 text-left shadow-card transition hover:shadow-raised", n.health === "fading" && "opacity-40")}
-                          >
-                            <p className="text-[14.5px] leading-snug">
-                              {n.brand ? `${n.brand}: ` : ""}
-                              {n.text}
-                            </p>
-                            <div className="mt-3 flex items-center gap-2">
-                              <Ticks value={n.strength} />
-                              <span className="text-[12px] capitalize text-ink-3">{n.health}</span>
-                            </div>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              );
-            })}
+          <MiniBrain
+            nodes={view.nodes}
+            examples={view.examples}
+            highlight={hover ?? (selected?.type === "node" ? selected.id : null)}
+            preview={view.preview}
+            counts={[
+              { n: of("truth").length, label: "What our audience feels" },
+              { n: of("mechanic").length, label: "Why things spread" },
+              { n: of("industry").length, label: "What's been done" },
+            ]}
+            note="Each dot is something he's learned, and lines join things learned from the same example. The more you teach him, the more it takes the shape of a brain."
+          />
+          <div className="mt-6">
+            <KnowledgeColumns
+              columns={[
+                { title: "What our audience feels", nodes: of("truth") },
+                { title: "Why things spread", nodes: of("mechanic") },
+                { title: "What's been done", nodes: of("industry") },
+              ]}
+              onNode={openNode}
+              onHover={setHover}
+            />
           </div>
         </section>
 
-        <section className="mt-12">
-          <h2 className="text-[17px] font-semibold tracking-tight">Playbooks for moments</h2>
-          <p className="mb-3 mt-1 max-w-[680px] text-[13.5px] text-ink-2">
-            What Brian knows about specific moments, kept apart from what&rsquo;s always true. He only uses a playbook when he&rsquo;s coming up with ideas for that moment.
+        <ExampleList title="What you've taught him" examples={view.examples} onExample={(id) => setSelected({ type: "example", id })} onHover={setHover} />
+      </main>
+      <Drawer selected={selected} setSelected={setSelected} nodes={view.nodes} examples={view.examples} />
+    </div>
+  );
+}
+
+/** Campaign folders, each with its own Brian, and a way to start one. */
+function Campaigns({ campaigns, moments }: { campaigns: CampaignCard[]; moments: { title: string; date: string }[] }) {
+  const router = useRouter();
+  const [creating, setCreating] = useState(false);
+  const [name, setName] = useState("");
+  const [brief, setBrief] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // If the name is a recurring moment (Halloween, Black Friday…), the campaign follows it every year.
+  const titles = useMemo(() => [...new Set(moments.map((m) => m.title))], [moments]);
+  const moment = titles.find((t) => t.toLowerCase() === name.trim().toLowerCase());
+  const suggestions = name.trim().length > 1 && !moment ? titles.filter((t) => t.toLowerCase().includes(name.trim().toLowerCase())).slice(0, 5) : [];
+
+  async function create(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    const res = await fetch("/api/campaigns", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, moment, brief }) });
+    const json = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) return setError(json.error ?? "Couldn't start that campaign.");
+    router.push(`/campaigns/${json.id}`);
+  }
+
+  return (
+    <section className="mt-12">
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-3">
+        <div>
+          <h2 className="text-[17px] font-semibold tracking-tight">Campaigns</h2>
+          <p className="mt-1 max-w-[680px] text-[13.5px] text-ink-2">
+            Each campaign has its own Brian. Look at what worked before, teach it what you like, and get ideas, all kept inside the campaign so it never leaks into anything else.
           </p>
-          {playbooks.length === 0 ? (
-            <p className="rounded-[16px] border border-dashed border-line-strong p-5 text-[13.5px] text-ink-3">
-              None yet. Teach Brian posts made for a moment (find a brand&rsquo;s old posts around Halloween, say) and he builds a playbook for it.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {playbooks.map(([moment, nodes], i) => {
-                const wants = nodes.filter((n) => n.kind === "truth" || n.kind === "mechanic");
-                const cliches = nodes.filter((n) => n.kind === "cliche");
-                const done = nodes.filter((n) => n.kind === "industry");
-                const item = (n: Node, text: string, sub?: string) => (
-                  <li key={n.id}>
-                    <button onClick={() => setSelected({ type: "node", id: n.id })} className="w-full rounded-[12px] px-3 py-2 text-left text-[14px] leading-snug hover:bg-surface-2">
-                      {text}
-                      {sub && <span className="mt-0.5 block text-[12.5px] text-ink-3">{sub}</span>}
-                    </button>
-                  </li>
-                );
-                return (
-                  <details key={moment} open={i === 0} className="group rounded-[20px] bg-surface shadow-card">
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4">
-                      <span className="text-[15.5px] font-semibold">{moment}</span>
-                      <span className="text-[12.5px] text-ink-3">
-                        {nodes.length} thing{nodes.length === 1 ? "" : "s"} learned
-                        <span className="ml-2 inline-block transition group-open:rotate-180">▾</span>
-                      </span>
-                    </summary>
-                    <div className="grid gap-4 border-t border-line px-3 pb-4 pt-3 md:grid-cols-3">
-                      <div>
-                        <p className="px-3 pb-1 text-[12.5px] font-medium text-ink-2">What the audience wants</p>
-                        <ul>{wants.length ? wants.map((n) => item(n, n.text)) : <li className="px-3 py-2 text-[13px] text-ink-3">Nothing yet</li>}</ul>
-                      </div>
-                      <div>
-                        <p className="px-3 pb-1 text-[12.5px] font-medium text-ink-2">What everyone does (avoid)</p>
-                        <ul>{cliches.length ? cliches.map((n) => item(n, n.text)) : <li className="px-3 py-2 text-[13px] text-ink-3">Nothing yet</li>}</ul>
-                      </div>
-                      <div>
-                        <p className="px-3 pb-1 text-[12.5px] font-medium text-ink-2">What brands did, and the gap</p>
-                        <ul>{done.length ? done.map((n) => item(n, `${n.brand ? `${n.brand}: ` : ""}${n.text}`, n.gap ? `Gap: ${n.gap}` : undefined)) : <li className="px-3 py-2 text-[13px] text-ink-3">Nothing yet</li>}</ul>
-                      </div>
-                    </div>
-                  </details>
-                );
-              })}
+        </div>
+        {!creating && (
+          <button onClick={() => setCreating(true)} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-ink px-4 text-[14px] font-medium text-bg hover:opacity-90">
+            <Plus className="h-4 w-4" /> New campaign
+          </button>
+        )}
+      </div>
+
+      {creating && (
+        <form onSubmit={create} className="mb-4 rounded-[22px] bg-surface p-5 shadow-card sm:p-6">
+          <label className="mb-1.5 block text-[13px] font-medium text-ink-2">Name</label>
+          <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Halloween, GTA 6 launch, Fish game launch…" className="h-11 w-full rounded-full bg-surface-3 px-4 text-[14.5px] outline-none placeholder:text-ink-3 focus:bg-surface focus:shadow-card" />
+          {suggestions.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {suggestions.map((t) => (
+                <button type="button" key={t} onClick={() => setName(t)} className="rounded-full bg-surface-3 px-2.5 py-1 text-[12.5px] text-ink-2 hover:text-ink">
+                  {t}
+                </button>
+              ))}
             </div>
           )}
-        </section>
-
-        {view.examples.length > 0 && (
-          <section className="mt-12">
-            <h2 className="mb-3 text-[17px] font-semibold tracking-tight">What you&rsquo;ve taught him ({view.examples.length})</h2>
-            <ul className="grid gap-2 md:grid-cols-2">
-              {view.examples.map((x) => (
-                <li key={x.id}>
-                  <button
-                    onClick={() => setSelected({ type: "example", id: x.id })}
-                    onMouseEnter={() => setHover(x.id)}
-                    onMouseLeave={() => setHover(null)}
-                    className="block h-full w-full rounded-[16px] bg-surface p-4 text-left shadow-card transition hover:shadow-raised"
-                  >
-                    <div className="text-[12.5px] text-ink-3">
-                      {x.platform}
-                      {x.author ? ` · ${x.author}` : ""} · from {x.by}
-                    </div>
-                    <p className="mt-1 line-clamp-2 text-[15px] font-medium leading-snug">{x.title}</p>
-                    {x.lesson && <p className="mt-2 line-clamp-2 text-[13.5px] leading-relaxed text-ink-2">{x.lesson}</p>}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-      </main>
-
-      {selected && (
-        <>
-          <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm" onClick={() => setSelected(null)} />
-          <aside className="fixed inset-y-0 right-0 z-50 w-full max-w-[480px] animate-[slide_.25s_ease-out] overflow-y-auto bg-bg px-8 py-8 shadow-float">
-            <button onClick={() => setSelected(null)} className={clsx(MONO, "absolute right-8 top-8 text-[12px] hover:opacity-60")}>
-              Close
+          <p className="mt-2 text-[12.5px] text-ink-3">{moment ? `Follows ${moment} every year, so past ${moment}s are one click away.` : "One-off campaigns work too; you can add dates inside it."}</p>
+          <label className="mb-1.5 mt-4 block text-[13px] font-medium text-ink-2">What you want from it (optional)</label>
+          <textarea value={brief} onChange={(e) => setBrief(e.target.value)} rows={2} placeholder="e.g. Halloween for Cashy's degens: something people share, not another spooky giveaway" className="w-full resize-none rounded-[16px] bg-surface-3 px-4 py-3 text-[14.5px] outline-none placeholder:text-ink-3 focus:bg-surface focus:shadow-card" />
+          <div className="mt-4 flex items-center gap-2">
+            <button disabled={busy || !name.trim()} className="h-10 rounded-full bg-ink px-5 text-[14px] font-medium text-bg disabled:opacity-40">
+              {busy ? "Starting…" : "Start campaign"}
             </button>
-            {node && <NodePanel n={node} onExample={(id) => setSelected({ type: "example", id })} />}
-            {example && <ExamplePanel x={example} nodes={view.nodes} onNode={(id) => setSelected({ type: "node", id })} />}
-          </aside>
-        </>
+            <button type="button" onClick={() => setCreating(false)} className="h-10 rounded-full px-4 text-[14px] text-ink-2 hover:text-ink">
+              Cancel
+            </button>
+            {error && <span className="text-[13.5px] text-bad">{error}</span>}
+          </div>
+        </form>
       )}
-    </div>
-  );
-}
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="border-t border-line py-5">
-      <Label className="mb-2">{label}</Label>
-      {children}
-    </div>
-  );
-}
-
-const solid = "rounded-full bg-ink px-4 py-2 text-[13.5px] font-medium text-bg hover:opacity-90 disabled:opacity-40";
-const outline = "rounded-full bg-surface px-4 py-2 text-[13.5px] font-medium shadow-card hover:shadow-raised disabled:opacity-40";
-const area = "w-full resize-none border-b border-line bg-transparent py-2 text-[15px] outline-none placeholder:text-ink-3 focus:border-line-strong";
-
-function NodePanel({ n, onExample }: { n: Node; onExample: (id: string) => void }) {
-  const router = useRouter();
-  const [note, setNote] = useState("");
-  const [busy, setBusy] = useState(false);
-  async function judge(agree: boolean) {
-    setBusy(true);
-    await fetch(`/api/brain/nodes/${n.id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agree, note }) });
-    setBusy(false);
-    setNote("");
-    router.refresh();
-  }
-  return (
-    <div className="pt-6">
-      <Label>
-        {KIND[n.kind].name}
-        {n.moment ? ` · ${n.moment} only` : " · Always true"}
-      </Label>
-      <h3 className="mt-4 text-[24px] leading-snug tracking-[-0.01em]">{n.brand ? `${n.brand}: ${n.text}` : n.text}</h3>
-      <p className="mt-4 pb-6 text-[15.5px] leading-relaxed text-ink-2">{n.detail}</p>
-      {n.gap && (
-        <Field label="What could have been better">
-          <p className="text-[15.5px] leading-relaxed">{n.gap}</p>
-        </Field>
-      )}
-      <Field label="How sure I am">
-        <div className="flex items-center gap-3">
-          <Ticks value={n.strength} />
-          <Label className="text-ink">{n.health}</Label>
-        </div>
-        {n.used > 0 && (
-          <p className="mt-3 text-[14.5px]">
-            Built {plural(n.used, "idea")} on this: {n.liked} liked, {n.rejected} rejected.
-          </p>
-        )}
-      </Field>
-      <Field label="Where I learned it">
-        <ul className="space-y-3">
-          {n.evidence.map((e, i) => (
-            <li key={i}>
-              <button onClick={() => onExample(e.swipeId)} className="text-left hover:opacity-60">
-                <p className="text-[15px] underline decoration-line-strong underline-offset-4">{e.title}</p>
-                <p className="mt-1 text-[13.5px] text-ink-2">
-                  {e.supports ? "" : "Argues against it: "}
-                  {e.note}
-                </p>
-              </button>
+      {campaigns.length === 0 && !creating ? (
+        <p className="rounded-[16px] border border-dashed border-line-strong p-5 text-[13.5px] text-ink-3">No campaigns yet. Start one for Halloween, say, and teach its Brian from Halloweens gone by.</p>
+      ) : (
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {campaigns.map((c) => (
+            <li key={c.id}>
+              <Link href={`/campaigns/${c.id}`} className="block h-full rounded-[20px] bg-surface p-5 shadow-card transition hover:shadow-raised">
+                <div className="text-[16px] font-semibold">{c.name}</div>
+                <div className="mt-0.5 text-[12.5px] text-ink-3">{c.moment ? `Every ${c.moment}` : c.from ? `${c.from}${c.to ? ` to ${c.to}` : ""}` : "One-off"}</div>
+                <div className={clsx("mt-4 flex gap-4 text-[13px] text-ink-2")}>
+                  <span>{plural(c.learned, "thing")} learned</span>
+                  <span>{plural(c.examples, "example")}</span>
+                  <span>{plural(c.ideas, "idea")}</span>
+                </div>
+              </Link>
             </li>
           ))}
         </ul>
-      </Field>
-      {n.team.length > 0 && (
-        <Field label="What the team said">
-          <ul className="space-y-2 text-[15px]">
-            {n.team.map((t, i) => (
-              <li key={i}>
-                {t.by} {t.agree ? "agreed" : "disagreed"}
-                {t.note ? `: ${t.note}` : ""}
-              </li>
-            ))}
-          </ul>
-        </Field>
       )}
-      <Field label="Is this right about our audience?">
-        <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="A note, if you want" className={area} />
-        <div className="mt-5 flex gap-3">
-          <button disabled={busy} onClick={() => judge(true)} className={solid}>
-            Yes, that&rsquo;s right
-          </button>
-          <button disabled={busy} onClick={() => judge(false)} className={outline}>
-            No
-          </button>
-        </div>
-      </Field>
-    </div>
-  );
-}
-
-function ExamplePanel({ x, nodes, onNode }: { x: BrainView["examples"][number]; nodes: Node[]; onNode: (id: string) => void }) {
-  const router = useRouter();
-  const [note, setNote] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const formed = nodes.filter((n) => n.evidence.some((e) => e.swipeId === x.id));
-  async function correct() {
-    setBusy(true);
-    setError(null);
-    const res = await fetch(`/api/learning/${x.id}/feedback`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ verdict: "partly", note }) });
-    setBusy(false);
-    if (!res.ok) return setError((await res.json().catch(() => ({}))).error ?? "Couldn't send that");
-    setNote("");
-    router.refresh();
-  }
-  return (
-    <div className="pt-6">
-      <Label>
-        {x.platform}
-        {x.author ? ` · ${x.author}` : ""} · taught by {x.by}
-      </Label>
-      <h3 className="mt-4 text-[22px] leading-snug tracking-[-0.01em]">{x.title}</h3>
-      <a href={x.url} target="_blank" rel="noreferrer" className={clsx(MONO, "mt-3 mb-6 inline-block text-[12px] hover:opacity-60")}>
-        Open the original ↗
-      </a>
-      {x.why && (
-        <Field label="Why you rate it">
-          <p className="text-[15.5px] leading-relaxed">&ldquo;{x.why}&rdquo;</p>
-        </Field>
-      )}
-      {x.lesson && (
-        <Field label="The lesson">
-          <p className="text-[17px] leading-relaxed">{x.lesson}</p>
-        </Field>
-      )}
-      {x.notes.map((t, i) => (
-        <Field key={i} label={t.step}>
-          <p className="text-[15px] leading-relaxed text-ink-2">{t.thought}</p>
-        </Field>
-      ))}
-      {formed.length > 0 && (
-        <Field label="What it taught me">
-          <ul className="space-y-3">
-            {formed.map((n) => (
-              <li key={n.id}>
-                <button onClick={() => onNode(n.id)} className="text-left text-[15px] hover:opacity-60">
-                  <span className={clsx(MONO, "mr-2 text-[11px] text-ink-3")}>{KIND[n.kind].name}</span>
-                  {n.brand ? `${n.brand}: ` : ""}
-                  {n.text}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </Field>
-      )}
-      <Field label="Did I miss the point?">
-        <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} placeholder="Tell me what I got wrong. Your words become the truth I learn from." className={area} />
-        <button disabled={busy || !note.trim()} onClick={correct} className={clsx(solid, "mt-5")}>
-          {busy ? "Rethinking it…" : "Correct me"}
-        </button>
-        {error && <p className="mt-3 text-[14px]">{error}</p>}
-      </Field>
-    </div>
-  );
-}
-
-function Question({ q }: { q: BrainView["questions"][number] }) {
-  const router = useRouter();
-  const [text, setText] = useState("");
-  const [busy, setBusy] = useState(false);
-  async function answer() {
-    setBusy(true);
-    await fetch(`/api/brain/questions/${q.id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
-    setBusy(false);
-    router.refresh();
-  }
-  return (
-    <section className="mt-6 rounded-[22px] bg-accent-soft p-5 sm:p-7">
-      <Label className="text-ink">I&rsquo;m not sure about something</Label>
-      <p className="mt-4 text-[22px] leading-snug">{q.text}</p>
-      <div className="mt-5 flex items-center gap-2 rounded-full bg-surface p-1.5 pl-5 shadow-card">
-        <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Your answer" className="min-w-0 flex-1 bg-transparent py-2 text-[15px] outline-none placeholder:text-ink-3" />
-        <button disabled={busy || !text.trim()} onClick={answer} className="h-9 rounded-full bg-ink px-4 text-[13.5px] font-medium text-bg disabled:opacity-40">
-          Answer
-        </button>
-      </div>
     </section>
   );
 }

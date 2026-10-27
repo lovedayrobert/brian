@@ -46,7 +46,25 @@ function remember(moment: string, change: { add?: string[]; remove?: string[] })
  * posts that are, keeps the rest one click away, and points out words
  * nobody listed. Nothing to type.
  */
-export function LookBack({ moments, brands, learned: learnedAtStart, paid, ai }: { moments: Moment[]; brands: string[]; learned: Learned; paid: "history" | "recent" | "none"; ai: boolean }) {
+export function LookBack({
+  moments,
+  brands,
+  learned: learnedAtStart,
+  paid,
+  ai,
+  campaignId,
+  presetMoment,
+}: {
+  moments: Moment[];
+  brands: string[];
+  learned: Learned;
+  paid: "history" | "recent" | "none";
+  ai: boolean;
+  /** Teach into this campaign's Brian rather than the main Brian */
+  campaignId?: string;
+  /** The campaign's recurring moment: its past years become one-click picks */
+  presetMoment?: string;
+}) {
   const router = useRouter();
   const [handle, setHandle] = useState("");
   const [q, setQ] = useState("");
@@ -70,6 +88,7 @@ export function LookBack({ moments, brands, learned: learnedAtStart, paid, ai }:
     return moments.filter((m) => m.date <= today);
   }, [moments]);
   const matches = useMomentSearch(past, q);
+  const quick = presetMoment ? past.filter((m) => m.title === presetMoment).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4) : [];
 
   const window = custom ?? (moment ? { from: shift(moment.date, -4), to: shift(moment.date, 3) } : null);
   // The moments the words come from: the one picked, or any that fall inside your own dates.
@@ -146,6 +165,7 @@ export function LookBack({ moments, brands, learned: learnedAtStart, paid, ai }:
           event,
           why: `Picked from @${result.handle}'s posts ${event ? `around ${event}` : `from ${result.from} to ${result.to}`}.`,
           context: week && week !== "loading" ? weekLine(week) : undefined,
+          campaignId,
         }),
       });
       if (!res.ok) {
@@ -184,6 +204,15 @@ export function LookBack({ moments, brands, learned: learnedAtStart, paid, ai }:
         {!custom ? (
           <div className="self-start">
             <label className="mb-1.5 block text-[12.5px] font-medium text-ink-2">Moment</label>
+            {quick.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-1.5">
+                {quick.map((m) => (
+                  <button key={m.date} onClick={() => choose(m)} className={clsx("rounded-full px-2.5 py-1 text-[12px] transition", moment?.date === m.date ? "bg-ink text-bg" : "bg-surface-3 text-ink-2 hover:text-ink")}>
+                    {m.title} {m.date.slice(0, 4)}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="relative">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
               <input

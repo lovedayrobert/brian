@@ -1,4 +1,7 @@
+import { specialDays } from "@/lib/calendar/days";
+import { campaignById } from "@/lib/campaigns";
 import { generateIdeas } from "@/lib/pipeline/ideas";
+import { repo } from "@/lib/store";
 import { fail, requireUser , setActor } from "../_util";
 
 export const maxDuration = 300;
@@ -8,7 +11,7 @@ export async function POST(req: Request) {
   if (denied) return denied;
   setActor(req);
   try {
-    const { trendId, momentId, lens, steer, horizon, spark, swipeId, dayId } = (await req.json()) as {
+    const { trendId, momentId, lens, steer, horizon, spark, swipeId, dayId, campaignId } = (await req.json()) as {
       trendId?: string;
       momentId?: string;
       lens?: string;
@@ -17,15 +20,22 @@ export async function POST(req: Request) {
       spark?: string;
       swipeId?: string;
       dayId?: string;
+      campaignId?: string;
     };
     if (spark !== undefined && !spark.trim() && !swipeId) throw new Error("Write a starting point, or pick a post from the swipe file.");
+    // A campaign's ideas aim at its next moment (the next Halloween) and take the team's brief as direction.
+    const campaign = campaignById(await repo.read(), campaignId);
+    if (campaignId && !campaign) throw new Error("That campaign is gone.");
+    const today = new Date().toISOString().slice(0, 10);
+    const campaignDay = campaign?.moment ? specialDays(today, `${Number(today.slice(0, 4)) + 1}-12-31`).find((d) => d.title === campaign.moment)?.id : undefined;
     const result = await generateIdeas({
       brandId: "cashy",
       trendId,
       momentId,
-      dayId,
-      lens,
-      steer,
+      dayId: dayId ?? campaignDay,
+      campaignId,
+      lens: lens ?? (campaign && !campaignDay ? "blank-page" : undefined),
+      steer: steer ?? (campaign ? [`Ideas for the campaign "${campaign.name}".`, campaign.brief, campaign.from ? `It runs ${campaign.from}${campaign.to ? ` to ${campaign.to}` : ""}.` : ""].filter(Boolean).join(" ") : undefined),
       horizon: horizon === "reactive" || horizon === "evergreen" ? horizon : undefined,
       spark: spark !== undefined || swipeId ? { text: (spark ?? "").slice(0, 2000), swipeId } : undefined,
     });
