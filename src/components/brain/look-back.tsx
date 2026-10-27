@@ -4,12 +4,14 @@ import clsx from "clsx";
 import { Check, ChevronDown, Eye, Heart, Loader2, MessageCircle, Play, Plus, Repeat2, Search, Sparkles, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { relativeTime } from "@/lib/format";
 import { mentions, teamKeywords, tokens } from "@/lib/moment-keywords";
 import type { WeekContext } from "@/lib/week-context";
 
 type Media = { kind: "photo" | "video" | "gif"; url: string };
 type Post = { id: string; url: string; text: string; at: string; likes?: number; reposts?: number; replies?: number; views?: number; via: "twitterapi" | "x" | "wayback"; media: Media[]; author?: { name: string; avatar?: string } };
-type Result = { handle: string; from: string; to: string; posts: Post[]; others: Post[]; suggested: string[]; routes: { name: string; ok: boolean; note: string }[]; xSearchUrl: string; costUsd: number };
+type Result = { handle: string; from: string; to: string; posts: Post[]; others: Post[]; suggested: string[]; routes: { name: string; ok: boolean; note: string }[]; xSearchUrl: string; costUsd: number; reused?: boolean; at?: string; label?: string; paid?: boolean; keywords?: string[] };
+export type Research = { id: string; at: string; byName: string; label: string; handle: string; from: string; to: string; count: number; others: number };
 type Moment = { title: string; date: string };
 type Learned = Record<string, { added: string[]; removed: string[] }>;
 
@@ -54,6 +56,7 @@ export function LookBack({
   ai,
   campaignId,
   presetMoment,
+  history = [],
 }: {
   moments: Moment[];
   brands: string[];
@@ -64,6 +67,8 @@ export function LookBack({
   campaignId?: string;
   /** The campaign's recurring moment: its past years become one-click picks */
   presetMoment?: string;
+  /** Looks the team has already run: reopen them for free */
+  history?: Research[];
 }) {
   const router = useRouter();
   const [handle, setHandle] = useState("");
@@ -125,24 +130,59 @@ export function LookBack({
     setFocus(false);
   };
 
-  async function look(allowPaid: boolean) {
-    if (!window) return setError("Find a moment, or set your own dates.");
-    // What else was happening that week loads alongside the brand's posts.
+  // What else was happening that week loads alongside the brand's posts (cached after the first time, so free).
+  const loadWeek = (w: { from: string; to: string }) => {
     setWeek("loading");
-    fetch("/api/brain/week", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(window) })
+    fetch("/api/brain/week", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(w) })
       .then((r) => (r.ok ? r.json() : null))
-      .then((w) => setWeek(w))
+      .then((x) => setWeek(x))
       .catch(() => setWeek(null));
+  };
+
+  /** Reopen earlier research for free: the posts, the week, and the brand and moment it was for. */
+  async function reopen(r: Research) {
+    setBusy(true);
+    setError(null);
+    setPicked(new Set());
+    setShowOthers(false);
+    const res = await fetch(`/api/brain/lookback/${r.id}`);
+    const json = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) return setError(json.error ?? "Couldn't open that research.");
+    setHandle(`@${json.handle}`);
+    const m = moments.find((x) => `${x.title} ${x.date.slice(0, 4)}` === json.label);
+    if (m) {
+      setCustom(null);
+      choose(m);
+    } else setCustom({ from: json.from, to: json.to });
+    setResult(json);
+    loadWeek({ from: json.from, to: json.to });
+  }
+
+  async function look(allowPaid: boolean, fresh = false) {
+    if (!window) return setError("Find a moment, or set your own dates.");
+    loadWeek(window);
     setBusy(true);
     setError(null);
     setResult(null);
     setPicked(new Set());
     setShowOthers(false);
-    const res = await fetch("/api/brain/lookback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ handle, ...window, allowPaid, keywords: onlyAbout ? keywords : [], moment: sources.join(" and ") || undefined }) });
+    const res = await fetch("/api/brain/lookback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+        handle,
+        ...window,
+        allowPaid,
+        fresh,
+        keywords: onlyAbout ? keywords : [],
+        moment: sources.join(" and ") || undefined,
+        label: !custom && moment ? `${moment.title} ${moment.date.slice(0, 4)}` : undefined,
+        campaignId,
+      }),
+    });
     const json = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) return setError(json.error ?? "Couldn't look that up.");
     setResult(json);
+    router.refresh();
   }
 
   async function teach() {
@@ -187,6 +227,21 @@ export function LookBack({
 
   return (
     <div className="text-left">
+      {history.length > 0 && (
+        <div className="mb-6 rounded-[16px] bg-surface-2 p-4">
+          <p className="text-[13.5px] font-medium">Your research</p>
+          <p className="text-[12px] text-ink-3">Looks the team has already run. Reopen any of them for free.</p>
+          <ul className="mt-2.5 flex flex-wrap gap-1.5">
+            {history.slice(0, 12).map((r) => (
+              <li key={r.id}>
+                <button onClick={() => reopen(r)} disabled={busy} className="rounded-full bg-surface px-3 py-1.5 text-left text-[12.5px] shadow-card hover:shadow-raised disabled:opacity-50" title={`${r.count} posts, ${r.others} others · ${r.byName} · ${relativeTime(r.at)}`}>
+                  <span className="font-medium">@{r.handle}</span> · {r.label} <span className="text-ink-3">· {r.count} posts · {relativeTime(r.at)}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="mb-1.5 block text-[12.5px] font-medium text-ink-2">Brand on X</label>
@@ -356,7 +411,22 @@ export function LookBack({
         <div className="mt-8">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <p className="text-[14px] text-ink-2">
-              <span className="font-semibold text-ink">{result.posts.length} posts</span> from @{result.handle}, best first{result.costUsd ? ` · cost $${result.costUsd.toFixed(3)}` : " · free"}
+              <span className="font-semibold text-ink">{result.posts.length} posts</span> from @{result.handle}, best first
+              {result.reused ? (
+                <>
+                  {" "}
+                  · saved research from {result.at ? relativeTime(result.at) : "earlier"}, free{" "}
+                  {result.paid && (
+                    <button onClick={() => look(true, true)} disabled={busy} className="text-accent-ink hover:underline">
+                      Refresh (about $0.01)
+                    </button>
+                  )}
+                </>
+              ) : result.costUsd ? (
+                ` · cost $${result.costUsd.toFixed(3)}`
+              ) : (
+                " · free"
+              )}
             </p>
             <a href={result.xSearchUrl} target="_blank" rel="noreferrer" className="text-[13px] text-accent-ink hover:underline">
               Search this on X ↗

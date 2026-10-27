@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { ExampleView, LookbackView, NodeView, QuestionView } from "@/lib/brain-view";
 import type { Campaign } from "@/lib/domain/types";
-import { LookBack } from "./look-back";
+import { LookBack, type Research } from "./look-back";
 import { Drawer, ExampleList, KnowledgeColumns, MiniBrain, Question, TeachBox, plural } from "./shared";
 
 type Tab = "learn" | "brain" | "ideas";
@@ -25,6 +25,7 @@ export function CampaignApp({
   nodes,
   examples,
   questions,
+  research,
   ideas,
 }: {
   campaign: Campaign;
@@ -33,6 +34,7 @@ export function CampaignApp({
   nodes: NodeView[];
   examples: ExampleView[];
   questions: QuestionView[];
+  research: Research[];
   ideas: React.ReactNode[];
 }) {
   const router = useRouter();
@@ -122,7 +124,7 @@ export function CampaignApp({
               <p className="mb-5 text-[14px] text-ink-2">
                 Pick a brand and a {campaign.moment ? `past ${campaign.moment}` : "moment"} to see what they posted and what else was happening that week. Tick what worked: it&rsquo;s taught to this campaign&rsquo;s Brian only.
               </p>
-              <LookBack moments={lookback.moments} brands={lookback.brands} learned={lookback.learned} paid={lookback.paid} ai={ai} campaignId={campaign.id} presetMoment={campaign.moment} />
+              <LookBack moments={lookback.moments} brands={lookback.brands} learned={lookback.learned} paid={lookback.paid} ai={ai} campaignId={campaign.id} presetMoment={campaign.moment} history={research} />
             </>
           ) : (
             <TeachBox ai={ai} nodes={nodes} campaignId={campaign.id} campaignName={campaign.name} onNode={openNode} />

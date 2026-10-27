@@ -70,6 +70,8 @@ export interface DB {
   xUsage?: { month: string; reads: number; lastPull?: string; userId?: string };
   /** What Brian did on his own: reads, the morning Pulse, and idea runs on hot days */
   autopilot?: AutopilotState;
+  /** Every look-back the team has run, so research can be reopened for free */
+  looks?: import("@/lib/research").SavedLook[];
   /** Campaigns, each with its own contained mini Brian */
   campaigns?: Campaign[];
   /** What else was happening in a past week, cached per date window */

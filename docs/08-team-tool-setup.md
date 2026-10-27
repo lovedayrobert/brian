@@ -171,3 +171,7 @@ Since 27 Oct 2026 (Rob), learning is foldered by campaign, replacing the "playbo
 - **Campaigns** ("Halloween", "GTA 6 launch"…) each have their own Brian. Start one from Brian's page with New campaign; name it after a recurring moment and it follows that moment every year, with its past years one click away. Inside a campaign: **Teach it** (from brands' old posts around the moment, with what else was happening that week, or from a link), **What it's learned** (what the audience wants, what everyone does to avoid, what brands did and the gap), and **Ideas** (built from the campaign's Brian plus the main Brian's instincts, aimed at the campaign's next moment; about $0.70–1.50 a run).
 - **Nothing leaks.** What a campaign's Brian learns can't strengthen the main Brian or another campaign, even if it tries to link to them. Ideas for a special day automatically use that moment's campaign, if there is one.
 - **Teach Brian too**: on any campaign lesson that's true beyond the campaign, copies it into the main Brian. The campaign keeps its own copy. The team decides what generalises, not Brian.
+
+## Research history
+
+Every look-back is saved (`db.looks`, last 300). In a campaign's "Teach it" tab, **Your research** lists the looks for that campaign (and any look at the same moment run elsewhere); clicking one reopens it for free, with its week panel. Running the exact same look again (same brand, dates, words and route) reuses the saved one for free; "Refresh" re-reads it if you want the latest numbers.
