@@ -202,6 +202,8 @@ export interface Idea {
   madeBy?: string;
   /** The campaign it was made for, if any */
   campaignId?: string;
+  /** The team's verdict in the campaign's idea review */
+  review?: { verdict: "love" | "maybe" | "no"; reasons?: string[]; note?: string; by: string; at: string };
   /** The brain pieces (truths and mechanics) it was built on */
   builtOn?: string[];
   /** Which world it's about (streaming, sport, crypto…), for spreading ideas out. */
@@ -462,10 +464,25 @@ export interface Campaign {
   /** For one-off campaigns: when it runs */
   from?: string;
   to?: string;
-  /** What the team wants from it, in their words */
+  /** The brief in one paragraph (Brian's write-up, edited by the team): the campaign's north star */
   brief?: string;
+  /** The brief as the team answered it */
+  briefing?: CampaignBrief;
   createdBy: string;
   createdAt: string;
+}
+
+/** The team's answers to the brief conversation. */
+export interface CampaignBrief {
+  goals: string[];
+  goalNote?: string;
+  audience: string[];
+  angle?: string;
+  channels: string[];
+  musts?: string;
+  nogos?: string;
+  /** When the team signed the write-up off */
+  agreedAt?: string;
 }
 
 /** Brian's thinking while digesting one example, kept so it can be shown. */

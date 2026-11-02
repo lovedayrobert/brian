@@ -7,18 +7,16 @@ import { useState } from "react";
 import { BrianLogo } from "./brain/brian-mark";
 
 /**
- * One slim top bar across the whole app, in Brian's own style (after
- * Bittensor): his logo, then every area in small mono capitals. Brian is the
- * home screen; the other areas are one click away from anywhere. New features
- * go inside an existing area, never as a new item here. See CLAUDE.md.
+ * One slim top bar: Campaigns (home: every campaign's journey from brief to
+ * report), Brian (the main brain, learning from the present day), Calendar,
+ * and Settings. Rob, 2 Nov: the campaign journey is the product. Older pages
+ * (Today, Ideas, Results, Radar) stay reachable by link but aren't in the bar.
+ * New features go inside a step of the journey, never as a new item here.
  */
 const NAV = [
-  { href: "/", label: "Brian", also: [] as string[] },
-  { href: "/home", label: "Today", also: [] },
-  { href: "/ideas", label: "Ideas", also: ["/develop", "/mockups", "/review"] },
+  { href: "/", label: "Campaigns", also: ["/campaigns"] as string[] },
+  { href: "/brian", label: "Brian", also: [] },
   { href: "/calendar", label: "Calendar", also: [] },
-  { href: "/results", label: "Results", also: [] },
-  { href: "/radar", label: "Radar", also: [] },
 ];
 
 export interface ShellStatus {
@@ -45,8 +43,9 @@ export function Shell({ children, status }: { children: React.ReactNode; status:
 
   if (pathname === "/login") return <main className="px-4">{children}</main>;
 
-  const isActive = (href: string, also: string[] = []) => (href === "/" ? pathname === "/" || pathname.startsWith("/campaigns") : [href, ...also].some((h) => pathname.startsWith(h)));
-  const brian = pathname === "/";
+  const isActive = (href: string, also: string[] = []) => (href === "/" ? pathname === "/" || also.some((h) => pathname.startsWith(h)) : [href, ...also].some((h) => pathname.startsWith(h)));
+  // The journey pages lay themselves out (full-width steppers, full-screen creation and review).
+  const bare = pathname === "/" || pathname === "/brian" || pathname.startsWith("/campaigns");
   const low = status.budget != null && status.budgetLeft != null && status.budgetLeft < status.budget * 0.2;
   const signOut = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -114,7 +113,7 @@ export function Shell({ children, status }: { children: React.ReactNode; status:
         </div>
       )}
 
-      {brian ? (
+      {bare ? (
         children
       ) : (
         <main>

@@ -14,11 +14,11 @@ Brian is Cashy's AI marketing engine (Next.js 16, TypeScript, Anthropic SDK). If
 8. `docs/08-team-tool-setup.md`: calendar, Linear, CRM sheet, Google sign-in, model setup
 9. `docs/09-roadmap.md`: what comes next
 
-## Product rule: Brian first, everything one click away
+## Product rule: the campaign journey is the product
 
-Brian is the home screen (`/`): a brain the team teaches, which then thinks for them. Campaigns (`/campaigns/:id`) each have their own contained Brian, opened from his page. Every other area is one click away in a single slim top bar (Brian, Today, Ideas, Calendar, Results, Radar, Settings) in the app's own soft light style (Rob tried a Bittensor look on 22 Oct and asked to go back). Rob and Marko asked for this middle ground on 22 Oct 2026, after the old sidebar dashboard felt overcomplicated and a Brian-only screen hid the tools the team uses.
+Since 2 Nov 2026 (Rob): Brian is a campaign journey. Home (`/`) is Campaigns; each campaign runs **Brief → Research → Ideas → Plan → Report** (`/campaigns/:id/<step>`), with a stepper across the top and the agreed brief as a north star on every step. Each campaign has its own contained Brian. The main Brian (`/brian`) learns from the present day. The top bar is Campaigns · Brian · Calendar · Settings; older pages (Today `/home`, Ideas, Results, Radar) stay reachable by link but aren't in it. Plan and Report are being built next (phases 3 and 4); the one-by-one Ideas review is phase 2.
 
-**Never add an item to the top bar or a new top-level page**, and never put anything on Brian's screen that isn't teaching him, his brain, or his ideas. A new feature goes inside one of the spaces: as a tab (`src/components/section-tabs.tsx`), a panel, a section or a button on an existing page. If a feature doesn't clearly belong in one space, that's a sign it isn't needed yet. Ask before building it. Old URLs are redirected in `next.config.ts`; keep them working when moving things.
+**Never add an item to the top bar or a new top-level page**; new features go inside a step of the journey, and never put anything on Brian's screen that isn't teaching him, his brain, or his ideas. A new feature goes inside one of the spaces: as a tab (`src/components/section-tabs.tsx`), a panel, a section or a button on an existing page. If a feature doesn't clearly belong in one space, that's a sign it isn't needed yet. Ask before building it. Old URLs are redirected in `next.config.ts`; keep them working when moving things.
 
 Before adding anything, check it can be used without explanation by someone on the marketing team who has never seen Brian, and that an existing feature doesn't already do the job.
 

@@ -1,5 +1,5 @@
 import { logActivity } from "@/lib/activity";
-import type { BrainNode, Campaign } from "@/lib/domain/types";
+import type { BrainNode, Campaign, CampaignBrief } from "@/lib/domain/types";
 import type { DB } from "@/lib/store";
 import { newId, repo } from "@/lib/store";
 
@@ -110,4 +110,71 @@ export async function promoteToMain(nodeId: string, by: string): Promise<BrainNo
     logActivity(d, { by, type: "learning.feedback", text: `taught the main Brian a lesson from ${c?.name ?? "a campaign"}: “${n.text.slice(0, 80)}”` });
   });
   return made!;
+}
+
+/** The journey every campaign goes through. */
+export const STEPS = ["brief", "research", "ideas", "plan", "report"] as const;
+export type Step = (typeof STEPS)[number];
+
+/** Where a campaign is: the first step that isn't done yet. */
+export function currentStep(c: Campaign, counts: { learned: number; liked: number }): Step {
+  if (!c.briefing?.agreedAt) return "brief";
+  if (counts.learned < 3) return "research";
+  if (counts.liked < 1) return "ideas";
+  return "plan";
+}
+
+/** Save the team's answers as they go. */
+export async function saveBriefing(id: string, patch: Partial<CampaignBrief> & { brief?: string; from?: string; to?: string }): Promise<Campaign> {
+  let out: Campaign | undefined;
+  const text = (s?: string, n = 600) => (s === undefined ? undefined : s.trim().slice(0, n) || undefined);
+  const list = (xs?: string[]) => (xs === undefined ? undefined : xs.map((x) => String(x).trim().slice(0, 80)).filter(Boolean).slice(0, 12));
+  await repo.update((d) => {
+    const c = d.campaigns?.find((x) => x.id === id);
+    if (!c) throw new Error("That campaign is gone.");
+    const b: CampaignBrief = { goals: [], audience: [], channels: [], ...(c.briefing ?? {}) };
+    if (patch.goals) b.goals = list(patch.goals)!;
+    if (patch.audience) b.audience = list(patch.audience)!;
+    if (patch.channels) b.channels = list(patch.channels)!;
+    if (patch.goalNote !== undefined) b.goalNote = text(patch.goalNote);
+    if (patch.angle !== undefined) b.angle = text(patch.angle, 1000);
+    if (patch.musts !== undefined) b.musts = text(patch.musts);
+    if (patch.nogos !== undefined) b.nogos = text(patch.nogos);
+    if (patch.agreedAt !== undefined) b.agreedAt = patch.agreedAt || undefined;
+    c.briefing = b;
+    if (patch.brief !== undefined) c.brief = text(patch.brief, 2000);
+    if (patch.from !== undefined) c.from = /^\d{4}-\d{2}-\d{2}$/.test(patch.from) ? patch.from : undefined;
+    if (patch.to !== undefined) c.to = /^\d{4}-\d{2}-\d{2}$/.test(patch.to) ? patch.to : undefined;
+    out = { ...c };
+  });
+  return out!;
+}
+
+/** Brian writes the brief back in one paragraph, so the team can check he's understood (Sonnet, about $0.01). */
+export async function writeBrief(id: string): Promise<string> {
+  const db = await repo.read();
+  const c = campaignById(db, id);
+  if (!c) throw new Error("That campaign is gone.");
+  const b = c.briefing ?? { goals: [], audience: [], channels: [] };
+  const { callStructured } = await import("@/lib/adapters/model");
+  const z = await import("zod/v4");
+  const out = await callStructured({
+    agent: "analyst",
+    subject: `${c.name} brief`,
+    maxTokens: 1200,
+    schema: z.object({ brief: z.string().describe("One paragraph, 3-5 sentences, plain words, written as Brian to the team") }),
+    system:
+      "You are Brian, Cashy's marketing brain (Cashy is a crypto casino). The team has answered a short brief for a campaign. Write it back in one tight paragraph so they can check you've understood: what it's for, who it's for, what it's around and the angle, where it runs and when, and the lines it mustn't cross. Plain words, no hype, no bullet points, nothing they didn't say.",
+    prompt: [
+      `Campaign: ${c.name}${c.moment ? ` (every ${c.moment})` : ""}${c.from ? `, ${c.from}${c.to ? ` to ${c.to}` : ""}` : ""}`,
+      `Goal: ${[...b.goals, b.goalNote].filter(Boolean).join("; ") || "not said"}`,
+      `Audience: ${b.audience.join(", ") || "not said"}`,
+      `What it's around / the angle: ${b.angle || "not said"}`,
+      `Channels: ${b.channels.join(", ") || "not said"}`,
+      `Must-haves: ${b.musts || "none"}`,
+      `No-gos: ${b.nogos || "none"}`,
+    ].join("\n"),
+  });
+  await saveBriefing(id, { brief: out.brief });
+  return out.brief;
 }

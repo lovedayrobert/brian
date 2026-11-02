@@ -35,7 +35,22 @@ export async function POST(req: Request) {
       dayId: dayId ?? campaignDay,
       campaignId,
       lens: lens ?? (campaign && !campaignDay ? "blank-page" : undefined),
-      steer: steer ?? (campaign ? [`Ideas for the campaign "${campaign.name}".`, campaign.brief, campaign.from ? `It runs ${campaign.from}${campaign.to ? ` to ${campaign.to}` : ""}.` : ""].filter(Boolean).join(" ") : undefined),
+      // The agreed brief is the north star: its audience and channels shape the ideas, and its no-gos are hard lines.
+      steer:
+        steer ??
+        (campaign
+          ? [
+              `Ideas for the campaign "${campaign.name}".`,
+              campaign.brief,
+              campaign.briefing?.audience.length ? `For: ${campaign.briefing.audience.join(", ")}.` : "",
+              campaign.briefing?.channels.length ? `It runs on: ${campaign.briefing.channels.join(", ")}; every idea must work there.` : "",
+              campaign.briefing?.musts ? `It must: ${campaign.briefing.musts}.` : "",
+              campaign.briefing?.nogos ? `Hard line, never: ${campaign.briefing.nogos}.` : "",
+              campaign.from ? `It runs ${campaign.from}${campaign.to ? ` to ${campaign.to}` : ""}.` : "",
+            ]
+              .filter(Boolean)
+              .join(" ")
+          : undefined),
       horizon: horizon === "reactive" || horizon === "evergreen" ? horizon : undefined,
       spark: spark !== undefined || swipeId ? { text: (spark ?? "").slice(0, 2000), swipeId } : undefined,
     });
